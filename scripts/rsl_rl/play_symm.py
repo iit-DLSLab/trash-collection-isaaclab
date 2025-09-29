@@ -50,7 +50,7 @@ from isaaclab_rl.rsl_rl import RslRlOnPolicyRunnerCfg, RslRlVecEnvWrapper, expor
 from isaaclab_tasks.utils import get_checkpoint_path, parse_env_cfg
 
 # Import extensions to set up environment tasks
-import basic_locomotion_dls_isaaclab.tasks  # noqa: F401
+import trash_collection_isaaclab.tasks  # noqa: F401
 
 
 def main():

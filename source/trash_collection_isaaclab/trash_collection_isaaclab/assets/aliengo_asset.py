@@ -4,10 +4,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 import isaaclab.sim as sim_utils
-from basic_locomotion_dls_isaaclab.actuators import IdentifiedActuatorElectricCfg
+from trash_collection_isaaclab.actuators import IdentifiedActuatorElectricCfg
 from isaaclab.assets.articulation import ArticulationCfg
 
-from basic_locomotion_dls_isaaclab.assets import ISAAC_ASSET_DIR
+from trash_collection_isaaclab.assets import ISAAC_ASSET_DIR
 
 
 # Aliengo robot configuration from mujoco

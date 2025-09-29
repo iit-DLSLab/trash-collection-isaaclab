@@ -70,7 +70,7 @@ from datetime import datetime
 import isaaclab_tasks  # noqa: F401
 
 # Import DLS isaaclab tasks and envs.
-import basic_locomotion_dls_isaaclab.tasks  # noqa: F401
+import trash_collection_isaaclab.tasks  # noqa: F401
 
 import torch
 import gymnasium as gym

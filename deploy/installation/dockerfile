@@ -1,0 +1,55 @@
+FROM nvidia/cuda:12.8.0-devel-ubuntu22.04
+
+
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive \
+    CONDA_DIR=/opt/conda \
+    PATH=/opt/conda/bin:$PATH
+
+    
+# Install tkinter, pip, and gedit
+RUN apt-get update && apt-get install -y python3-tk
+RUN apt-get update && apt-get install -y python3-pip
+RUN apt-get update && apt-get install -y gedit
+
+
+# Install git
+RUN apt-get update && apt-get install -y git
+
+
+# Install Miniforge
+RUN apt-get update && \
+    apt-get install -y wget bzip2 ca-certificates libglib2.0-0 libxext6 libsm6 libxrender1 git && \
+    wget https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh -O /tmp/miniforge.sh && \
+    bash /tmp/miniforge.sh -b -p $CONDA_DIR && \
+    rm /tmp/miniforge.sh && \
+    conda init bash && \
+    conda clean -afy
+
+
+
+RUN conda create -n isaaclab_env python=3.11
+
+SHELL ["conda", "run", "-n", "isaaclab_env", "/bin/bash", "-c"]
+
+RUN pip install --upgrade pip 
+RUN pip install torch==2.7.0 torchvision==0.22.0 --index-url https://download.pytorch.org/whl/cu128
+RUN pip install "isaacsim[all,extscache]==5.0.0" --extra-index-url https://pypi.nvidia.com
+
+# Install acados
+RUN cd Quadruped-PyMPC/quadruped_pympc/acados && mkdir -p build
+RUN cd Quadruped-PyMPC/quadruped_pympc/acados/build && cmake -DACADOS_WITH_SYSTEM_BLASFEO:BOOL=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5 ..
+RUN cd Quadruped-PyMPC/quadruped_pympc/acados/build && make install -j4
+RUN pip install -e ./Quadruped-PyMPC/quadruped_pympc/acados/interfaces/acados_template
+RUN echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"/Quadruped-PyMPC/quadruped_pympc/acados/lib"' >> /root/.bashrc
+RUN echo 'export ACADOS_SOURCE_DIR="/Quadruped-PyMPC/quadruped_pympc/acados"' >> /root/.bashrc
+# Install Quadruped-PyMPC
+RUN cd Quadruped-PyMPC && pip install -e .
+
+
+# Set the shell to bash and configure the shell prompt and aliases
+RUN echo 'conda activate isaaclab_env' >> /root/.bashrc
+
+# Set the working directory and source the bashrc file
+WORKDIR /work/gturrisi
+RUN source /root/.bashrc

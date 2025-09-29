@@ -1,4 +1,4 @@
-"""Installation script for the 'basic_locomotion_dls_isaaclab' python package."""
+"""Installation script for the 'trash_collection_isaaclab' python package."""
 
 import os
 import toml
@@ -18,8 +18,8 @@ INSTALL_REQUIRES = [
 
 # Installation operation
 setup(
-    name="basic_locomotion_dls_isaaclab",
-    packages=["basic_locomotion_dls_isaaclab"],
+    name="trash_collection_isaaclab",
+    packages=["trash_collection_isaaclab"],
     author=EXTENSION_TOML_DATA["package"]["author"],
     maintainer=EXTENSION_TOML_DATA["package"]["maintainer"],
     url=EXTENSION_TOML_DATA["package"]["repository"],
