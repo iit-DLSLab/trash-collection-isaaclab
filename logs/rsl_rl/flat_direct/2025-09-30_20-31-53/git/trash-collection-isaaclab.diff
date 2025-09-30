@@ -1,0 +1,67 @@
+--- git status ---
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   deploy/mujoco/aliengo_z1_nogripper_arm_fixed.usd
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/aliengo_asset.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/assets/aliengo_z1_nogripper_arm_fixed.usd
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/locomotion_env.cpython-311.pyc
+	modified:   wandb/debug-internal.log
+	modified:   wandb/debug.log
+	modified:   wandb/latest-run
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	logs/rsl_rl/flat_direct/2025-09-30_20-24-57/
+	logs/rsl_rl/flat_direct/2025-09-30_20-31-53/
+	outputs/2025-09-30/20-24-57/
+	outputs/2025-09-30/20-31-53/
+	wandb/run-20250930_202501-hjjdwv8g/
+	wandb/run-20250930_203158-vdq2rtq4/
+
+no changes added to commit (use "git add" and/or "git commit -a") 
+
+
+--- git diff ---
+diff --git a/deploy/mujoco/aliengo_z1_nogripper_arm_fixed.usd b/deploy/mujoco/aliengo_z1_nogripper_arm_fixed.usd
+index aff5ca2..a5e6531 100644
+Binary files a/deploy/mujoco/aliengo_z1_nogripper_arm_fixed.usd and b/deploy/mujoco/aliengo_z1_nogripper_arm_fixed.usd differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/aliengo_asset.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/aliengo_asset.cpython-311.pyc
+index 0c2eea7..93422f8 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/aliengo_asset.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/aliengo_asset.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/aliengo_z1_nogripper_arm_fixed.usd b/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/aliengo_z1_nogripper_arm_fixed.usd
+index aff5ca2..a5e6531 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/aliengo_z1_nogripper_arm_fixed.usd and b/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/aliengo_z1_nogripper_arm_fixed.usd differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/locomotion_env.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/locomotion_env.cpython-311.pyc
+index 56069a3..c3de68c 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/locomotion_env.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/locomotion_env.cpython-311.pyc differ
+diff --git a/wandb/debug-internal.log b/wandb/debug-internal.log
+index 6e5206c..7d72668 120000
+--- a/wandb/debug-internal.log
++++ b/wandb/debug-internal.log
+@@ -1 +1 @@
+-run-20250930_200003-xd2cryzx/logs/debug-internal.log
+\ No newline at end of file
++run-20250930_203158-vdq2rtq4/logs/debug-internal.log
+\ No newline at end of file
+diff --git a/wandb/debug.log b/wandb/debug.log
+index 56305e1..b915c1f 120000
+--- a/wandb/debug.log
++++ b/wandb/debug.log
+@@ -1 +1 @@
+-run-20250930_200003-xd2cryzx/logs/debug.log
+\ No newline at end of file
++run-20250930_203158-vdq2rtq4/logs/debug.log
+\ No newline at end of file
+diff --git a/wandb/latest-run b/wandb/latest-run
+index ddd521e..62be9bd 120000
+--- a/wandb/latest-run
++++ b/wandb/latest-run
+@@ -1 +1 @@
+-run-20250930_200003-xd2cryzx
+\ No newline at end of file
++run-20250930_203158-vdq2rtq4
+\ No newline at end of file
