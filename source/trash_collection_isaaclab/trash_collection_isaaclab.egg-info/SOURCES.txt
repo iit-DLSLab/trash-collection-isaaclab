@@ -1,0 +1,9 @@
+pyproject.toml
+setup.py
+trash_collection_isaaclab/__init__.py
+trash_collection_isaaclab.egg-info/PKG-INFO
+trash_collection_isaaclab.egg-info/SOURCES.txt
+trash_collection_isaaclab.egg-info/dependency_links.txt
+trash_collection_isaaclab.egg-info/not-zip-safe
+trash_collection_isaaclab.egg-info/requires.txt
+trash_collection_isaaclab.egg-info/top_level.txt

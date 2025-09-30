@@ -1,0 +1,23 @@
+Metadata-Version: 2.4
+Name: trash_collection_isaaclab
+Version: 0.1.1
+Summary: Isaac Lab extension from the Dynamic Legged Systems (DLS) team at Italian Institute of Technology (IIT)
+Home-page: https://github.com/iit-DLSLab/basic-locomotion-dls-isaaclab/
+Author: DLS team
+Maintainer: DLS slaves
+License: Apache 2.0
+Keywords: extension,template,isaaclab
+Classifier: Natural Language :: English
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Isaac Sim :: 4.5.0
+Requires-Python: >=3.10
+Requires-Dist: psutil
+Dynamic: author
+Dynamic: classifier
+Dynamic: home-page
+Dynamic: keywords
+Dynamic: license
+Dynamic: maintainer
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
