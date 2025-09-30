@@ -78,7 +78,7 @@
 
     <worldbody>
 
-        <body name="trunk" pos="0 0 0.4">
+        <body name="base" pos="0 0 0.4">
             <inertial pos="0.00846406 0.00404455 -0.000762916" quat="-3.12625e-05 0.708321 0.00247254 0.705886"
                       mass="13.042" diaginertia="0.174706 0.161175 0.033357"/>
             <freejoint/>

@@ -1,0 +1,191 @@
+--- git status ---
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   deploy/mujoco/aliengo_z1_nogripper_arm_fixed.xml
+	modified:   scripts/rsl_rl/__pycache__/cli_args.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/__pycache__/__init__.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/__init__.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_cfg.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_electric.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_hydraulic.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/__init__.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/aliengo_asset.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/assets/aliengo_asset.py
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/__init__.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/custom_curriculums.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/custom_events.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/supervised_learning_networks.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/__init__.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/aliengo_env_cfg.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/locomotion_env.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/__pycache__/__init__.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/__pycache__/rsl_rl_ppo_cfg.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/aliengo_env_cfg.py
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/locomotion_env.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	deploy/mujoco/Payload/
+	deploy/mujoco/aliengo_z1_nogripper_arm_fixed.usd
+	deploy/mujoco/aliengo_z1_nogripper_arm_fixed.usda
+	logs/
+	outputs/2025-09-30/19-27-44/
+	outputs/2025-09-30/19-28-31/
+	outputs/2025-09-30/19-29-01/
+	outputs/2025-09-30/19-30-26/
+	outputs/2025-09-30/19-31-18/
+	outputs/2025-09-30/19-31-51/
+	outputs/2025-09-30/19-32-37/
+	outputs/2025-09-30/19-33-26/
+	outputs/2025-09-30/19-34-29/
+	outputs/2025-09-30/19-35-03/
+	outputs/2025-09-30/19-36-03/
+	outputs/2025-09-30/19-37-31/
+	outputs/2025-09-30/19-45-50/
+	source/trash_collection_isaaclab/trash_collection_isaaclab/assets/aliengo_z1_nogripper_arm_fixed.usd
+	wandb/
+
+no changes added to commit (use "git add" and/or "git commit -a") 
+
+
+--- git diff ---
+diff --git a/deploy/mujoco/aliengo_z1_nogripper_arm_fixed.xml b/deploy/mujoco/aliengo_z1_nogripper_arm_fixed.xml
+index 063da4d..f166dcf 100644
+--- a/deploy/mujoco/aliengo_z1_nogripper_arm_fixed.xml
++++ b/deploy/mujoco/aliengo_z1_nogripper_arm_fixed.xml
+@@ -78,7 +78,7 @@
+ 
+     <worldbody>
+ 
+-        <body name="trunk" pos="0 0 0.4">
++        <body name="base" pos="0 0 0.4">
+             <inertial pos="0.00846406 0.00404455 -0.000762916" quat="-3.12625e-05 0.708321 0.00247254 0.705886"
+                       mass="13.042" diaginertia="0.174706 0.161175 0.033357"/>
+             <freejoint/>
+diff --git a/scripts/rsl_rl/__pycache__/cli_args.cpython-311.pyc b/scripts/rsl_rl/__pycache__/cli_args.cpython-311.pyc
+index b097f26..6454214 100644
+Binary files a/scripts/rsl_rl/__pycache__/cli_args.cpython-311.pyc and b/scripts/rsl_rl/__pycache__/cli_args.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/__pycache__/__init__.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/__pycache__/__init__.cpython-311.pyc
+index 1a6b058..6d6543d 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/__pycache__/__init__.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/__pycache__/__init__.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/__init__.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/__init__.cpython-311.pyc
+index ebfb2e5..b3b68fb 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/__init__.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/__init__.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_cfg.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_cfg.cpython-311.pyc
+index f4514ae..e95afa4 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_cfg.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_cfg.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_electric.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_electric.cpython-311.pyc
+index ec0f676..9a907a0 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_electric.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_electric.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_hydraulic.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_hydraulic.cpython-311.pyc
+index d195670..4667a2a 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_hydraulic.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_hydraulic.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/__init__.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/__init__.cpython-311.pyc
+index 700cd84..2b5471b 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/__init__.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/__init__.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/aliengo_asset.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/aliengo_asset.cpython-311.pyc
+index 14df4a7..df4c3f6 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/aliengo_asset.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/aliengo_asset.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/aliengo_asset.py b/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/aliengo_asset.py
+index b7b518a..b299520 100644
+--- a/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/aliengo_asset.py
++++ b/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/aliengo_asset.py
+@@ -60,7 +60,7 @@ ALIENGO_CALF_ACTUATOR_CFG = IdentifiedActuatorElectricCfg(
+ ALIENGO_CFG = ArticulationCfg(
+     prim_path=None,
+     spawn=sim_utils.UsdFileCfg(
+-        usd_path=f"{ISAAC_ASSET_DIR}/aliengo_asset/aliengo_z1_nogripper_arm_fixed.usd",
++        usd_path=f"{ISAAC_ASSET_DIR}/aliengo_z1_nogripper_arm_fixed.usd",
+         activate_contact_sensors=True,
+         rigid_props=sim_utils.RigidBodyPropertiesCfg(
+             disable_gravity=False,
+@@ -82,7 +82,12 @@ ALIENGO_CFG = ArticulationCfg(
+             ".*R_hip_joint": 0.0,
+             ".*_thigh_joint": 0.9,
+             ".*_calf_joint": -1.8,
+-            ".arm*": 0.0,
++            "arm_joint1": 0.0,
++            "arm_joint2": 0.0,
++            "arm_joint3": 0.0,
++            "arm_joint4": 0.0,
++            "arm_joint5": 0.0,
++            "arm_joint6": 0.0,
+         },
+         joint_vel={".*": 0.0},
+     ),
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/__init__.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/__init__.cpython-311.pyc
+index 1abd621..d0946b7 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/__init__.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/__init__.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/custom_curriculums.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/custom_curriculums.cpython-311.pyc
+index 14f4158..c8a75c6 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/custom_curriculums.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/custom_curriculums.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/custom_events.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/custom_events.cpython-311.pyc
+index 54e40e7..1faac01 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/custom_events.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/custom_events.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/supervised_learning_networks.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/supervised_learning_networks.cpython-311.pyc
+index 7aa7280..40759c0 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/supervised_learning_networks.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/supervised_learning_networks.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/__init__.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/__init__.cpython-311.pyc
+index b4ca647..6e603ba 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/__init__.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/__init__.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/aliengo_env_cfg.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/aliengo_env_cfg.cpython-311.pyc
+index c2d20c1..6a049bb 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/aliengo_env_cfg.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/aliengo_env_cfg.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/locomotion_env.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/locomotion_env.cpython-311.pyc
+index f353adc..5edd9ef 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/locomotion_env.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/locomotion_env.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/__pycache__/__init__.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/__pycache__/__init__.cpython-311.pyc
+index 4783bf9..3bfa2f3 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/__pycache__/__init__.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/__pycache__/__init__.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/__pycache__/rsl_rl_ppo_cfg.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/__pycache__/rsl_rl_ppo_cfg.cpython-311.pyc
+index b4fb4b6..a04602a 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/__pycache__/rsl_rl_ppo_cfg.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/__pycache__/rsl_rl_ppo_cfg.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/aliengo_env_cfg.py b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/aliengo_env_cfg.py
+index 96c4199..fc3c75c 100644
+--- a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/aliengo_env_cfg.py
++++ b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/aliengo_env_cfg.py
+@@ -133,7 +133,7 @@ class AliengoFlatEnvCfg(DirectRLEnvCfg):
+     decimation = 4
+     action_scale = 0.5
+     action_space = 12
+-    observation_space = 48
++    observation_space = 48 + 12 #12 are the arm joints pos and vel
+     state_space = 0
+ 
+     use_clock_signal = True
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/locomotion_env.py b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/locomotion_env.py
+index a157364..8f7f4a5 100644
+--- a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/locomotion_env.py
++++ b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/locomotion_env.py
+@@ -179,13 +179,15 @@ class LocomotionEnv(DirectRLEnv):
+         if(self.cfg.use_filter_actions):
+             alpha = 0.8
+             temp = alpha * self._actions + (1 - alpha) * self._previous_actions
+-            self._processed_actions = self.cfg.action_scale * temp + self._robot.data.default_joint_pos
++            self._processed_actions = self.cfg.action_scale * temp + self._robot.data.default_joint_pos[:,0:12]
+         else:
+-            self._processed_actions = self.cfg.action_scale * self._actions + self._robot.data.default_joint_pos
++            self._processed_actions = self.cfg.action_scale * self._actions + self._robot.data.default_joint_pos[:,0:12]
+ 
+ 
+     def _apply_action(self):
+-        self._robot.set_joint_position_target(self._processed_actions)
++        processed_actions_with_arm = self._processed_actions.clone()
++        processed_actions_with_arm = torch.cat((processed_actions_with_arm, torch.zeros(self.num_envs, 6, device=self.device)), dim=1)
++        self._robot.set_joint_position_target(processed_actions_with_arm)
+ 
+ 
+ 
+@@ -247,7 +249,7 @@ class LocomotionEnv(DirectRLEnv):
+ 
+ 
+         # Add heightmap data to obs if needed
+-        if isinstance(self.cfg, AliengoRoughVisionEnvCfg) or isinstance(self.cfg, Go2RoughVisionEnvCfg) or isinstance(self.cfg, HyQRealRoughVisionEnvCfg) or isinstance(self.cfg, B2RoughVisionEnvCfg):
++        if isinstance(self.cfg, AliengoRoughVisionEnvCfg):
+             height_data = (
+                 self._height_scanner.data.pos_w[:, 2].unsqueeze(1) - self._height_scanner.data.ray_hits_w[..., 2] - 0.5
+             )

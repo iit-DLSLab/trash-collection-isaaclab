@@ -133,7 +133,7 @@ class AliengoFlatEnvCfg(DirectRLEnvCfg):
     decimation = 4
     action_scale = 0.5
     action_space = 12
-    observation_space = 48
+    observation_space = 48 + 12 #12 are the arm joints pos and vel
     state_space = 0
 
     use_clock_signal = True

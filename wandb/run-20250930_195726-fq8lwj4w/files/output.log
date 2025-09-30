@@ -1,0 +1,80 @@
+> /home/iit.local/gturrisi/isaaclab_ws_home/trash-collection-isaaclab/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/locomotion_env.py(521)_get_rewards()
+-> reward = torch.sum(torch.stack(list(rewards.values())), dim=0)
+*** NameError: name 'reward' is not defined
+tensor([-6.8366e+04, -6.6601e+10, -1.5905e+07, -1.4376e+07], device='cuda:0')
+tensor([1.1614e-37, 0.0000e+00, 0.0000e+00, 0.0000e+00], device='cuda:0')
+torch.Size([4])
+/home/iit.local/gturrisi/isaaclab_ws_home/IsaacLab/source/isaaclab/isaaclab/envs/mdp/events.py:606: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.detach().clone() or sourceTensor.detach().clone().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  actuator_joint_indices = torch.tensor(actuator.joint_indices, device=self.asset.device)
+> /home/iit.local/gturrisi/isaaclab_ws_home/trash-collection-isaaclab/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/locomotion_env.py(521)_get_rewards()
+-> reward = torch.sum(torch.stack(list(rewards.values())), dim=0)
+torch.Size([4])
+tensor([  -60260.6953, -8411872.0000, -5383347.5000, -1032719.8125],
+       device='cuda:0')
+> /home/iit.local/gturrisi/isaaclab_ws_home/trash-collection-isaaclab/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/locomotion_env.py(521)_get_rewards()
+-> reward = torch.sum(torch.stack(list(rewards.values())), dim=0)
+> /home/iit.local/gturrisi/isaaclab_ws_home/trash-collection-isaaclab/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/locomotion_env.py(521)_get_rewards()
+-> reward = torch.sum(torch.stack(list(rewards.values())), dim=0)
+tensor([-2.2964e+09, -1.9710e+07, -6.7070e+06, -1.1645e+10], device='cuda:0')
+> /home/iit.local/gturrisi/isaaclab_ws_home/trash-collection-isaaclab/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/locomotion_env.py(521)_get_rewards()
+-> reward = torch.sum(torch.stack(list(rewards.values())), dim=0)
+tensor([-4.3446e+08, -1.1760e+14, -9.5860e+06, -1.5401e+11], device='cuda:0')
+> /home/iit.local/gturrisi/isaaclab_ws_home/trash-collection-isaaclab/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/locomotion_env.py(521)_get_rewards()
+-> reward = torch.sum(torch.stack(list(rewards.values())), dim=0)
+tensor([-2.1331e+07, -9.3777e+09, -5.0918e+07, -1.6458e+12], device='cuda:0')
+tensor([0., 0., 0., 0.], device='cuda:0')
+tensor([0., 0., 0., 0.], device='cuda:0')
+tensor([5.0546e+03, 2.3184e+05, 2.1302e+02, 2.6107e+09], device='cuda:0')
+tensor([[-1.7003e+00, -6.2284e+01,  1.5609e+01,  3.0476e+01],
+        [ 8.4020e+00,  5.5269e+01,  4.7123e+02,  8.1592e+01],
+        [-4.8175e+00, -5.2187e+00,  3.9012e+00,  1.2139e+01],
+        [-3.4566e+03,  5.0946e+04, -6.5250e+01, -1.8004e+03]], device='cuda:0')
+tensor([[-1.7003e+00, -6.2284e+01,  1.5609e+01,  3.0476e+01,  0.0000e+00,
+         -7.5806e-01,  0.0000e+00,  0.0000e+00, -5.4936e+01,  1.1282e+00,
+         -2.6199e+01,  4.3955e+00, -1.7862e+00, -2.7222e+00,  1.9213e+02,
+          2.6749e+02, -2.8865e+02, -7.0566e+01],
+        [ 8.4020e+00,  5.5269e+01,  4.7123e+02,  8.1592e+01,  0.0000e+00,
+          0.0000e+00,  0.0000e+00,  0.0000e+00, -9.8248e+03, -1.6697e-01,
+         -2.0198e+01, -4.7378e+01,  1.0778e+01, -6.3783e+02,  1.9622e+04,
+          9.1170e+03, -3.0883e+03,  1.1739e+03],
+        [-4.8175e+00, -5.2187e+00,  3.9012e+00,  1.2139e+01,  0.0000e+00,
+          0.0000e+00,  0.0000e+00,  0.0000e+00,  3.3410e+02, -2.8070e+00,
+         -4.3318e+01, -8.2022e+00, -1.2356e+01, -2.4474e+02, -9.1616e+02,
+          6.5343e+02,  6.9475e+02,  2.2044e+02],
+        [-3.4566e+03,  5.0946e+04, -6.5250e+01, -1.8004e+03,  0.0000e+00,
+          0.0000e+00,  0.0000e+00,  0.0000e+00,  2.1254e+04,  5.6972e+03,
+         -2.0059e+04,  3.4950e+03,  7.0008e+02,  8.4587e+04,  1.5430e+05,
+          8.4591e+04, -1.2545e+05,  8.6335e+04]], device='cuda:0')
+Error executing job with overrides: []
+Traceback (most recent call last):
+  File "/home/iit.local/gturrisi/isaaclab_ws_home/IsaacLab/source/isaaclab_tasks/isaaclab_tasks/utils/hydra.py", line 101, in hydra_main
+    func(env_cfg, agent_cfg, *args, **kwargs)
+  File "/home/iit.local/gturrisi/isaaclab_ws_home/trash-collection-isaaclab/scripts/rsl_rl/train.py", line 141, in main
+    runner.learn(num_learning_iterations=agent_cfg.max_iterations, init_at_random_ep_len=True)
+  File "/home/iit.local/gturrisi/miniforge3/envs/isaaclab_env/lib/python3.11/site-packages/rsl_rl/runners/on_policy_runner.py", line 206, in learn
+    obs, rewards, dones, infos = self.env.step(actions.to(self.env.device))
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/iit.local/gturrisi/isaaclab_ws_home/IsaacLab/source/isaaclab_rl/isaaclab_rl/rsl_rl/vecenv_wrapper.py", line 176, in step
+    obs_dict, rew, terminated, truncated, extras = self.env.step(actions)
+                                                   ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/iit.local/gturrisi/miniforge3/envs/isaaclab_env/lib/python3.11/site-packages/gymnasium/wrappers/common.py", line 393, in step
+    return super().step(action)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/iit.local/gturrisi/miniforge3/envs/isaaclab_env/lib/python3.11/site-packages/gymnasium/core.py", line 327, in step
+    return self.env.step(action)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/iit.local/gturrisi/isaaclab_ws_home/IsaacLab/source/isaaclab/isaaclab/envs/direct_rl_env.py", line 373, in step
+    self.reward_buf = self._get_rewards()
+                      ^^^^^^^^^^^^^^^^^^^
+  File "/home/iit.local/gturrisi/isaaclab_ws_home/trash-collection-isaaclab/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/locomotion_env.py", line 521, in _get_rewards
+    reward = torch.sum(torch.stack(list(rewards.values())), dim=0)
+             ^^^^^
+  File "/home/iit.local/gturrisi/miniforge3/envs/isaaclab_env/lib/python3.11/bdb.py", line 90, in trace_dispatch
+    return self.dispatch_line(frame)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/iit.local/gturrisi/miniforge3/envs/isaaclab_env/lib/python3.11/bdb.py", line 115, in dispatch_line
+    if self.quitting: raise BdbQuit
+                      ^^^^^^^^^^^^^
+bdb.BdbQuit
+
+Set the environment variable HYDRA_FULL_ERROR=1 for a complete stack trace.

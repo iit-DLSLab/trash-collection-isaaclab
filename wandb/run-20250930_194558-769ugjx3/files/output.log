@@ -1,0 +1,67 @@
+/home/iit.local/gturrisi/isaaclab_ws_home/IsaacLab/source/isaaclab/isaaclab/envs/mdp/events.py:606: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.detach().clone() or sourceTensor.detach().clone().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  actuator_joint_indices = torch.tensor(actuator.joint_indices, device=self.asset.device)
+################################################################################
+                       [1m Learning iteration 0/500 [0m
+
+                       Computation: 39 steps/s (collection: 2.232s, learning 0.228s)
+             Mean action noise std: 1.00
+          Mean value_function loss: inf
+               Mean surrogate loss: 0.0000
+                 Mean entropy loss: 17.0273
+                       Mean reward: -48317358856928468992.00
+               Mean episode length: 1.00
+   Episode_Reward/track_height_exp: 0.0000
+Episode_Reward/track_lin_vel_xy_exp: 0.0000
+ Episode_Reward/track_lin_vel_z_l2: -14288702285021184.0000
+Episode_Reward/track_orientation_l2: -0.0026
+Episode_Reward/track_ang_vel_xy_l2: -1415934444136562688.0000
+Episode_Reward/track_ang_vel_z_exp: 0.0000
+ Episode_Reward/undesired_contacts: -0.0046
+     Episode_Reward/action_rate_l2: -0.0001
+Episode_Reward/action_smoothness_l2: -0.0000
+  Episode_Reward/joints_hip_pos_l2: -5880578048.0000
+Episode_Reward/joints_thigh_pos_l2: -0.0009
+ Episode_Reward/joints_calf_pos_l2: -1068476928.0000
+      Episode_Reward/joints_acc_l2: -985645035372412928.0000
+  Episode_Reward/joints_torques_l2: -99.4097
+   Episode_Reward/joints_energy_l1: -117567040.0000
+      Episode_Reward/feet_air_time: 0.0000
+Episode_Reward/feet_height_clearance: 0.0000
+Episode_Reward/feet_height_clearance_mujoco: 0.0000
+         Episode_Reward/feet_slide: 0.0000
+Episode_Reward/feet_contact_suggestion: 0.0000
+Episode_Reward/feet_to_base_distance_l2: 0.0000
+Episode_Reward/feet_to_hip_distance_l2: -0.0004
+Episode_Reward/feet_vertical_surface_contacts: -0.0000
+  Episode_Termination/base_contact: 4.0000
+      Episode_Termination/time_out: 0.0000
+--------------------------------------------------------------------------------
+                   Total timesteps: 96
+                    Iteration time: 2.46s
+                      Time elapsed: 00:00:02
+                               ETA: 00:20:29
+
+Could not find git repository in /home/iit.local/gturrisi/miniforge3/envs/isaaclab_env/lib/python3.11/site-packages/rsl_rl/__init__.py. Skipping.
+Storing git diff for 'trash-collection-isaaclab' in: /home/iit.local/gturrisi/isaaclab_ws_home/trash-collection-isaaclab/logs/rsl_rl/flat_direct/2025-09-30_19-45-51/git/trash-collection-isaaclab.diff
+/home/iit.local/gturrisi/isaaclab_ws_home/IsaacLab/source/isaaclab/isaaclab/envs/mdp/events.py:606: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.detach().clone() or sourceTensor.detach().clone().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  actuator_joint_indices = torch.tensor(actuator.joint_indices, device=self.asset.device)
+Error executing job with overrides: []
+Traceback (most recent call last):
+  File "/home/iit.local/gturrisi/isaaclab_ws_home/IsaacLab/source/isaaclab_tasks/isaaclab_tasks/utils/hydra.py", line 101, in hydra_main
+    func(env_cfg, agent_cfg, *args, **kwargs)
+  File "/home/iit.local/gturrisi/isaaclab_ws_home/trash-collection-isaaclab/scripts/rsl_rl/train.py", line 141, in main
+    runner.learn(num_learning_iterations=agent_cfg.max_iterations, init_at_random_ep_len=True)
+  File "/home/iit.local/gturrisi/miniforge3/envs/isaaclab_env/lib/python3.11/site-packages/rsl_rl/runners/on_policy_runner.py", line 262, in learn
+    loss_dict = self.alg.update()
+                ^^^^^^^^^^^^^^^^^
+  File "/home/iit.local/gturrisi/miniforge3/envs/isaaclab_env/lib/python3.11/site-packages/rsl_rl/algorithms/ppo.py", line 260, in update
+    self.policy.act(obs_batch, masks=masks_batch, hidden_states=hid_states_batch[0])
+  File "/home/iit.local/gturrisi/miniforge3/envs/isaaclab_env/lib/python3.11/site-packages/rsl_rl/modules/actor_critic.py", line 122, in act
+    return self.distribution.sample()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/iit.local/gturrisi/miniforge3/envs/isaaclab_env/lib/python3.11/site-packages/torch/distributions/normal.py", line 74, in sample
+    return torch.normal(self.loc.expand(shape), self.scale.expand(shape))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: normal expects all elements of std >= 0.0
+
+Set the environment variable HYDRA_FULL_ERROR=1 for a complete stack trace.

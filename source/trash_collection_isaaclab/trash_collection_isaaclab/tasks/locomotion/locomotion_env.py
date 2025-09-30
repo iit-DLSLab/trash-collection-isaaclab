@@ -179,13 +179,16 @@ class LocomotionEnv(DirectRLEnv):
         if(self.cfg.use_filter_actions):
             alpha = 0.8
             temp = alpha * self._actions + (1 - alpha) * self._previous_actions
-            self._processed_actions = self.cfg.action_scale * temp + self._robot.data.default_joint_pos
+            self._processed_actions = self.cfg.action_scale * temp + self._robot.data.default_joint_pos[:,0:12]
         else:
-            self._processed_actions = self.cfg.action_scale * self._actions + self._robot.data.default_joint_pos
+            self._processed_actions = self.cfg.action_scale * self._actions + self._robot.data.default_joint_pos[:,0:12]
 
 
     def _apply_action(self):
-        self._robot.set_joint_position_target(self._processed_actions)
+        processed_actions_with_arm = self._processed_actions.clone()
+        #breakpoint()
+        processed_actions_with_arm = torch.cat((processed_actions_with_arm, torch.zeros(self.num_envs, 6, device=self.device)), dim=1)
+        self._robot.set_joint_position_target(processed_actions_with_arm)
 
 
 
@@ -247,7 +250,7 @@ class LocomotionEnv(DirectRLEnv):
 
 
         # Add heightmap data to obs if needed
-        if isinstance(self.cfg, AliengoRoughVisionEnvCfg) or isinstance(self.cfg, Go2RoughVisionEnvCfg) or isinstance(self.cfg, HyQRealRoughVisionEnvCfg) or isinstance(self.cfg, B2RoughVisionEnvCfg):
+        if isinstance(self.cfg, AliengoRoughVisionEnvCfg):
             height_data = (
                 self._height_scanner.data.pos_w[:, 2].unsqueeze(1) - self._height_scanner.data.ray_hits_w[..., 2] - 0.5
             )

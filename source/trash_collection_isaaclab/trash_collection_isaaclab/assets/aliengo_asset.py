@@ -56,11 +56,23 @@ ALIENGO_CALF_ACTUATOR_CFG = IdentifiedActuatorElectricCfg(
     friction_dynamic=friction_dynamic_mujoco,
 )
 
+ALIENGO_ARM_ACTUATOR_CFG = IdentifiedActuatorElectricCfg(
+    joint_names_expr=["arm_joint.*"],
+    effort_limit=10.0,
+    velocity_limit=5.0,
+    saturation_effort=10.0,
+    stiffness=50.0,
+    damping=5.0,
+    armature=0.01,
+    friction_static=0.1,
+    activation_vel=0.1,
+    friction_dynamic=0.1,
+)
 
 ALIENGO_CFG = ArticulationCfg(
     prim_path=None,
     spawn=sim_utils.UsdFileCfg(
-        usd_path=f"{ISAAC_ASSET_DIR}/aliengo_asset/aliengo_z1_nogripper_arm_fixed.usd",
+        usd_path=f"{ISAAC_ASSET_DIR}/aliengo_z1_nogripper_arm_fixed.usd",
         activate_contact_sensors=True,
         rigid_props=sim_utils.RigidBodyPropertiesCfg(
             disable_gravity=False,
@@ -82,11 +94,17 @@ ALIENGO_CFG = ArticulationCfg(
             ".*R_hip_joint": 0.0,
             ".*_thigh_joint": 0.9,
             ".*_calf_joint": -1.8,
-            ".arm*": 0.0,
+            "arm_joint1": 0.0,
+            "arm_joint2": 0.0,
+            "arm_joint3": 0.0,
+            "arm_joint4": 0.0,
+            "arm_joint5": 0.0,
+            "arm_joint6": 0.0,
         },
         joint_vel={".*": 0.0},
     ),
 
-    actuators={"hip": ALIENGO_HIP_ACTUATOR_CFG, "thigh": ALIENGO_THIGH_ACTUATOR_CFG, "calf": ALIENGO_CALF_ACTUATOR_CFG},
+    actuators={"hip": ALIENGO_HIP_ACTUATOR_CFG, "thigh": ALIENGO_THIGH_ACTUATOR_CFG, "calf": ALIENGO_CALF_ACTUATOR_CFG,
+               "arm": ALIENGO_ARM_ACTUATOR_CFG},
     soft_joint_pos_limit_factor=0.95,
 )
