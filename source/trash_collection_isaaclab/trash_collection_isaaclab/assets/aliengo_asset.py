@@ -60,7 +60,7 @@ ALIENGO_CALF_ACTUATOR_CFG = IdentifiedActuatorElectricCfg(
 ALIENGO_CFG = ArticulationCfg(
     prim_path=None,
     spawn=sim_utils.UsdFileCfg(
-        usd_path=f"{ISAAC_ASSET_DIR}/aliengo_asset/from_xml/aliengo.usd",
+        usd_path=f"{ISAAC_ASSET_DIR}/aliengo_asset/aliengo_z1_nogripper_arm_fixed.usd",
         activate_contact_sensors=True,
         rigid_props=sim_utils.RigidBodyPropertiesCfg(
             disable_gravity=False,
@@ -82,6 +82,7 @@ ALIENGO_CFG = ArticulationCfg(
             ".*R_hip_joint": 0.0,
             ".*_thigh_joint": 0.9,
             ".*_calf_joint": -1.8,
+            ".arm*": 0.0,
         },
         joint_vel={".*": 0.0},
     ),

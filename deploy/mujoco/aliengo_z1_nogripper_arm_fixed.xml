@@ -1,4 +1,4 @@
-<mujoco model="aliengo_description">
+<mujoco model="aliengo_z1_nogripper_arm_fixed">
     <compiler angle="radian" autolimits="true"/>
 
     <default>
@@ -128,7 +128,10 @@
                               quat="0.707107 0 0.707107 0"/>
 
                         <!-- FL_foot only collision -->
-                        <geom name="FL" class="collision" size="0.0265" pos="0 0 -0.25"/>
+                        <body name="FL_foot" pos="0 0 -0.25">
+                            <!-- FL_foot only collision -->
+                            <geom name="FL" class="collision" size="0.0265" pos="0 0 0" />
+                        </body>
                     </body>
                 </body>
             </body>
@@ -164,8 +167,10 @@
                         <geom type="box" class="collision" size="0.125 0.0104 0.008" pos="0 0 -0.125"
                               quat="0.707107 0 0.707107 0"/>
 
-                        <!-- FR_foot only collision -->
-                        <geom name="FR" class="collision" size="0.0265" pos="0 0 -0.25"/>
+                        <body name="FR_foot" pos="0 0 -0.25">
+                            <!-- FR_foot only collision -->
+                            <geom name="FR" class="collision" size="0.0265" pos="0 0 0" />
+                        </body>
                     </body>
                 </body>
             </body>
@@ -201,8 +206,10 @@
                         <geom type="box" class="collision" size="0.125 0.0104 0.008" pos="0 0 -0.125"
                               quat="0.707107 0 0.707107 0"/>
 
-                        <!-- RL_foot only collision -->
-                        <geom name="RL" class="collision" size="0.0265" pos="0 0 -0.25"/>
+                        <body name="RL_foot" pos="0 0 -0.25">
+                            <!-- RL_foot only collision -->
+                            <geom name="RL" class="collision" size="0.0265" pos="0 0 0" />
+                        </body>
                     </body>
                 </body>
             </body>
@@ -238,8 +245,10 @@
                         <geom type="box" class="collision" size="0.125 0.0104 0.008" pos="0 0 -0.125"
                               quat="0.707107 0 0.707107 0"/>
 
-                        <!-- RR_foot only collision -->
-                        <geom name="RR" class="collision" size="0.0265" pos="0 0 -0.25"/>
+                        <body name="RR_foot" pos="0 0 -0.25">
+                            <!-- RR_foot only collision -->
+                            <geom name="RR" class="collision" size="0.0265" pos="0 0 0" />
+                        </body>
                     </body>
                 </body>
             </body>
@@ -253,12 +262,12 @@
                 <body name="link01" pos="0 0 0.0585">
                     <inertial pos="2.47e-06 -0.00025198 0.0231717" quat="0.708578 0.705633 0.000281462 -0.000355927" mass="0.673326"
                     diaginertia="0.00128328 0.000839362 0.000719308"/>
-                    <joint name="joint1" axis="0 0 1" range="-2.61799 2.61799"/>
+                    <joint name="arm_joint1" axis="0 0 1" range="-2.61799 2.61799"/>
                     <geom class="visual" mesh="z1_Link01"/>
                     <body name="link02" pos="0 0 0.045">
                     <inertial pos="-0.110126 0.00240029 0.00158266" quat="0.00748058 0.707092 -0.0114473 0.70699" mass="1.19132"
                         diaginertia="0.0246612 0.0243113 0.00100468"/>
-                    <joint name="joint2" axis="0 1 0" range="0 2.96706" damping="2"/>
+                    <joint name="arm_joint2" axis="0 1 0" range="0 2.96706" damping="2"/>
                     <geom class="visual" mesh="z1_Link02"/>
                     <geom size="0.0325 0.051" quat="1 1 0 0" class="collision_arm"/>
                     <geom size="0.0225 0.1175" pos="-0.1625 0 0" quat="1 0 1 0" class="collision_arm"/>
@@ -266,25 +275,25 @@
                     <body name="link03" pos="-0.35 0 0">
                         <inertial pos="0.106092 -0.00541815 0.0347638" quat="0.540557 0.443575 0.426319 0.573839" mass="0.839409"
                         diaginertia="0.00954365 0.00938711 0.000558432"/>
-                        <joint name="joint3" axis="0 1 0" range="-2.87979 0"/>
+                        <joint name="arm_joint3" axis="0 1 0" range="-2.87979 0"/>
                         <geom class="visual" mesh="z1_Link03"/>
                         <geom size="0.02 0.058" pos="0.128 0 0.055" quat="1 0 1 0" class="collision_arm"/>
                         <geom size="0.0325 0.0295" pos="0.2205 0 0.055" quat="0.5 -0.5 0.5 0.5" class="collision_arm"/>
                         <body name="link04" pos="0.218 0 0.057">
                         <inertial pos="0.0436668 0.00364738 -0.00170192" quat="0.0390835 0.726445 -0.0526787 0.684087"
                             mass="0.564046" diaginertia="0.000981656 0.00094053 0.000302655"/>
-                        <joint name="joint4" axis="0 1 0" range="-1.51844 1.51844"/>
+                        <joint name="arm_joint4" axis="0 1 0" range="-1.51844 1.51844"/>
                         <geom class="visual" mesh="z1_Link04"/>
                         <geom size="0.0325 0.0335" pos="0.072 0 0" class="collision_arm"/>
                         <body name="link05" pos="0.07 0 0">
                             <inertial pos="0.0312153 0 0.00646316" quat="0.462205 0.535209 0.53785 0.45895" mass="0.389385"
                             diaginertia="0.000558961 0.000547317 0.000167332"/>
-                            <joint name="joint5" axis="0 0 1" range="-1.3439 1.3439"/>
+                            <joint name="arm_joint5" axis="0 0 1" range="-1.3439 1.3439"/>
                             <geom class="visual" mesh="z1_Link05"/>
                             <body name="link06" pos="0.0492 0 0">
                             <inertial pos="0.0241569 -0.00017355 -0.00143876" quat="0.998779 0.0457735 -0.00663717 0.0173548"
                                 mass="0.288758" diaginertia="0.00018333 0.000147464 0.000146786"/>
-                            <joint name="joint6" axis="1 0 0" range="-2.79253 2.79253"/>
+                            <joint name="arm_joint6" axis="1 0 0" range="-2.79253 2.79253"/>
                             <geom class="visual" mesh="z1_Link06"/>
                             <geom size="0.0325 0.0255" pos="0.0255 0 0" quat="1 0 1 0" class="collision_arm"/>
                             <site name="attachment_site" size="0.01" pos="0.15 0 0" quat="-1 1 1 1" rgba="1 0 0 1" group="1"/>
@@ -313,7 +322,6 @@
             </body>
 
 
-
         </body>
     </worldbody>
 
@@ -330,49 +338,13 @@
         <motor name="RR_hip"   class="hip"    gear="1" joint="RR_hip_joint"/>
         <motor name="RR_thigh" class="thigh"  gear="1" joint="RR_thigh_joint"/>
         <motor name="RR_calf"  class="calf"   gear="1" joint="RR_calf_joint" />
-
-        <general name="motor1" joint="joint1" ctrlrange="-2.61799 2.61799"/>
-        <general name="motor2" joint="joint2" ctrlrange="0 2.96706" forcerange="-60 60" gainprm="1500"
-        biasprm="0 -1500 -150"/>
-        <general name="motor3" joint="joint3" ctrlrange="-2.87979 0"/>
-        <general name="motor4" joint="joint4" ctrlrange="-1.51844 1.51844"/>
-        <general name="motor5" joint="joint5" ctrlrange="-1.3439 1.3439"/>
-        <general name="motor6" joint="joint6" ctrlrange="-2.79253 2.79253"/>
     </actuator>
 
     <sensor>
-
-        <jointpos name="FL_hip_pos"     joint="FL_hip_joint"/>
-        <jointpos name="FL_thigh_pos"   joint="FL_thigh_joint"/>
-        <jointpos name="FL_calf_pos"    joint="FL_calf_joint"/>
-        <jointpos name="FR_hip_pos"     joint="FR_hip_joint"/>
-        <jointpos name="FR_thigh_pos"   joint="FR_thigh_joint"/>
-        <jointpos name="FR_calf_pos"    joint="FR_calf_joint"/>
-        <jointpos name="RL_hip_pos"     joint="RL_hip_joint"/>
-        <jointpos name="RL_thigh_pos"   joint="RL_thigh_joint"/>
-        <jointpos name="RL_calf_pos"    joint="RL_calf_joint"/>
-        <jointpos name="RR_hip_pos"     joint="RR_hip_joint"/>
-        <jointpos name="RR_thigh_pos"   joint="RR_thigh_joint"/>
-        <jointpos name="RR_calf_pos"    joint="RR_calf_joint" />
-
-        <jointvel name="FL_hip_vel"     joint="FL_hip_joint"/>
-        <jointvel name="FL_thigh_vel"   joint="FL_thigh_joint"/>
-        <jointvel name="FL_calf_vel"    joint="FL_calf_joint"/>
-        <jointvel name="FR_hip_vel"     joint="FR_hip_joint"/>
-        <jointvel name="FR_thigh_vel"   joint="FR_thigh_joint"/>
-        <jointvel name="FR_calf_vel"    joint="FR_calf_joint"/>
-        <jointvel name="RL_hip_vel"     joint="RL_hip_joint"/>
-        <jointvel name="RL_thigh_vel"   joint="RL_thigh_joint"/>
-        <jointvel name="RL_calf_vel"    joint="RL_calf_joint"/>
-        <jointvel name="RR_hip_vel"     joint="RR_hip_joint"/>
-        <jointvel name="RR_thigh_vel"   joint="RR_thigh_joint"/>
-        <jointvel name="RR_calf_vel"    joint="RR_calf_joint" />
-
         <accelerometer name="accelerometer" site="imu"/>
         <gyro name="gyro" site="imu"/>
         <framepos name="imu_pos" objtype="site" objname="imu"/>
         <framequat name="imu_quat" objtype="site" objname="imu"/>
-
     </sensor>
 
 
