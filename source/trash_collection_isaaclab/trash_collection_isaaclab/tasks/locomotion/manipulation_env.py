@@ -186,7 +186,7 @@ class LocomotionEnv(DirectRLEnv):
 
     def _apply_action(self):
         processed_actions_with_arm = self._processed_actions.clone()
-        #TODO randomize pd target arms?
+        #breakpoint()
         processed_actions_with_arm = torch.cat((processed_actions_with_arm, torch.zeros(self.num_envs, 6, device=self.device)), dim=1)
         self._robot.set_joint_position_target(processed_actions_with_arm)
 
