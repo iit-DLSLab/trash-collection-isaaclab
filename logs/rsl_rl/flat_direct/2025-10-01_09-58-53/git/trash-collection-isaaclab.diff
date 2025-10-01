@@ -1,0 +1,334 @@
+--- git status ---
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   scripts/rsl_rl/__pycache__/cli_args.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/__pycache__/__init__.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/__init__.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_cfg.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_electric.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_hydraulic.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/__init__.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/aliengo_asset.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/assets/aliengo_asset.py
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/__init__.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/custom_curriculums.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/custom_events.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/supervised_learning_networks.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/__init__.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/aliengo_env_cfg.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/locomotion_env.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/__pycache__/__init__.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/__pycache__/rsl_rl_ppo_cfg.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/rsl_rl_ppo_cfg.py
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/aliengo_env_cfg.py
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/locomotion_env.py
+	modified:   wandb/debug-internal.log
+	modified:   wandb/debug.log
+	modified:   wandb/latest-run
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	logs/rsl_rl/flat_direct/2025-10-01_09-24-49/
+	logs/rsl_rl/flat_direct/2025-10-01_09-26-52/
+	logs/rsl_rl/flat_direct/2025-10-01_09-32-05/
+	logs/rsl_rl/flat_direct/2025-10-01_09-47-19/
+	logs/rsl_rl/flat_direct/2025-10-01_09-54-09/
+	logs/rsl_rl/flat_direct/2025-10-01_09-55-51/
+	logs/rsl_rl/flat_direct/2025-10-01_09-58-53/
+	outputs/2025-10-01/
+	wandb/run-20251001_092501-d9myidrx/
+	wandb/run-20251001_092659-eo2j1u4d/
+	wandb/run-20251001_093212-436sfk29/
+	wandb/run-20251001_094726-9232o1at/
+	wandb/run-20251001_095429-85v1g3w0/
+	wandb/run-20251001_095611-5wrmtgaj/
+	wandb/run-20251001_095913-we9bk0sd/
+
+no changes added to commit (use "git add" and/or "git commit -a") 
+
+
+--- git diff ---
+diff --git a/scripts/rsl_rl/__pycache__/cli_args.cpython-311.pyc b/scripts/rsl_rl/__pycache__/cli_args.cpython-311.pyc
+index 6454214..b097f26 100644
+Binary files a/scripts/rsl_rl/__pycache__/cli_args.cpython-311.pyc and b/scripts/rsl_rl/__pycache__/cli_args.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/__pycache__/__init__.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/__pycache__/__init__.cpython-311.pyc
+index 6d6543d..1a6b058 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/__pycache__/__init__.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/__pycache__/__init__.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/__init__.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/__init__.cpython-311.pyc
+index b3b68fb..ebfb2e5 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/__init__.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/__init__.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_cfg.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_cfg.cpython-311.pyc
+index e95afa4..f4514ae 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_cfg.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_cfg.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_electric.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_electric.cpython-311.pyc
+index 9a907a0..ec0f676 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_electric.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_electric.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_hydraulic.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_hydraulic.cpython-311.pyc
+index 4667a2a..d195670 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_hydraulic.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_hydraulic.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/__init__.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/__init__.cpython-311.pyc
+index 2b5471b..700cd84 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/__init__.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/__init__.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/aliengo_asset.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/aliengo_asset.cpython-311.pyc
+index 93422f8..35c320a 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/aliengo_asset.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/aliengo_asset.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/aliengo_asset.py b/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/aliengo_asset.py
+index d289ce7..01f3209 100644
+--- a/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/aliengo_asset.py
++++ b/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/aliengo_asset.py
+@@ -58,10 +58,10 @@ ALIENGO_CALF_ACTUATOR_CFG = IdentifiedActuatorElectricCfg(
+ 
+ ALIENGO_ARM_ACTUATOR_CFG = IdentifiedActuatorElectricCfg(
+     joint_names_expr=["arm_joint.*"],
+-    effort_limit=10.0,
+-    velocity_limit=5.0,
++    effort_limit=30.0, #TODO, the joint2 has 60 as limits
++    velocity_limit=3.1415,
+     saturation_effort=10.0,
+-    stiffness=50.0,
++    stiffness=150.0,
+     damping=5.0,
+     armature=0.01,
+     friction_static=0.1,
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/__init__.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/__init__.cpython-311.pyc
+index d0946b7..1abd621 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/__init__.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/__init__.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/custom_curriculums.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/custom_curriculums.cpython-311.pyc
+index c8a75c6..14f4158 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/custom_curriculums.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/custom_curriculums.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/custom_events.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/custom_events.cpython-311.pyc
+index 1faac01..54e40e7 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/custom_events.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/custom_events.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/supervised_learning_networks.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/supervised_learning_networks.cpython-311.pyc
+index 40759c0..7aa7280 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/supervised_learning_networks.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/supervised_learning_networks.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/__init__.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/__init__.cpython-311.pyc
+index 6e603ba..b4ca647 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/__init__.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/__init__.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/aliengo_env_cfg.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/aliengo_env_cfg.cpython-311.pyc
+index 6a049bb..9d00b65 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/aliengo_env_cfg.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/aliengo_env_cfg.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/locomotion_env.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/locomotion_env.cpython-311.pyc
+index c3de68c..f23bb2e 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/locomotion_env.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/locomotion_env.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/__pycache__/__init__.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/__pycache__/__init__.cpython-311.pyc
+index 3bfa2f3..4783bf9 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/__pycache__/__init__.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/__pycache__/__init__.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/__pycache__/rsl_rl_ppo_cfg.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/__pycache__/rsl_rl_ppo_cfg.cpython-311.pyc
+index a04602a..3b825dd 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/__pycache__/rsl_rl_ppo_cfg.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/__pycache__/rsl_rl_ppo_cfg.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/rsl_rl_ppo_cfg.py b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/rsl_rl_ppo_cfg.py
+index bd1dd26..8b65ad4 100644
+--- a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/rsl_rl_ppo_cfg.py
++++ b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/rsl_rl_ppo_cfg.py
+@@ -50,7 +50,7 @@ class MorphologycalSymmetriesCfg:
+ @configclass
+ class FlatPPORunnerCfg(RslRlOnPolicyRunnerCfg):
+     num_steps_per_env = 24
+-    max_iterations = 500
++    max_iterations = 1000
+     save_interval = 50
+     experiment_name = "flat_direct"
+     empirical_normalization = False
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/aliengo_env_cfg.py b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/aliengo_env_cfg.py
+index fc3c75c..4e68c81 100644
+--- a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/aliengo_env_cfg.py
++++ b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/aliengo_env_cfg.py
+@@ -133,7 +133,9 @@ class AliengoFlatEnvCfg(DirectRLEnvCfg):
+     decimation = 4
+     action_scale = 0.5
+     action_space = 12
+-    observation_space = 48 + 12 #12 are the arm joints pos and vel
++    observation_space = 48
++    observation_space += 12 #12 are the arm joints pos and vel
++    observation_space += 2 # 2 are for pose commands
+     state_space = 0
+ 
+     use_clock_signal = True
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/locomotion_env.py b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/locomotion_env.py
+index 5f9fd7c..a1385a0 100644
+--- a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/locomotion_env.py
++++ b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/locomotion_env.py
+@@ -42,7 +42,9 @@ class LocomotionEnv(DirectRLEnv):
+         )
+ 
+         # X/Y linear velocity and yaw angular velocity commands
+-        self._commands = torch.zeros(self.num_envs, 3, device=self.device)
++        self._velocity_commands = torch.zeros(self.num_envs, 3, device=self.device)
++        self._pose_commands = torch.zeros(self.num_envs, 2, device=self.device) # roll pitch. #TODO height
++
+ 
+         # Swing peak
+         self._swing_peak = torch.tensor([0.0, 0.0, 0.0, 0.0], device=self.device).repeat(self.num_envs,1)
+@@ -203,7 +205,7 @@ class LocomotionEnv(DirectRLEnv):
+         if(self.cfg.use_clock_signal):
+             clock_data = torch.vstack([self._phase_signal[:,0], self._phase_signal[:,1], self._phase_signal[:,2], self._phase_signal[:,3]]).T
+             # all the envs that are not moving, we put -1
+-            should_move = torch.norm(self._commands[:, :3], dim=1) > 0.01
++            should_move = torch.norm(self._velocity_commands[:, :3], dim=1) > 0.01
+             clock_data[:, :] = clock_data[:, :]*should_move.unsqueeze(1).expand(-1, 4) + -1.0* ~should_move.unsqueeze(1).expand(-1, 4)
+             
+ 
+@@ -233,7 +235,8 @@ class LocomotionEnv(DirectRLEnv):
+                     velocity_b,
+                     angular_velocity_b,
+                     projected_gravity_b,
+-                    self._commands,
++                    self._velocity_commands,
++                    self._pose_commands,
+                     self._robot.data.joint_pos - self._robot.data.default_joint_pos,
+                     self._robot.data.joint_vel,
+                     self._actions,
+@@ -312,7 +315,7 @@ class LocomotionEnv(DirectRLEnv):
+ 
+ 
+         # linear velocity tracking
+-        lin_vel_error = torch.sum(torch.square(self._commands[:, :2] - self._robot.data.root_lin_vel_b[:, :2]), dim=1)
++        lin_vel_error = torch.sum(torch.square(self._velocity_commands[:, :2] - self._robot.data.root_lin_vel_b[:, :2]), dim=1)
+         lin_vel_error_mapped = torch.exp(-lin_vel_error / 0.25)
+         
+ 
+@@ -348,7 +351,8 @@ class LocomotionEnv(DirectRLEnv):
+         root_roll_w = torch.atan2(torch.sin(root_roll_w), torch.cos(root_roll_w))
+         root_pitch_w = torch.atan2(torch.sin(root_pitch_w), torch.cos(root_pitch_w))
+         
+-        base_orientation =  torch.square(terrain_pitch - root_pitch_w)# + torch.square(0 - root_roll_w)
++        #base_orientation =  torch.square(terrain_pitch - root_pitch_w)# + torch.square(0 - root_roll_w)
++        base_orientation =  torch.square(terrain_pitch + self._pose_commands[:,0] - root_pitch_w)# + torch.square(0 + self._pose_commands[:,1] - root_roll_w)
+ 
+ 
+         # angular velocity x/y tracking
+@@ -356,7 +360,7 @@ class LocomotionEnv(DirectRLEnv):
+ 
+ 
+         # yaw rate tracking
+-        yaw_rate_error = torch.square(self._commands[:, 2] - self._robot.data.root_ang_vel_b[:, 2])
++        yaw_rate_error = torch.square(self._velocity_commands[:, 2] - self._robot.data.root_ang_vel_b[:, 2])
+         yaw_rate_error_mapped = torch.exp(-yaw_rate_error / 0.25)
+         
+         
+@@ -407,7 +411,7 @@ class LocomotionEnv(DirectRLEnv):
+         first_contact = self._contact_sensor.compute_first_contact(self.step_dt)[:, self._feet_ids]
+         last_air_time = self._contact_sensor.data.last_air_time[:, self._feet_ids]
+         feet_air_time = torch.sum((last_air_time - 0.5) * first_contact, dim=1) * (
+-            torch.norm(self._commands[:, :2], dim=1) > 0.1
++            torch.norm(self._velocity_commands[:, :2], dim=1) > 0.1
+         )
+ 
+ 
+@@ -419,7 +423,7 @@ class LocomotionEnv(DirectRLEnv):
+ 
+ 
+         # feet periodical contacts suggestion
+-        should_move = torch.norm(self._commands[:, :3], dim=1) > 0.01
++        should_move = torch.norm(self._velocity_commands[:, :3], dim=1) > 0.01
+         self._phase_signal += self.step_dt * self._step_freq
+         self._phase_signal = self._phase_signal % 1.0
+         contact_periodic_on = self._phase_signal < self._duty_factor
+@@ -562,7 +566,7 @@ class LocomotionEnv(DirectRLEnv):
+             # robots that walked far enough progress to harder terrains
+             move_up = distance > self._terrain.cfg.terrain_generator.size[0] / 2
+             # robots that walked less than half of their required distance go to simpler terrains
+-            move_down = distance < torch.norm(self._commands[env_ids, :2], dim=1) * self.max_episode_length_s * 0.5
++            move_down = distance < torch.norm(self._velocity_commands[env_ids, :2], dim=1) * self.max_episode_length_s * 0.5
+             move_down *= ~move_up
+             # update terrain levels
+             self._terrain.update_env_origins(env_ids, move_up, move_down)
+@@ -577,10 +581,11 @@ class LocomotionEnv(DirectRLEnv):
+         self._previous_previous_actions[env_ids] = 0.0
+         
+         # Sample new commands
+-        self._commands[env_ids] = torch.zeros_like(self._commands[env_ids]).uniform_(-1.0, 1.0)
+-        self._commands[env_ids, 0] *= 0.5 * self._velocity_gait_multiplier
+-        self._commands[env_ids, 1] *= 0.25 
+-        self._commands[env_ids, 2] *= 0.3 
++        self._velocity_commands[env_ids] = torch.zeros_like(self._velocity_commands[env_ids]).uniform_(-1.0, 1.0)
++        self._velocity_commands[env_ids, 0] *= 0.5 * self._velocity_gait_multiplier
++        self._velocity_commands[env_ids, 1] *= 0.25 
++        self._velocity_commands[env_ids, 2] *= 0.3 
++        self._pose_commands[env_ids] = torch.zeros_like(self._pose_commands[env_ids])
+ 
+         # Reset swing peak
+         self._swing_peak[env_ids] = torch.tensor([0.0, 0.0, 0.0, 0.0], device=self.device)
+@@ -628,22 +633,23 @@ class LocomotionEnv(DirectRLEnv):
+ 
+ 
+     def _get_new_random_commands(self):
+-        resample_time = self.episode_length_buf == self.max_episode_length - 200
+-        commands_resample = torch.zeros_like(self._commands).uniform_(-1.0, 1.0)
++        resample_time = self.episode_length_buf == self.max_episode_length - 300
++        commands_resample = torch.zeros_like(self._velocity_commands).uniform_(-1.0, 1.0)
+         commands_resample[:, 0] *= 0.5 * self._velocity_gait_multiplier
+         commands_resample[:, 1] *= 0.25 
+         commands_resample[:, 2] *= 0.3 
+-        self._commands[:, :3] = self._commands[:, :3] * ~resample_time.unsqueeze(1).expand(-1, 3) + commands_resample * resample_time.unsqueeze(1).expand(-1, 3)
++        self._velocity_commands[:, :3] = self._velocity_commands[:, :3] * ~resample_time.unsqueeze(1).expand(-1, 3) + commands_resample * resample_time.unsqueeze(1).expand(-1, 3)
+ 
+-        # Stop
+-        rest_time = self.episode_length_buf >= self.max_episode_length - 50
+-        self._commands[:, :3] *= ~rest_time.unsqueeze(1).expand(-1, 3)        
++        # Stop and small pose commands
++        rest_time = self.episode_length_buf >= self.max_episode_length - 150
++        self._velocity_commands[:, :3] *= ~rest_time.unsqueeze(1).expand(-1, 3)       
++        self._pose_commands = torch.zeros_like(self._pose_commands).uniform_(-0.3, 0.3) * rest_time.unsqueeze(1).expand(-1, 2)     
+ 
+         # Took some envs, and put to zero the vel
+         if self.num_envs > 100:
+             num_fixed_envs = 100
+             fixed_env_ids = torch.arange(num_fixed_envs, device=self.device)
+-            self._commands[fixed_env_ids, :3] *= 0.0
++            self._velocity_commands[fixed_env_ids, :3] *= 0.0
+ 
+ 
+     def _get_cuncurrent_state_estimation(self, clock_data):
+@@ -655,7 +661,8 @@ class LocomotionEnv(DirectRLEnv):
+                     self._imu.data.lin_acc_b,
+                     self._imu.data.ang_vel_b,
+                     self._robot.data.projected_gravity_b,
+-                    self._commands,
++                    self._velocity_commands,
++                    self._pose_commands,
+                     self._robot.data.joint_pos - self._robot.data.default_joint_pos,
+                     self._robot.data.joint_vel,
+                     self._actions,
+@@ -708,7 +715,8 @@ class LocomotionEnv(DirectRLEnv):
+                     self._imu.data.lin_acc_b,
+                     self._imu.data.ang_vel_b,
+                     self._robot.data.projected_gravity_b,
+-                    self._commands,
++                    self._velocity_commands,
++                    self._pose_commands,
+                     self._robot.data.joint_pos - self._robot.data.default_joint_pos,
+                     self._robot.data.joint_vel,
+                     self._actions,
+diff --git a/wandb/debug-internal.log b/wandb/debug-internal.log
+index 7d72668..bca5bf5 120000
+--- a/wandb/debug-internal.log
++++ b/wandb/debug-internal.log
+@@ -1 +1 @@
+-run-20250930_203158-vdq2rtq4/logs/debug-internal.log
+\ No newline at end of file
++run-20251001_095913-we9bk0sd/logs/debug-internal.log
+\ No newline at end of file
+diff --git a/wandb/debug.log b/wandb/debug.log
+index b915c1f..30e1d16 120000
+--- a/wandb/debug.log
++++ b/wandb/debug.log
+@@ -1 +1 @@
+-run-20250930_203158-vdq2rtq4/logs/debug.log
+\ No newline at end of file
++run-20251001_095913-we9bk0sd/logs/debug.log
+\ No newline at end of file
+diff --git a/wandb/latest-run b/wandb/latest-run
+index 62be9bd..3ab52ee 120000
+--- a/wandb/latest-run
++++ b/wandb/latest-run
+@@ -1 +1 @@
+-run-20250930_203158-vdq2rtq4
+\ No newline at end of file
++run-20251001_095913-we9bk0sd
+\ No newline at end of file

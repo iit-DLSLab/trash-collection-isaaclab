@@ -50,7 +50,7 @@ class MorphologycalSymmetriesCfg:
 @configclass
 class FlatPPORunnerCfg(RslRlOnPolicyRunnerCfg):
     num_steps_per_env = 24
-    max_iterations = 500
+    max_iterations = 1000
     save_interval = 50
     experiment_name = "flat_direct"
     empirical_normalization = False

@@ -1,0 +1,116 @@
+--- git status ---
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   scripts/rsl_rl/__pycache__/cli_args.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/__pycache__/__init__.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/__init__.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_cfg.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_electric.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_hydraulic.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/__init__.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/aliengo_asset.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/__init__.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/custom_curriculums.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/custom_events.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/supervised_learning_networks.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/__init__.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/aliengo_env_cfg.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/locomotion_env.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/__pycache__/__init__.cpython-311.pyc
+	modified:   source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/__pycache__/rsl_rl_ppo_cfg.cpython-311.pyc
+	modified:   wandb/debug-internal.log
+	modified:   wandb/debug.log
+	modified:   wandb/latest-run
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	logs/rsl_rl/flat_direct/2025-10-01_09-24-49/
+	outputs/2025-10-01/
+	wandb/run-20251001_092501-d9myidrx/
+
+no changes added to commit (use "git add" and/or "git commit -a") 
+
+
+--- git diff ---
+diff --git a/scripts/rsl_rl/__pycache__/cli_args.cpython-311.pyc b/scripts/rsl_rl/__pycache__/cli_args.cpython-311.pyc
+index 6454214..b097f26 100644
+Binary files a/scripts/rsl_rl/__pycache__/cli_args.cpython-311.pyc and b/scripts/rsl_rl/__pycache__/cli_args.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/__pycache__/__init__.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/__pycache__/__init__.cpython-311.pyc
+index 6d6543d..1a6b058 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/__pycache__/__init__.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/__pycache__/__init__.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/__init__.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/__init__.cpython-311.pyc
+index b3b68fb..ebfb2e5 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/__init__.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/__init__.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_cfg.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_cfg.cpython-311.pyc
+index e95afa4..f4514ae 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_cfg.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_cfg.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_electric.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_electric.cpython-311.pyc
+index 9a907a0..ec0f676 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_electric.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_electric.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_hydraulic.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_hydraulic.cpython-311.pyc
+index 4667a2a..d195670 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_hydraulic.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/actuators/__pycache__/actuator_hydraulic.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/__init__.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/__init__.cpython-311.pyc
+index 2b5471b..700cd84 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/__init__.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/__init__.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/aliengo_asset.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/aliengo_asset.cpython-311.pyc
+index 93422f8..dc66694 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/aliengo_asset.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/assets/__pycache__/aliengo_asset.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/__init__.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/__init__.cpython-311.pyc
+index d0946b7..1abd621 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/__init__.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/__init__.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/custom_curriculums.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/custom_curriculums.cpython-311.pyc
+index c8a75c6..14f4158 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/custom_curriculums.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/custom_curriculums.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/custom_events.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/custom_events.cpython-311.pyc
+index 1faac01..54e40e7 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/custom_events.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/custom_events.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/supervised_learning_networks.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/supervised_learning_networks.cpython-311.pyc
+index 40759c0..7aa7280 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/supervised_learning_networks.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/__pycache__/supervised_learning_networks.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/__init__.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/__init__.cpython-311.pyc
+index 6e603ba..b4ca647 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/__init__.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/__init__.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/aliengo_env_cfg.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/aliengo_env_cfg.cpython-311.pyc
+index 6a049bb..ed8ae30 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/aliengo_env_cfg.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/aliengo_env_cfg.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/locomotion_env.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/locomotion_env.cpython-311.pyc
+index c3de68c..0e0eb6d 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/locomotion_env.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/__pycache__/locomotion_env.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/__pycache__/__init__.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/__pycache__/__init__.cpython-311.pyc
+index 3bfa2f3..4783bf9 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/__pycache__/__init__.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/__pycache__/__init__.cpython-311.pyc differ
+diff --git a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/__pycache__/rsl_rl_ppo_cfg.cpython-311.pyc b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/__pycache__/rsl_rl_ppo_cfg.cpython-311.pyc
+index a04602a..b4fb4b6 100644
+Binary files a/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/__pycache__/rsl_rl_ppo_cfg.cpython-311.pyc and b/source/trash_collection_isaaclab/trash_collection_isaaclab/tasks/locomotion/agents/__pycache__/rsl_rl_ppo_cfg.cpython-311.pyc differ
+diff --git a/wandb/debug-internal.log b/wandb/debug-internal.log
+index 7d72668..76f6394 120000
+--- a/wandb/debug-internal.log
++++ b/wandb/debug-internal.log
+@@ -1 +1 @@
+-run-20250930_203158-vdq2rtq4/logs/debug-internal.log
+\ No newline at end of file
++run-20251001_092501-d9myidrx/logs/debug-internal.log
+\ No newline at end of file
+diff --git a/wandb/debug.log b/wandb/debug.log
+index b915c1f..0644c00 120000
+--- a/wandb/debug.log
++++ b/wandb/debug.log
+@@ -1 +1 @@
+-run-20250930_203158-vdq2rtq4/logs/debug.log
+\ No newline at end of file
++run-20251001_092501-d9myidrx/logs/debug.log
+\ No newline at end of file
+diff --git a/wandb/latest-run b/wandb/latest-run
+index 62be9bd..e1aa5a8 120000
+--- a/wandb/latest-run
++++ b/wandb/latest-run
+@@ -1 +1 @@
+-run-20250930_203158-vdq2rtq4
+\ No newline at end of file
++run-20251001_092501-d9myidrx
+\ No newline at end of file

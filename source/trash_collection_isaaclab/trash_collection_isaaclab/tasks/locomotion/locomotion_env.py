@@ -42,7 +42,9 @@ class LocomotionEnv(DirectRLEnv):
         )
 
         # X/Y linear velocity and yaw angular velocity commands
-        self._commands = torch.zeros(self.num_envs, 3, device=self.device)
+        self._velocity_commands = torch.zeros(self.num_envs, 3, device=self.device)
+        self._pose_commands = torch.zeros(self.num_envs, 2, device=self.device) # roll pitch. #TODO height
+
 
         # Swing peak
         self._swing_peak = torch.tensor([0.0, 0.0, 0.0, 0.0], device=self.device).repeat(self.num_envs,1)
@@ -203,7 +205,7 @@ class LocomotionEnv(DirectRLEnv):
         if(self.cfg.use_clock_signal):
             clock_data = torch.vstack([self._phase_signal[:,0], self._phase_signal[:,1], self._phase_signal[:,2], self._phase_signal[:,3]]).T
             # all the envs that are not moving, we put -1
-            should_move = torch.norm(self._commands[:, :3], dim=1) > 0.01
+            should_move = torch.norm(self._velocity_commands[:, :3], dim=1) > 0.01
             clock_data[:, :] = clock_data[:, :]*should_move.unsqueeze(1).expand(-1, 4) + -1.0* ~should_move.unsqueeze(1).expand(-1, 4)
             
 
@@ -233,7 +235,8 @@ class LocomotionEnv(DirectRLEnv):
                     velocity_b,
                     angular_velocity_b,
                     projected_gravity_b,
-                    self._commands,
+                    self._velocity_commands,
+                    self._pose_commands,
                     self._robot.data.joint_pos - self._robot.data.default_joint_pos,
                     self._robot.data.joint_vel,
                     self._actions,
@@ -312,7 +315,7 @@ class LocomotionEnv(DirectRLEnv):
 
 
         # linear velocity tracking
-        lin_vel_error = torch.sum(torch.square(self._commands[:, :2] - self._robot.data.root_lin_vel_b[:, :2]), dim=1)
+        lin_vel_error = torch.sum(torch.square(self._velocity_commands[:, :2] - self._robot.data.root_lin_vel_b[:, :2]), dim=1)
         lin_vel_error_mapped = torch.exp(-lin_vel_error / 0.25)
         
 
@@ -348,7 +351,8 @@ class LocomotionEnv(DirectRLEnv):
         root_roll_w = torch.atan2(torch.sin(root_roll_w), torch.cos(root_roll_w))
         root_pitch_w = torch.atan2(torch.sin(root_pitch_w), torch.cos(root_pitch_w))
         
-        base_orientation =  torch.square(terrain_pitch - root_pitch_w)# + torch.square(0 - root_roll_w)
+        #base_orientation =  torch.square(terrain_pitch - root_pitch_w)# + torch.square(0 - root_roll_w)
+        base_orientation =  torch.square(terrain_pitch + self._pose_commands[:,0] - root_pitch_w)# + torch.square(0 + self._pose_commands[:,1] - root_roll_w)
 
 
         # angular velocity x/y tracking
@@ -356,7 +360,7 @@ class LocomotionEnv(DirectRLEnv):
 
 
         # yaw rate tracking
-        yaw_rate_error = torch.square(self._commands[:, 2] - self._robot.data.root_ang_vel_b[:, 2])
+        yaw_rate_error = torch.square(self._velocity_commands[:, 2] - self._robot.data.root_ang_vel_b[:, 2])
         yaw_rate_error_mapped = torch.exp(-yaw_rate_error / 0.25)
         
         
@@ -407,7 +411,7 @@ class LocomotionEnv(DirectRLEnv):
         first_contact = self._contact_sensor.compute_first_contact(self.step_dt)[:, self._feet_ids]
         last_air_time = self._contact_sensor.data.last_air_time[:, self._feet_ids]
         feet_air_time = torch.sum((last_air_time - 0.5) * first_contact, dim=1) * (
-            torch.norm(self._commands[:, :2], dim=1) > 0.1
+            torch.norm(self._velocity_commands[:, :2], dim=1) > 0.1
         )
 
 
@@ -419,7 +423,7 @@ class LocomotionEnv(DirectRLEnv):
 
 
         # feet periodical contacts suggestion
-        should_move = torch.norm(self._commands[:, :3], dim=1) > 0.01
+        should_move = torch.norm(self._velocity_commands[:, :3], dim=1) > 0.01
         self._phase_signal += self.step_dt * self._step_freq
         self._phase_signal = self._phase_signal % 1.0
         contact_periodic_on = self._phase_signal < self._duty_factor
@@ -562,7 +566,7 @@ class LocomotionEnv(DirectRLEnv):
             # robots that walked far enough progress to harder terrains
             move_up = distance > self._terrain.cfg.terrain_generator.size[0] / 2
             # robots that walked less than half of their required distance go to simpler terrains
-            move_down = distance < torch.norm(self._commands[env_ids, :2], dim=1) * self.max_episode_length_s * 0.5
+            move_down = distance < torch.norm(self._velocity_commands[env_ids, :2], dim=1) * self.max_episode_length_s * 0.5
             move_down *= ~move_up
             # update terrain levels
             self._terrain.update_env_origins(env_ids, move_up, move_down)
@@ -577,10 +581,11 @@ class LocomotionEnv(DirectRLEnv):
         self._previous_previous_actions[env_ids] = 0.0
         
         # Sample new commands
-        self._commands[env_ids] = torch.zeros_like(self._commands[env_ids]).uniform_(-1.0, 1.0)
-        self._commands[env_ids, 0] *= 0.5 * self._velocity_gait_multiplier
-        self._commands[env_ids, 1] *= 0.25 
-        self._commands[env_ids, 2] *= 0.3 
+        self._velocity_commands[env_ids] = torch.zeros_like(self._velocity_commands[env_ids]).uniform_(-1.0, 1.0)
+        self._velocity_commands[env_ids, 0] *= 0.5 * self._velocity_gait_multiplier
+        self._velocity_commands[env_ids, 1] *= 0.25 
+        self._velocity_commands[env_ids, 2] *= 0.3 
+        self._pose_commands[env_ids] = torch.zeros_like(self._pose_commands[env_ids])
 
         # Reset swing peak
         self._swing_peak[env_ids] = torch.tensor([0.0, 0.0, 0.0, 0.0], device=self.device)
@@ -628,22 +633,23 @@ class LocomotionEnv(DirectRLEnv):
 
 
     def _get_new_random_commands(self):
-        resample_time = self.episode_length_buf == self.max_episode_length - 200
-        commands_resample = torch.zeros_like(self._commands).uniform_(-1.0, 1.0)
+        resample_time = self.episode_length_buf == self.max_episode_length - 300
+        commands_resample = torch.zeros_like(self._velocity_commands).uniform_(-1.0, 1.0)
         commands_resample[:, 0] *= 0.5 * self._velocity_gait_multiplier
         commands_resample[:, 1] *= 0.25 
         commands_resample[:, 2] *= 0.3 
-        self._commands[:, :3] = self._commands[:, :3] * ~resample_time.unsqueeze(1).expand(-1, 3) + commands_resample * resample_time.unsqueeze(1).expand(-1, 3)
+        self._velocity_commands[:, :3] = self._velocity_commands[:, :3] * ~resample_time.unsqueeze(1).expand(-1, 3) + commands_resample * resample_time.unsqueeze(1).expand(-1, 3)
 
-        # Stop
-        rest_time = self.episode_length_buf >= self.max_episode_length - 50
-        self._commands[:, :3] *= ~rest_time.unsqueeze(1).expand(-1, 3)        
+        # Stop and small pose commands
+        rest_time = self.episode_length_buf >= self.max_episode_length - 150
+        self._velocity_commands[:, :3] *= ~rest_time.unsqueeze(1).expand(-1, 3)       
+        self._pose_commands = torch.zeros_like(self._pose_commands).uniform_(-0.3, 0.3) * rest_time.unsqueeze(1).expand(-1, 2)     
 
         # Took some envs, and put to zero the vel
         if self.num_envs > 100:
             num_fixed_envs = 100
             fixed_env_ids = torch.arange(num_fixed_envs, device=self.device)
-            self._commands[fixed_env_ids, :3] *= 0.0
+            self._velocity_commands[fixed_env_ids, :3] *= 0.0
 
 
     def _get_cuncurrent_state_estimation(self, clock_data):
@@ -655,7 +661,8 @@ class LocomotionEnv(DirectRLEnv):
                     self._imu.data.lin_acc_b,
                     self._imu.data.ang_vel_b,
                     self._robot.data.projected_gravity_b,
-                    self._commands,
+                    self._velocity_commands,
+                    self._pose_commands,
                     self._robot.data.joint_pos - self._robot.data.default_joint_pos,
                     self._robot.data.joint_vel,
                     self._actions,
@@ -708,7 +715,8 @@ class LocomotionEnv(DirectRLEnv):
                     self._imu.data.lin_acc_b,
                     self._imu.data.ang_vel_b,
                     self._robot.data.projected_gravity_b,
-                    self._commands,
+                    self._velocity_commands,
+                    self._pose_commands,
                     self._robot.data.joint_pos - self._robot.data.default_joint_pos,
                     self._robot.data.joint_vel,
                     self._actions,

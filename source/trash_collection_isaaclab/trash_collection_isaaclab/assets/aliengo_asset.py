@@ -58,8 +58,8 @@ ALIENGO_CALF_ACTUATOR_CFG = IdentifiedActuatorElectricCfg(
 
 ALIENGO_ARM_ACTUATOR_CFG = IdentifiedActuatorElectricCfg(
     joint_names_expr=["arm_joint.*"],
-    effort_limit=10.0,
-    velocity_limit=5.0,
+    effort_limit=30.0, #TODO, the joint2 has 60 as limits
+    velocity_limit=3.1415,
     saturation_effort=10.0,
     stiffness=50.0,
     damping=5.0,

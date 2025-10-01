@@ -1,0 +1,1149 @@
+################################################################################
+                       [1m Learning iteration 0/500 [0m
+
+                       Computation: 48105 steps/s (collection: 3.640s, learning 0.447s)
+             Mean action noise std: 1.00
+          Mean value_function loss: 0.4799
+               Mean surrogate loss: -0.0033
+                 Mean entropy loss: 17.0218
+                       Mean reward: -2.51
+               Mean episode length: 24.00
+   Episode_Reward/track_height_exp: 0.0095
+Episode_Reward/track_lin_vel_xy_exp: 0.0137
+ Episode_Reward/track_lin_vel_z_l2: -0.0038
+Episode_Reward/track_orientation_l2: -0.0048
+Episode_Reward/track_ang_vel_xy_l2: -0.0219
+Episode_Reward/track_ang_vel_z_exp: 0.0026
+ Episode_Reward/undesired_contacts: -0.0006
+     Episode_Reward/action_rate_l2: -0.0029
+Episode_Reward/action_smoothness_l2: -0.0008
+  Episode_Reward/joints_hip_pos_l2: -0.0002
+Episode_Reward/joints_thigh_pos_l2: -0.0003
+ Episode_Reward/joints_calf_pos_l2: -0.0000
+      Episode_Reward/joints_acc_l2: -0.0470
+  Episode_Reward/joints_torques_l2: -0.0001
+   Episode_Reward/joints_energy_l1: -0.0008
+      Episode_Reward/feet_air_time: 0.0000
+Episode_Reward/feet_height_clearance: 0.0009
+Episode_Reward/feet_height_clearance_mujoco: 0.0000
+         Episode_Reward/feet_slide: 0.0000
+Episode_Reward/feet_contact_suggestion: 0.0015
+Episode_Reward/feet_to_base_distance_l2: 0.0000
+Episode_Reward/feet_to_hip_distance_l2: -0.0021
+Episode_Reward/feet_vertical_surface_contacts: -0.0000
+  Episode_Termination/base_contact: 42.2083
+      Episode_Termination/time_out: 8.9167
+--------------------------------------------------------------------------------
+                   Total timesteps: 196608
+                    Iteration time: 4.09s
+                      Time elapsed: 00:00:04
+                               ETA: 00:34:03
+
+Could not find git repository in /home/alienware/miniforge3/envs/isaaclab_env/lib/python3.11/site-packages/rsl_rl/__init__.py. Skipping.
+Storing git diff for 'trash-collection-isaaclab' in: /home/alienware/isaaclab_ws_home/trash-collection-isaaclab/logs/rsl_rl/flat_direct/2025-10-01_09-54-09/git/trash-collection-isaaclab.diff
+################################################################################
+                       [1m Learning iteration 1/500 [0m
+
+                       Computation: 94829 steps/s (collection: 1.953s, learning 0.120s)
+             Mean action noise std: 1.00
+          Mean value_function loss: 0.2899
+               Mean surrogate loss: -0.0066
+                 Mean entropy loss: 17.0042
+                       Mean reward: -3.63
+               Mean episode length: 39.30
+   Episode_Reward/track_height_exp: 0.0173
+Episode_Reward/track_lin_vel_xy_exp: 0.0313
+ Episode_Reward/track_lin_vel_z_l2: -0.0067
+Episode_Reward/track_orientation_l2: -0.0126
+Episode_Reward/track_ang_vel_xy_l2: -0.0398
+Episode_Reward/track_ang_vel_z_exp: 0.0053
+ Episode_Reward/undesired_contacts: -0.0039
+     Episode_Reward/action_rate_l2: -0.0081
+Episode_Reward/action_smoothness_l2: -0.0024
+  Episode_Reward/joints_hip_pos_l2: -0.0007
+Episode_Reward/joints_thigh_pos_l2: -0.0014
+ Episode_Reward/joints_calf_pos_l2: -0.0000
+      Episode_Reward/joints_acc_l2: -0.1350
+  Episode_Reward/joints_torques_l2: -0.0003
+   Episode_Reward/joints_energy_l1: -0.0022
+      Episode_Reward/feet_air_time: 0.0000
+Episode_Reward/feet_height_clearance: 0.0035
+Episode_Reward/feet_height_clearance_mujoco: 0.0000
+         Episode_Reward/feet_slide: 0.0000
+Episode_Reward/feet_contact_suggestion: 0.0047
+Episode_Reward/feet_to_base_distance_l2: 0.0000
+Episode_Reward/feet_to_hip_distance_l2: -0.0083
+Episode_Reward/feet_vertical_surface_contacts: -0.0000
+  Episode_Termination/base_contact: 180.4167
+      Episode_Termination/time_out: 4.2500
+--------------------------------------------------------------------------------
+                   Total timesteps: 393216
+                    Iteration time: 2.07s
+                      Time elapsed: 00:00:06
+                               ETA: 00:25:36
+
+################################################################################
+                       [1m Learning iteration 2/500 [0m
+
+                       Computation: 94903 steps/s (collection: 1.950s, learning 0.122s)
+             Mean action noise std: 0.99
+          Mean value_function loss: 0.2461
+               Mean surrogate loss: -0.0063
+                 Mean entropy loss: 16.9767
+                       Mean reward: -3.79
+               Mean episode length: 42.88
+   Episode_Reward/track_height_exp: 0.0176
+Episode_Reward/track_lin_vel_xy_exp: 0.0371
+ Episode_Reward/track_lin_vel_z_l2: -0.0071
+Episode_Reward/track_orientation_l2: -0.0135
+Episode_Reward/track_ang_vel_xy_l2: -0.0396
+Episode_Reward/track_ang_vel_z_exp: 0.0066
+ Episode_Reward/undesired_contacts: -0.0055
+     Episode_Reward/action_rate_l2: -0.0091
+Episode_Reward/action_smoothness_l2: -0.0027
+  Episode_Reward/joints_hip_pos_l2: -0.0009
+Episode_Reward/joints_thigh_pos_l2: -0.0015
+ Episode_Reward/joints_calf_pos_l2: -0.0000
+      Episode_Reward/joints_acc_l2: -0.1486
+  Episode_Reward/joints_torques_l2: -0.0004
+   Episode_Reward/joints_energy_l1: -0.0024
+      Episode_Reward/feet_air_time: 0.0000
+Episode_Reward/feet_height_clearance: 0.0044
+Episode_Reward/feet_height_clearance_mujoco: 0.0000
+         Episode_Reward/feet_slide: 0.0000
+Episode_Reward/feet_contact_suggestion: 0.0054
+Episode_Reward/feet_to_base_distance_l2: 0.0000
+Episode_Reward/feet_to_hip_distance_l2: -0.0094
+Episode_Reward/feet_vertical_surface_contacts: -0.0000
+  Episode_Termination/base_contact: 149.7500
+      Episode_Termination/time_out: 2.7917
+--------------------------------------------------------------------------------
+                   Total timesteps: 589824
+                    Iteration time: 2.07s
+                      Time elapsed: 00:00:08
+                               ETA: 00:22:46
+
+################################################################################
+                       [1m Learning iteration 3/500 [0m
+
+                       Computation: 95122 steps/s (collection: 1.948s, learning 0.119s)
+             Mean action noise std: 0.99
+          Mean value_function loss: 0.2227
+               Mean surrogate loss: -0.0064
+                 Mean entropy loss: 16.9343
+                       Mean reward: -3.47
+               Mean episode length: 40.55
+   Episode_Reward/track_height_exp: 0.0181
+Episode_Reward/track_lin_vel_xy_exp: 0.0416
+ Episode_Reward/track_lin_vel_z_l2: -0.0072
+Episode_Reward/track_orientation_l2: -0.0136
+Episode_Reward/track_ang_vel_xy_l2: -0.0392
+Episode_Reward/track_ang_vel_z_exp: 0.0077
+ Episode_Reward/undesired_contacts: -0.0067
+     Episode_Reward/action_rate_l2: -0.0099
+Episode_Reward/action_smoothness_l2: -0.0029
+  Episode_Reward/joints_hip_pos_l2: -0.0010
+Episode_Reward/joints_thigh_pos_l2: -0.0017
+ Episode_Reward/joints_calf_pos_l2: -0.0000
+      Episode_Reward/joints_acc_l2: -0.1633
+  Episode_Reward/joints_torques_l2: -0.0004
+   Episode_Reward/joints_energy_l1: -0.0026
+      Episode_Reward/feet_air_time: 0.0000
+Episode_Reward/feet_height_clearance: 0.0047
+Episode_Reward/feet_height_clearance_mujoco: 0.0000
+         Episode_Reward/feet_slide: 0.0000
+Episode_Reward/feet_contact_suggestion: 0.0060
+Episode_Reward/feet_to_base_distance_l2: 0.0000
+Episode_Reward/feet_to_hip_distance_l2: -0.0103
+Episode_Reward/feet_vertical_surface_contacts: -0.0000
+  Episode_Termination/base_contact: 142.0000
+      Episode_Termination/time_out: 2.0833
+--------------------------------------------------------------------------------
+                   Total timesteps: 786432
+                    Iteration time: 2.07s
+                      Time elapsed: 00:00:10
+                               ETA: 00:21:19
+
+################################################################################
+                       [1m Learning iteration 4/500 [0m
+
+                       Computation: 94121 steps/s (collection: 1.964s, learning 0.125s)
+             Mean action noise std: 0.99
+          Mean value_function loss: 0.2149
+               Mean surrogate loss: -0.0067
+                 Mean entropy loss: 16.8957
+                       Mean reward: -4.14
+               Mean episode length: 48.72
+   Episode_Reward/track_height_exp: 0.0185
+Episode_Reward/track_lin_vel_xy_exp: 0.0454
+ Episode_Reward/track_lin_vel_z_l2: -0.0071
+Episode_Reward/track_orientation_l2: -0.0137
+Episode_Reward/track_ang_vel_xy_l2: -0.0386
+Episode_Reward/track_ang_vel_z_exp: 0.0087
+ Episode_Reward/undesired_contacts: -0.0080
+     Episode_Reward/action_rate_l2: -0.0106
+Episode_Reward/action_smoothness_l2: -0.0031
+  Episode_Reward/joints_hip_pos_l2: -0.0011
+Episode_Reward/joints_thigh_pos_l2: -0.0018
+ Episode_Reward/joints_calf_pos_l2: -0.0000
+      Episode_Reward/joints_acc_l2: -0.1747
+  Episode_Reward/joints_torques_l2: -0.0004
+   Episode_Reward/joints_energy_l1: -0.0028
+      Episode_Reward/feet_air_time: 0.0000
+Episode_Reward/feet_height_clearance: 0.0049
+Episode_Reward/feet_height_clearance_mujoco: 0.0000
+         Episode_Reward/feet_slide: 0.0000
+Episode_Reward/feet_contact_suggestion: 0.0064
+Episode_Reward/feet_to_base_distance_l2: 0.0000
+Episode_Reward/feet_to_hip_distance_l2: -0.0111
+Episode_Reward/feet_vertical_surface_contacts: -0.0000
+  Episode_Termination/base_contact: 147.6667
+      Episode_Termination/time_out: 1.5417
+--------------------------------------------------------------------------------
+                   Total timesteps: 983040
+                    Iteration time: 2.09s
+                      Time elapsed: 00:00:12
+                               ETA: 00:20:28
+
+################################################################################
+                       [1m Learning iteration 5/500 [0m
+
+                       Computation: 96844 steps/s (collection: 1.909s, learning 0.122s)
+             Mean action noise std: 0.99
+          Mean value_function loss: 0.2017
+               Mean surrogate loss: -0.0071
+                 Mean entropy loss: 16.8648
+                       Mean reward: -4.16
+               Mean episode length: 47.60
+   Episode_Reward/track_height_exp: 0.0187
+Episode_Reward/track_lin_vel_xy_exp: 0.0484
+ Episode_Reward/track_lin_vel_z_l2: -0.0070
+Episode_Reward/track_orientation_l2: -0.0138
+Episode_Reward/track_ang_vel_xy_l2: -0.0381
+Episode_Reward/track_ang_vel_z_exp: 0.0095
+ Episode_Reward/undesired_contacts: -0.0090
+     Episode_Reward/action_rate_l2: -0.0111
+Episode_Reward/action_smoothness_l2: -0.0033
+  Episode_Reward/joints_hip_pos_l2: -0.0012
+Episode_Reward/joints_thigh_pos_l2: -0.0019
+ Episode_Reward/joints_calf_pos_l2: -0.0000
+      Episode_Reward/joints_acc_l2: -0.1828
+  Episode_Reward/joints_torques_l2: -0.0005
+   Episode_Reward/joints_energy_l1: -0.0029
+      Episode_Reward/feet_air_time: 0.0000
+Episode_Reward/feet_height_clearance: 0.0049
+Episode_Reward/feet_height_clearance_mujoco: 0.0000
+         Episode_Reward/feet_slide: 0.0000
+Episode_Reward/feet_contact_suggestion: 0.0068
+Episode_Reward/feet_to_base_distance_l2: 0.0000
+Episode_Reward/feet_to_hip_distance_l2: -0.0117
+Episode_Reward/feet_vertical_surface_contacts: -0.0000
+  Episode_Termination/base_contact: 155.6250
+      Episode_Termination/time_out: 1.6250
+--------------------------------------------------------------------------------
+                   Total timesteps: 1179648
+                    Iteration time: 2.03s
+                      Time elapsed: 00:00:14
+                               ETA: 00:19:49
+
+################################################################################
+                       [1m Learning iteration 6/500 [0m
+
+                       Computation: 96799 steps/s (collection: 1.905s, learning 0.126s)
+             Mean action noise std: 0.98
+          Mean value_function loss: 0.1978
+               Mean surrogate loss: -0.0074
+                 Mean entropy loss: 16.8490
+                       Mean reward: -3.92
+               Mean episode length: 46.16
+   Episode_Reward/track_height_exp: 0.0189
+Episode_Reward/track_lin_vel_xy_exp: 0.0496
+ Episode_Reward/track_lin_vel_z_l2: -0.0069
+Episode_Reward/track_orientation_l2: -0.0132
+Episode_Reward/track_ang_vel_xy_l2: -0.0372
+Episode_Reward/track_ang_vel_z_exp: 0.0101
+ Episode_Reward/undesired_contacts: -0.0093
+     Episode_Reward/action_rate_l2: -0.0113
+Episode_Reward/action_smoothness_l2: -0.0034
+  Episode_Reward/joints_hip_pos_l2: -0.0013
+Episode_Reward/joints_thigh_pos_l2: -0.0020
+ Episode_Reward/joints_calf_pos_l2: -0.0000
+      Episode_Reward/joints_acc_l2: -0.1886
+  Episode_Reward/joints_torques_l2: -0.0005
+   Episode_Reward/joints_energy_l1: -0.0029
+      Episode_Reward/feet_air_time: 0.0000
+Episode_Reward/feet_height_clearance: 0.0049
+Episode_Reward/feet_height_clearance_mujoco: 0.0000
+         Episode_Reward/feet_slide: 0.0000
+Episode_Reward/feet_contact_suggestion: 0.0070
+Episode_Reward/feet_to_base_distance_l2: 0.0000
+Episode_Reward/feet_to_hip_distance_l2: -0.0120
+Episode_Reward/feet_vertical_surface_contacts: -0.0000
+  Episode_Termination/base_contact: 165.6250
+      Episode_Termination/time_out: 1.1250
+--------------------------------------------------------------------------------
+                   Total timesteps: 1376256
+                    Iteration time: 2.03s
+                      Time elapsed: 00:00:16
+                               ETA: 00:19:20
+
+################################################################################
+                       [1m Learning iteration 7/500 [0m
+
+                       Computation: 93489 steps/s (collection: 1.983s, learning 0.120s)
+             Mean action noise std: 0.98
+          Mean value_function loss: 0.1935
+               Mean surrogate loss: -0.0087
+                 Mean entropy loss: 16.8255
+                       Mean reward: -3.77
+               Mean episode length: 46.51
+   Episode_Reward/track_height_exp: 0.0189
+Episode_Reward/track_lin_vel_xy_exp: 0.0503
+ Episode_Reward/track_lin_vel_z_l2: -0.0068
+Episode_Reward/track_orientation_l2: -0.0123
+Episode_Reward/track_ang_vel_xy_l2: -0.0361
+Episode_Reward/track_ang_vel_z_exp: 0.0103
+ Episode_Reward/undesired_contacts: -0.0097
+     Episode_Reward/action_rate_l2: -0.0113
+Episode_Reward/action_smoothness_l2: -0.0034
+  Episode_Reward/joints_hip_pos_l2: -0.0013
+Episode_Reward/joints_thigh_pos_l2: -0.0019
+ Episode_Reward/joints_calf_pos_l2: -0.0000
+      Episode_Reward/joints_acc_l2: -0.1877
+  Episode_Reward/joints_torques_l2: -0.0005
+   Episode_Reward/joints_energy_l1: -0.0029
+      Episode_Reward/feet_air_time: 0.0000
+Episode_Reward/feet_height_clearance: 0.0048
+Episode_Reward/feet_height_clearance_mujoco: 0.0000
+         Episode_Reward/feet_slide: 0.0000
+Episode_Reward/feet_contact_suggestion: 0.0071
+Episode_Reward/feet_to_base_distance_l2: 0.0000
+Episode_Reward/feet_to_hip_distance_l2: -0.0120
+Episode_Reward/feet_vertical_surface_contacts: -0.0000
+  Episode_Termination/base_contact: 187.2500
+      Episode_Termination/time_out: 0.7500
+--------------------------------------------------------------------------------
+                   Total timesteps: 1572864
+                    Iteration time: 2.10s
+                      Time elapsed: 00:00:18
+                               ETA: 00:19:03
+
+################################################################################
+                       [1m Learning iteration 8/500 [0m
+
+                       Computation: 95708 steps/s (collection: 1.930s, learning 0.125s)
+             Mean action noise std: 0.98
+          Mean value_function loss: 0.1765
+               Mean surrogate loss: -0.0097
+                 Mean entropy loss: 16.8030
+                       Mean reward: -3.45
+               Mean episode length: 42.20
+   Episode_Reward/track_height_exp: 0.0189
+Episode_Reward/track_lin_vel_xy_exp: 0.0466
+ Episode_Reward/track_lin_vel_z_l2: -0.0063
+Episode_Reward/track_orientation_l2: -0.0112
+Episode_Reward/track_ang_vel_xy_l2: -0.0345
+Episode_Reward/track_ang_vel_z_exp: 0.0098
+ Episode_Reward/undesired_contacts: -0.0089
+     Episode_Reward/action_rate_l2: -0.0106
+Episode_Reward/action_smoothness_l2: -0.0031
+  Episode_Reward/joints_hip_pos_l2: -0.0011
+Episode_Reward/joints_thigh_pos_l2: -0.0018
+ Episode_Reward/joints_calf_pos_l2: -0.0000
+      Episode_Reward/joints_acc_l2: -0.1769
+  Episode_Reward/joints_torques_l2: -0.0004
+   Episode_Reward/joints_energy_l1: -0.0027
+      Episode_Reward/feet_air_time: 0.0000
+Episode_Reward/feet_height_clearance: 0.0046
+Episode_Reward/feet_height_clearance_mujoco: 0.0000
+         Episode_Reward/feet_slide: 0.0000
+Episode_Reward/feet_contact_suggestion: 0.0066
+Episode_Reward/feet_to_base_distance_l2: 0.0000
+Episode_Reward/feet_to_hip_distance_l2: -0.0111
+Episode_Reward/feet_vertical_surface_contacts: -0.0000
+  Episode_Termination/base_contact: 203.3750
+      Episode_Termination/time_out: 0.7500
+--------------------------------------------------------------------------------
+                   Total timesteps: 1769472
+                    Iteration time: 2.05s
+                      Time elapsed: 00:00:20
+                               ETA: 00:18:46
+
+################################################################################
+                       [1m Learning iteration 9/500 [0m
+
+                       Computation: 94449 steps/s (collection: 1.951s, learning 0.130s)
+             Mean action noise std: 0.98
+          Mean value_function loss: 0.1651
+               Mean surrogate loss: -0.0106
+                 Mean entropy loss: 16.7797
+                       Mean reward: -3.20
+               Mean episode length: 39.86
+   Episode_Reward/track_height_exp: 0.0187
+Episode_Reward/track_lin_vel_xy_exp: 0.0428
+ Episode_Reward/track_lin_vel_z_l2: -0.0061
+Episode_Reward/track_orientation_l2: -0.0103
+Episode_Reward/track_ang_vel_xy_l2: -0.0330
+Episode_Reward/track_ang_vel_z_exp: 0.0093
+ Episode_Reward/undesired_contacts: -0.0081
+     Episode_Reward/action_rate_l2: -0.0100
+Episode_Reward/action_smoothness_l2: -0.0030
+  Episode_Reward/joints_hip_pos_l2: -0.0011
+Episode_Reward/joints_thigh_pos_l2: -0.0017
+ Episode_Reward/joints_calf_pos_l2: -0.0000
+      Episode_Reward/joints_acc_l2: -0.1662
+  Episode_Reward/joints_torques_l2: -0.0004
+   Episode_Reward/joints_energy_l1: -0.0026
+      Episode_Reward/feet_air_time: 0.0000
+Episode_Reward/feet_height_clearance: 0.0044
+Episode_Reward/feet_height_clearance_mujoco: 0.0000
+         Episode_Reward/feet_slide: 0.0000
+Episode_Reward/feet_contact_suggestion: 0.0062
+Episode_Reward/feet_to_base_distance_l2: 0.0000
+Episode_Reward/feet_to_hip_distance_l2: -0.0105
+Episode_Reward/feet_vertical_surface_contacts: -0.0000
+  Episode_Termination/base_contact: 226.4583
+      Episode_Termination/time_out: 0.3750
+--------------------------------------------------------------------------------
+                   Total timesteps: 1966080
+                    Iteration time: 2.08s
+                      Time elapsed: 00:00:22
+                               ETA: 00:18:33
+
+################################################################################
+                      [1m Learning iteration 10/500 [0m
+
+                       Computation: 90494 steps/s (collection: 2.055s, learning 0.118s)
+             Mean action noise std: 0.98
+          Mean value_function loss: 0.1426
+               Mean surrogate loss: -0.0122
+                 Mean entropy loss: 16.7585
+                       Mean reward: -3.02
+               Mean episode length: 39.97
+   Episode_Reward/track_height_exp: 0.0184
+Episode_Reward/track_lin_vel_xy_exp: 0.0386
+ Episode_Reward/track_lin_vel_z_l2: -0.0057
+Episode_Reward/track_orientation_l2: -0.0090
+Episode_Reward/track_ang_vel_xy_l2: -0.0314
+Episode_Reward/track_ang_vel_z_exp: 0.0085
+ Episode_Reward/undesired_contacts: -0.0070
+     Episode_Reward/action_rate_l2: -0.0092
+Episode_Reward/action_smoothness_l2: -0.0027
+  Episode_Reward/joints_hip_pos_l2: -0.0009
+Episode_Reward/joints_thigh_pos_l2: -0.0016
+ Episode_Reward/joints_calf_pos_l2: -0.0000
+      Episode_Reward/joints_acc_l2: -0.1516
+  Episode_Reward/joints_torques_l2: -0.0004
+   Episode_Reward/joints_energy_l1: -0.0024
+      Episode_Reward/feet_air_time: 0.0000
+Episode_Reward/feet_height_clearance: 0.0041
+Episode_Reward/feet_height_clearance_mujoco: 0.0000
+         Episode_Reward/feet_slide: 0.0000
+Episode_Reward/feet_contact_suggestion: 0.0057
+Episode_Reward/feet_to_base_distance_l2: 0.0000
+Episode_Reward/feet_to_hip_distance_l2: -0.0095
+Episode_Reward/feet_vertical_surface_contacts: -0.0000
+  Episode_Termination/base_contact: 251.4167
+      Episode_Termination/time_out: 0.1667
+--------------------------------------------------------------------------------
+                   Total timesteps: 2162688
+                    Iteration time: 2.17s
+                      Time elapsed: 00:00:24
+                               ETA: 00:18:27
+
+################################################################################
+                      [1m Learning iteration 11/500 [0m
+
+                       Computation: 91858 steps/s (collection: 2.006s, learning 0.134s)
+             Mean action noise std: 0.97
+          Mean value_function loss: 0.1247
+               Mean surrogate loss: -0.0127
+                 Mean entropy loss: 16.7310
+                       Mean reward: -2.55
+               Mean episode length: 32.36
+   Episode_Reward/track_height_exp: 0.0181
+Episode_Reward/track_lin_vel_xy_exp: 0.0349
+ Episode_Reward/track_lin_vel_z_l2: -0.0053
+Episode_Reward/track_orientation_l2: -0.0084
+Episode_Reward/track_ang_vel_xy_l2: -0.0298
+Episode_Reward/track_ang_vel_z_exp: 0.0078
+ Episode_Reward/undesired_contacts: -0.0058
+     Episode_Reward/action_rate_l2: -0.0084
+Episode_Reward/action_smoothness_l2: -0.0025
+  Episode_Reward/joints_hip_pos_l2: -0.0008
+Episode_Reward/joints_thigh_pos_l2: -0.0014
+ Episode_Reward/joints_calf_pos_l2: -0.0000
+      Episode_Reward/joints_acc_l2: -0.1385
+  Episode_Reward/joints_torques_l2: -0.0003
+   Episode_Reward/joints_energy_l1: -0.0022
+      Episode_Reward/feet_air_time: 0.0000
+Episode_Reward/feet_height_clearance: 0.0038
+Episode_Reward/feet_height_clearance_mujoco: 0.0000
+         Episode_Reward/feet_slide: 0.0000
+Episode_Reward/feet_contact_suggestion: 0.0052
+Episode_Reward/feet_to_base_distance_l2: 0.0000
+Episode_Reward/feet_to_hip_distance_l2: -0.0087
+Episode_Reward/feet_vertical_surface_contacts: -0.0000
+  Episode_Termination/base_contact: 279.3333
+      Episode_Termination/time_out: 0.2500
+--------------------------------------------------------------------------------
+                   Total timesteps: 2359296
+                    Iteration time: 2.14s
+                      Time elapsed: 00:00:27
+                               ETA: 00:18:20
+
+################################################################################
+                      [1m Learning iteration 12/500 [0m
+
+                       Computation: 93997 steps/s (collection: 1.974s, learning 0.117s)
+             Mean action noise std: 0.97
+          Mean value_function loss: 0.0966
+               Mean surrogate loss: -0.0138
+                 Mean entropy loss: 16.7002
+                       Mean reward: -2.45
+               Mean episode length: 30.41
+   Episode_Reward/track_height_exp: 0.0175
+Episode_Reward/track_lin_vel_xy_exp: 0.0296
+ Episode_Reward/track_lin_vel_z_l2: -0.0050
+Episode_Reward/track_orientation_l2: -0.0073
+Episode_Reward/track_ang_vel_xy_l2: -0.0282
+Episode_Reward/track_ang_vel_z_exp: 0.0069
+ Episode_Reward/undesired_contacts: -0.0046
+     Episode_Reward/action_rate_l2: -0.0075
+Episode_Reward/action_smoothness_l2: -0.0022
+  Episode_Reward/joints_hip_pos_l2: -0.0007
+Episode_Reward/joints_thigh_pos_l2: -0.0013
+ Episode_Reward/joints_calf_pos_l2: -0.0000
+      Episode_Reward/joints_acc_l2: -0.1247
+  Episode_Reward/joints_torques_l2: -0.0003
+   Episode_Reward/joints_energy_l1: -0.0020
+      Episode_Reward/feet_air_time: 0.0000
+Episode_Reward/feet_height_clearance: 0.0035
+Episode_Reward/feet_height_clearance_mujoco: 0.0000
+         Episode_Reward/feet_slide: 0.0000
+Episode_Reward/feet_contact_suggestion: 0.0047
+Episode_Reward/feet_to_base_distance_l2: 0.0000
+Episode_Reward/feet_to_hip_distance_l2: -0.0076
+Episode_Reward/feet_vertical_surface_contacts: -0.0000
+  Episode_Termination/base_contact: 310.4167
+      Episode_Termination/time_out: 0.1250
+--------------------------------------------------------------------------------
+                   Total timesteps: 2555904
+                    Iteration time: 2.09s
+                      Time elapsed: 00:00:29
+                               ETA: 00:18:12
+
+################################################################################
+                      [1m Learning iteration 13/500 [0m
+
+                       Computation: 94440 steps/s (collection: 1.963s, learning 0.119s)
+             Mean action noise std: 0.97
+          Mean value_function loss: 0.0769
+               Mean surrogate loss: -0.0137
+                 Mean entropy loss: 16.6684
+                       Mean reward: -1.84
+               Mean episode length: 22.62
+   Episode_Reward/track_height_exp: 0.0168
+Episode_Reward/track_lin_vel_xy_exp: 0.0251
+ Episode_Reward/track_lin_vel_z_l2: -0.0047
+Episode_Reward/track_orientation_l2: -0.0068
+Episode_Reward/track_ang_vel_xy_l2: -0.0266
+Episode_Reward/track_ang_vel_z_exp: 0.0060
+ Episode_Reward/undesired_contacts: -0.0033
+     Episode_Reward/action_rate_l2: -0.0065
+Episode_Reward/action_smoothness_l2: -0.0019
+  Episode_Reward/joints_hip_pos_l2: -0.0006
+Episode_Reward/joints_thigh_pos_l2: -0.0011
+ Episode_Reward/joints_calf_pos_l2: -0.0000
+      Episode_Reward/joints_acc_l2: -0.1096
+  Episode_Reward/joints_torques_l2: -0.0003
+   Episode_Reward/joints_energy_l1: -0.0017
+      Episode_Reward/feet_air_time: 0.0000
+Episode_Reward/feet_height_clearance: 0.0033
+Episode_Reward/feet_height_clearance_mujoco: 0.0000
+         Episode_Reward/feet_slide: 0.0000
+Episode_Reward/feet_contact_suggestion: 0.0041
+Episode_Reward/feet_to_base_distance_l2: 0.0000
+Episode_Reward/feet_to_hip_distance_l2: -0.0066
+Episode_Reward/feet_vertical_surface_contacts: -0.0000
+  Episode_Termination/base_contact: 344.0000
+      Episode_Termination/time_out: 0.0417
+--------------------------------------------------------------------------------
+                   Total timesteps: 2752512
+                    Iteration time: 2.08s
+                      Time elapsed: 00:00:31
+                               ETA: 00:18:04
+
+################################################################################
+                      [1m Learning iteration 14/500 [0m
+
+                       Computation: 92427 steps/s (collection: 2.009s, learning 0.118s)
+             Mean action noise std: 0.96
+          Mean value_function loss: 0.0571
+               Mean surrogate loss: -0.0148
+                 Mean entropy loss: 16.6202
+                       Mean reward: -1.81
+               Mean episode length: 23.19
+   Episode_Reward/track_height_exp: 0.0162
+Episode_Reward/track_lin_vel_xy_exp: 0.0204
+ Episode_Reward/track_lin_vel_z_l2: -0.0045
+Episode_Reward/track_orientation_l2: -0.0062
+Episode_Reward/track_ang_vel_xy_l2: -0.0251
+Episode_Reward/track_ang_vel_z_exp: 0.0051
+ Episode_Reward/undesired_contacts: -0.0021
+     Episode_Reward/action_rate_l2: -0.0056
+Episode_Reward/action_smoothness_l2: -0.0016
+  Episode_Reward/joints_hip_pos_l2: -0.0005
+Episode_Reward/joints_thigh_pos_l2: -0.0009
+ Episode_Reward/joints_calf_pos_l2: -0.0000
+      Episode_Reward/joints_acc_l2: -0.0940
+  Episode_Reward/joints_torques_l2: -0.0002
+   Episode_Reward/joints_energy_l1: -0.0015
+      Episode_Reward/feet_air_time: 0.0000
+Episode_Reward/feet_height_clearance: 0.0031
+Episode_Reward/feet_height_clearance_mujoco: 0.0000
+         Episode_Reward/feet_slide: 0.0000
+Episode_Reward/feet_contact_suggestion: 0.0035
+Episode_Reward/feet_to_base_distance_l2: 0.0000
+Episode_Reward/feet_to_hip_distance_l2: -0.0055
+Episode_Reward/feet_vertical_surface_contacts: -0.0000
+  Episode_Termination/base_contact: 374.7917
+      Episode_Termination/time_out: 0.0000
+--------------------------------------------------------------------------------
+                   Total timesteps: 2949120
+                    Iteration time: 2.13s
+                      Time elapsed: 00:00:33
+                               ETA: 00:17:58
+
+################################################################################
+                      [1m Learning iteration 15/500 [0m
+
+                       Computation: 93708 steps/s (collection: 1.977s, learning 0.121s)
+             Mean action noise std: 0.96
+          Mean value_function loss: 0.0438
+               Mean surrogate loss: -0.0145
+                 Mean entropy loss: 16.5611
+                       Mean reward: -1.65
+               Mean episode length: 20.77
+   Episode_Reward/track_height_exp: 0.0154
+Episode_Reward/track_lin_vel_xy_exp: 0.0174
+ Episode_Reward/track_lin_vel_z_l2: -0.0045
+Episode_Reward/track_orientation_l2: -0.0058
+Episode_Reward/track_ang_vel_xy_l2: -0.0236
+Episode_Reward/track_ang_vel_z_exp: 0.0046
+ Episode_Reward/undesired_contacts: -0.0015
+     Episode_Reward/action_rate_l2: -0.0049
+Episode_Reward/action_smoothness_l2: -0.0014
+  Episode_Reward/joints_hip_pos_l2: -0.0004
+Episode_Reward/joints_thigh_pos_l2: -0.0008
+ Episode_Reward/joints_calf_pos_l2: -0.0000
+      Episode_Reward/joints_acc_l2: -0.0834
+  Episode_Reward/joints_torques_l2: -0.0002
+   Episode_Reward/joints_energy_l1: -0.0013
+      Episode_Reward/feet_air_time: 0.0000
+Episode_Reward/feet_height_clearance: 0.0029
+Episode_Reward/feet_height_clearance_mujoco: 0.0000
+         Episode_Reward/feet_slide: 0.0000
+Episode_Reward/feet_contact_suggestion: 0.0030
+Episode_Reward/feet_to_base_distance_l2: 0.0000
+Episode_Reward/feet_to_hip_distance_l2: -0.0047
+Episode_Reward/feet_vertical_surface_contacts: -0.0000
+  Episode_Termination/base_contact: 398.7917
+      Episode_Termination/time_out: 0.0000
+--------------------------------------------------------------------------------
+                   Total timesteps: 3145728
+                    Iteration time: 2.10s
+                      Time elapsed: 00:00:35
+                               ETA: 00:17:53
+
+################################################################################
+                      [1m Learning iteration 16/500 [0m
+
+                       Computation: 92490 steps/s (collection: 1.996s, learning 0.130s)
+             Mean action noise std: 0.96
+          Mean value_function loss: 0.0345
+               Mean surrogate loss: -0.0144
+                 Mean entropy loss: 16.5003
+                       Mean reward: -1.53
+               Mean episode length: 18.52
+   Episode_Reward/track_height_exp: 0.0146
+Episode_Reward/track_lin_vel_xy_exp: 0.0159
+ Episode_Reward/track_lin_vel_z_l2: -0.0048
+Episode_Reward/track_orientation_l2: -0.0056
+Episode_Reward/track_ang_vel_xy_l2: -0.0221
+Episode_Reward/track_ang_vel_z_exp: 0.0044
+ Episode_Reward/undesired_contacts: -0.0012
+     Episode_Reward/action_rate_l2: -0.0045
+Episode_Reward/action_smoothness_l2: -0.0013
+  Episode_Reward/joints_hip_pos_l2: -0.0004
+Episode_Reward/joints_thigh_pos_l2: -0.0007
+ Episode_Reward/joints_calf_pos_l2: -0.0000
+      Episode_Reward/joints_acc_l2: -0.0766
+  Episode_Reward/joints_torques_l2: -0.0002
+   Episode_Reward/joints_energy_l1: -0.0012
+      Episode_Reward/feet_air_time: 0.0000
+Episode_Reward/feet_height_clearance: 0.0028
+Episode_Reward/feet_height_clearance_mujoco: 0.0000
+         Episode_Reward/feet_slide: 0.0000
+Episode_Reward/feet_contact_suggestion: 0.0027
+Episode_Reward/feet_to_base_distance_l2: 0.0000
+Episode_Reward/feet_to_hip_distance_l2: -0.0043
+Episode_Reward/feet_vertical_surface_contacts: -0.0000
+  Episode_Termination/base_contact: 427.7083
+      Episode_Termination/time_out: 0.0000
+--------------------------------------------------------------------------------
+                   Total timesteps: 3342336
+                    Iteration time: 2.13s
+                      Time elapsed: 00:00:37
+                               ETA: 00:17:48
+
+################################################################################
+                      [1m Learning iteration 17/500 [0m
+
+                       Computation: 92404 steps/s (collection: 2.001s, learning 0.127s)
+             Mean action noise std: 0.95
+          Mean value_function loss: 0.0282
+               Mean surrogate loss: -0.0134
+                 Mean entropy loss: 16.4321
+                       Mean reward: -1.48
+               Mean episode length: 17.77
+   Episode_Reward/track_height_exp: 0.0140
+Episode_Reward/track_lin_vel_xy_exp: 0.0146
+ Episode_Reward/track_lin_vel_z_l2: -0.0051
+Episode_Reward/track_orientation_l2: -0.0054
+Episode_Reward/track_ang_vel_xy_l2: -0.0208
+Episode_Reward/track_ang_vel_z_exp: 0.0042
+ Episode_Reward/undesired_contacts: -0.0010
+     Episode_Reward/action_rate_l2: -0.0041
+Episode_Reward/action_smoothness_l2: -0.0012
+  Episode_Reward/joints_hip_pos_l2: -0.0004
+Episode_Reward/joints_thigh_pos_l2: -0.0006
+ Episode_Reward/joints_calf_pos_l2: -0.0000
+      Episode_Reward/joints_acc_l2: -0.0709
+  Episode_Reward/joints_torques_l2: -0.0002
+   Episode_Reward/joints_energy_l1: -0.0012
+      Episode_Reward/feet_air_time: 0.0000
+Episode_Reward/feet_height_clearance: 0.0027
+Episode_Reward/feet_height_clearance_mujoco: 0.0000
+         Episode_Reward/feet_slide: 0.0000
+Episode_Reward/feet_contact_suggestion: 0.0025
+Episode_Reward/feet_to_base_distance_l2: 0.0000
+Episode_Reward/feet_to_hip_distance_l2: -0.0039
+Episode_Reward/feet_vertical_surface_contacts: -0.0000
+  Episode_Termination/base_contact: 449.7083
+      Episode_Termination/time_out: 0.0000
+--------------------------------------------------------------------------------
+                   Total timesteps: 3538944
+                    Iteration time: 2.13s
+                      Time elapsed: 00:00:39
+                               ETA: 00:17:44
+
+################################################################################
+                      [1m Learning iteration 18/500 [0m
+
+                       Computation: 94536 steps/s (collection: 1.961s, learning 0.119s)
+             Mean action noise std: 0.94
+          Mean value_function loss: 0.0237
+               Mean surrogate loss: -0.0135
+                 Mean entropy loss: 16.3598
+                       Mean reward: -1.50
+               Mean episode length: 17.37
+   Episode_Reward/track_height_exp: 0.0134
+Episode_Reward/track_lin_vel_xy_exp: 0.0141
+ Episode_Reward/track_lin_vel_z_l2: -0.0055
+Episode_Reward/track_orientation_l2: -0.0052
+Episode_Reward/track_ang_vel_xy_l2: -0.0202
+Episode_Reward/track_ang_vel_z_exp: 0.0041
+ Episode_Reward/undesired_contacts: -0.0010
+     Episode_Reward/action_rate_l2: -0.0039
+Episode_Reward/action_smoothness_l2: -0.0011
+  Episode_Reward/joints_hip_pos_l2: -0.0004
+Episode_Reward/joints_thigh_pos_l2: -0.0006
+ Episode_Reward/joints_calf_pos_l2: -0.0000
+      Episode_Reward/joints_acc_l2: -0.0672
+  Episode_Reward/joints_torques_l2: -0.0002
+   Episode_Reward/joints_energy_l1: -0.0011
+      Episode_Reward/feet_air_time: 0.0000
+Episode_Reward/feet_height_clearance: 0.0026
+Episode_Reward/feet_height_clearance_mujoco: 0.0000
+         Episode_Reward/feet_slide: 0.0000
+Episode_Reward/feet_contact_suggestion: 0.0023
+Episode_Reward/feet_to_base_distance_l2: 0.0000
+Episode_Reward/feet_to_hip_distance_l2: -0.0037
+Episode_Reward/feet_vertical_surface_contacts: -0.0000
+  Episode_Termination/base_contact: 474.6250
+      Episode_Termination/time_out: 0.0000
+--------------------------------------------------------------------------------
+                   Total timesteps: 3735552
+                    Iteration time: 2.08s
+                      Time elapsed: 00:00:41
+                               ETA: 00:17:38
+
+################################################################################
+                      [1m Learning iteration 19/500 [0m
+
+                       Computation: 92210 steps/s (collection: 2.013s, learning 0.120s)
+             Mean action noise std: 0.94
+          Mean value_function loss: 0.0209
+               Mean surrogate loss: -0.0123
+                 Mean entropy loss: 16.2756
+                       Mean reward: -1.39
+               Mean episode length: 16.62
+   Episode_Reward/track_height_exp: 0.0130
+Episode_Reward/track_lin_vel_xy_exp: 0.0136
+ Episode_Reward/track_lin_vel_z_l2: -0.0058
+Episode_Reward/track_orientation_l2: -0.0050
+Episode_Reward/track_ang_vel_xy_l2: -0.0198
+Episode_Reward/track_ang_vel_z_exp: 0.0040
+ Episode_Reward/undesired_contacts: -0.0010
+     Episode_Reward/action_rate_l2: -0.0037
+Episode_Reward/action_smoothness_l2: -0.0011
+  Episode_Reward/joints_hip_pos_l2: -0.0004
+Episode_Reward/joints_thigh_pos_l2: -0.0005
+ Episode_Reward/joints_calf_pos_l2: -0.0000
+      Episode_Reward/joints_acc_l2: -0.0645
+  Episode_Reward/joints_torques_l2: -0.0002
+   Episode_Reward/joints_energy_l1: -0.0010
+      Episode_Reward/feet_air_time: 0.0000
+Episode_Reward/feet_height_clearance: 0.0026
+Episode_Reward/feet_height_clearance_mujoco: 0.0000
+         Episode_Reward/feet_slide: 0.0000
+Episode_Reward/feet_contact_suggestion: 0.0022
+Episode_Reward/feet_to_base_distance_l2: 0.0000
+Episode_Reward/feet_to_hip_distance_l2: -0.0035
+Episode_Reward/feet_vertical_surface_contacts: -0.0000
+  Episode_Termination/base_contact: 490.4583
+      Episode_Termination/time_out: 0.0000
+--------------------------------------------------------------------------------
+                   Total timesteps: 3932160
+                    Iteration time: 2.13s
+                      Time elapsed: 00:00:43
+                               ETA: 00:17:34
+
+################################################################################
+                      [1m Learning iteration 20/500 [0m
+
+                       Computation: 90057 steps/s (collection: 2.063s, learning 0.120s)
+             Mean action noise std: 0.93
+          Mean value_function loss: 0.0186
+               Mean surrogate loss: -0.0119
+                 Mean entropy loss: 16.1859
+                       Mean reward: -1.33
+               Mean episode length: 15.47
+   Episode_Reward/track_height_exp: 0.0125
+Episode_Reward/track_lin_vel_xy_exp: 0.0131
+ Episode_Reward/track_lin_vel_z_l2: -0.0063
+Episode_Reward/track_orientation_l2: -0.0048
+Episode_Reward/track_ang_vel_xy_l2: -0.0192
+Episode_Reward/track_ang_vel_z_exp: 0.0039
+ Episode_Reward/undesired_contacts: -0.0010
+     Episode_Reward/action_rate_l2: -0.0035
+Episode_Reward/action_smoothness_l2: -0.0010
+  Episode_Reward/joints_hip_pos_l2: -0.0004
+Episode_Reward/joints_thigh_pos_l2: -0.0005
+ Episode_Reward/joints_calf_pos_l2: -0.0000
+      Episode_Reward/joints_acc_l2: -0.0617
+  Episode_Reward/joints_torques_l2: -0.0001
+   Episode_Reward/joints_energy_l1: -0.0010
+      Episode_Reward/feet_air_time: 0.0000
+Episode_Reward/feet_height_clearance: 0.0025
+Episode_Reward/feet_height_clearance_mujoco: 0.0000
+         Episode_Reward/feet_slide: 0.0000
+Episode_Reward/feet_contact_suggestion: 0.0021
+Episode_Reward/feet_to_base_distance_l2: 0.0000
+Episode_Reward/feet_to_hip_distance_l2: -0.0033
+Episode_Reward/feet_vertical_surface_contacts: -0.0000
+  Episode_Termination/base_contact: 512.2917
+      Episode_Termination/time_out: 0.0000
+--------------------------------------------------------------------------------
+                   Total timesteps: 4128768
+                    Iteration time: 2.18s
+                      Time elapsed: 00:00:46
+                               ETA: 00:17:32
+
+################################################################################
+                      [1m Learning iteration 21/500 [0m
+
+                       Computation: 90558 steps/s (collection: 2.045s, learning 0.126s)
+             Mean action noise std: 0.92
+          Mean value_function loss: 0.0170
+               Mean surrogate loss: -0.0104
+                 Mean entropy loss: 16.0831
+                       Mean reward: -1.30
+               Mean episode length: 15.06
+   Episode_Reward/track_height_exp: 0.0122
+Episode_Reward/track_lin_vel_xy_exp: 0.0129
+ Episode_Reward/track_lin_vel_z_l2: -0.0067
+Episode_Reward/track_orientation_l2: -0.0046
+Episode_Reward/track_ang_vel_xy_l2: -0.0187
+Episode_Reward/track_ang_vel_z_exp: 0.0039
+ Episode_Reward/undesired_contacts: -0.0010
+     Episode_Reward/action_rate_l2: -0.0033
+Episode_Reward/action_smoothness_l2: -0.0010
+  Episode_Reward/joints_hip_pos_l2: -0.0004
+Episode_Reward/joints_thigh_pos_l2: -0.0004
+ Episode_Reward/joints_calf_pos_l2: -0.0000
+      Episode_Reward/joints_acc_l2: -0.0601
+  Episode_Reward/joints_torques_l2: -0.0001
+   Episode_Reward/joints_energy_l1: -0.0010
+      Episode_Reward/feet_air_time: 0.0000
+Episode_Reward/feet_height_clearance: 0.0025
+Episode_Reward/feet_height_clearance_mujoco: 0.0000
+         Episode_Reward/feet_slide: 0.0000
+Episode_Reward/feet_contact_suggestion: 0.0020
+Episode_Reward/feet_to_base_distance_l2: 0.0000
+Episode_Reward/feet_to_hip_distance_l2: -0.0032
+Episode_Reward/feet_vertical_surface_contacts: -0.0000
+  Episode_Termination/base_contact: 525.3750
+      Episode_Termination/time_out: 0.0000
+--------------------------------------------------------------------------------
+                   Total timesteps: 4325376
+                    Iteration time: 2.17s
+                      Time elapsed: 00:00:48
+                               ETA: 00:17:29
+
+################################################################################
+                      [1m Learning iteration 22/500 [0m
+
+                       Computation: 92345 steps/s (collection: 2.004s, learning 0.125s)
+             Mean action noise std: 0.92
+          Mean value_function loss: 0.0154
+               Mean surrogate loss: -0.0098
+                 Mean entropy loss: 15.9848
+                       Mean reward: -1.32
+               Mean episode length: 15.20
+   Episode_Reward/track_height_exp: 0.0119
+Episode_Reward/track_lin_vel_xy_exp: 0.0127
+ Episode_Reward/track_lin_vel_z_l2: -0.0070
+Episode_Reward/track_orientation_l2: -0.0044
+Episode_Reward/track_ang_vel_xy_l2: -0.0183
+Episode_Reward/track_ang_vel_z_exp: 0.0039
+ Episode_Reward/undesired_contacts: -0.0010
+     Episode_Reward/action_rate_l2: -0.0032
+Episode_Reward/action_smoothness_l2: -0.0009
+  Episode_Reward/joints_hip_pos_l2: -0.0004
+Episode_Reward/joints_thigh_pos_l2: -0.0004
+ Episode_Reward/joints_calf_pos_l2: -0.0000
+      Episode_Reward/joints_acc_l2: -0.0586
+  Episode_Reward/joints_torques_l2: -0.0001
+   Episode_Reward/joints_energy_l1: -0.0009
+      Episode_Reward/feet_air_time: 0.0000
+Episode_Reward/feet_height_clearance: 0.0024
+Episode_Reward/feet_height_clearance_mujoco: 0.0000
+         Episode_Reward/feet_slide: 0.0000
+Episode_Reward/feet_contact_suggestion: 0.0019
+Episode_Reward/feet_to_base_distance_l2: 0.0000
+Episode_Reward/feet_to_hip_distance_l2: -0.0031
+Episode_Reward/feet_vertical_surface_contacts: -0.0000
+  Episode_Termination/base_contact: 537.1667
+      Episode_Termination/time_out: 0.0000
+--------------------------------------------------------------------------------
+                   Total timesteps: 4521984
+                    Iteration time: 2.13s
+                      Time elapsed: 00:00:50
+                               ETA: 00:17:26
+
+################################################################################
+                      [1m Learning iteration 23/500 [0m
+
+                       Computation: 91880 steps/s (collection: 2.007s, learning 0.132s)
+             Mean action noise std: 0.91
+          Mean value_function loss: 0.0149
+               Mean surrogate loss: -0.0019
+                 Mean entropy loss: 15.9081
+                       Mean reward: -1.25
+               Mean episode length: 14.58
+   Episode_Reward/track_height_exp: 0.0116
+Episode_Reward/track_lin_vel_xy_exp: 0.0127
+ Episode_Reward/track_lin_vel_z_l2: -0.0074
+Episode_Reward/track_orientation_l2: -0.0042
+Episode_Reward/track_ang_vel_xy_l2: -0.0176
+Episode_Reward/track_ang_vel_z_exp: 0.0038
+ Episode_Reward/undesired_contacts: -0.0010
+     Episode_Reward/action_rate_l2: -0.0031
+Episode_Reward/action_smoothness_l2: -0.0009
+  Episode_Reward/joints_hip_pos_l2: -0.0005
+Episode_Reward/joints_thigh_pos_l2: -0.0004
+ Episode_Reward/joints_calf_pos_l2: -0.0000
+      Episode_Reward/joints_acc_l2: -0.0576
+  Episode_Reward/joints_torques_l2: -0.0001
+   Episode_Reward/joints_energy_l1: -0.0009
+      Episode_Reward/feet_air_time: 0.0000
+Episode_Reward/feet_height_clearance: 0.0024
+Episode_Reward/feet_height_clearance_mujoco: 0.0000
+         Episode_Reward/feet_slide: 0.0000
+Episode_Reward/feet_contact_suggestion: 0.0019
+Episode_Reward/feet_to_base_distance_l2: 0.0000
+Episode_Reward/feet_to_hip_distance_l2: -0.0031
+Episode_Reward/feet_vertical_surface_contacts: -0.0000
+  Episode_Termination/base_contact: 547.3334
+      Episode_Termination/time_out: 0.0000
+--------------------------------------------------------------------------------
+                   Total timesteps: 4718592
+                    Iteration time: 2.14s
+                      Time elapsed: 00:00:52
+                               ETA: 00:17:23
+
+################################################################################
+                      [1m Learning iteration 24/500 [0m
+
+                       Computation: 92638 steps/s (collection: 1.998s, learning 0.124s)
+             Mean action noise std: 0.90
+          Mean value_function loss: 0.0141
+               Mean surrogate loss: -0.0096
+                 Mean entropy loss: 15.7977
+                       Mean reward: -1.28
+               Mean episode length: 14.98
+   Episode_Reward/track_height_exp: 0.0116
+Episode_Reward/track_lin_vel_xy_exp: 0.0125
+ Episode_Reward/track_lin_vel_z_l2: -0.0076
+Episode_Reward/track_orientation_l2: -0.0041
+Episode_Reward/track_ang_vel_xy_l2: -0.0170
+Episode_Reward/track_ang_vel_z_exp: 0.0038
+ Episode_Reward/undesired_contacts: -0.0010
+     Episode_Reward/action_rate_l2: -0.0031
+Episode_Reward/action_smoothness_l2: -0.0009
+  Episode_Reward/joints_hip_pos_l2: -0.0005
+Episode_Reward/joints_thigh_pos_l2: -0.0004
+ Episode_Reward/joints_calf_pos_l2: -0.0000
+      Episode_Reward/joints_acc_l2: -0.0573
+  Episode_Reward/joints_torques_l2: -0.0001
+   Episode_Reward/joints_energy_l1: -0.0009
+      Episode_Reward/feet_air_time: 0.0000
+Episode_Reward/feet_height_clearance: 0.0024
+Episode_Reward/feet_height_clearance_mujoco: 0.0000
+         Episode_Reward/feet_slide: 0.0000
+Episode_Reward/feet_contact_suggestion: 0.0019
+Episode_Reward/feet_to_base_distance_l2: 0.0000
+Episode_Reward/feet_to_hip_distance_l2: -0.0031
+Episode_Reward/feet_vertical_surface_contacts: -0.0000
+  Episode_Termination/base_contact: 541.8750
+      Episode_Termination/time_out: 0.0000
+--------------------------------------------------------------------------------
+                   Total timesteps: 4915200
+                    Iteration time: 2.12s
+                      Time elapsed: 00:00:54
+                               ETA: 00:17:19
+
+################################################################################
+                      [1m Learning iteration 25/500 [0m
+
+                       Computation: 89184 steps/s (collection: 2.076s, learning 0.128s)
+             Mean action noise std: 0.89
+          Mean value_function loss: 0.0137
+               Mean surrogate loss: -0.0089
+                 Mean entropy loss: 15.6941
+                       Mean reward: -1.25
+               Mean episode length: 14.84
+   Episode_Reward/track_height_exp: 0.0116
+Episode_Reward/track_lin_vel_xy_exp: 0.0125
+ Episode_Reward/track_lin_vel_z_l2: -0.0076
+Episode_Reward/track_orientation_l2: -0.0040
+Episode_Reward/track_ang_vel_xy_l2: -0.0164
+Episode_Reward/track_ang_vel_z_exp: 0.0039
+ Episode_Reward/undesired_contacts: -0.0010
+     Episode_Reward/action_rate_l2: -0.0030
+Episode_Reward/action_smoothness_l2: -0.0009
+  Episode_Reward/joints_hip_pos_l2: -0.0005
+Episode_Reward/joints_thigh_pos_l2: -0.0004
+ Episode_Reward/joints_calf_pos_l2: -0.0000
+      Episode_Reward/joints_acc_l2: -0.0572
+  Episode_Reward/joints_torques_l2: -0.0001
+   Episode_Reward/joints_energy_l1: -0.0009
+      Episode_Reward/feet_air_time: 0.0000
+Episode_Reward/feet_height_clearance: 0.0024
+Episode_Reward/feet_height_clearance_mujoco: 0.0000
+         Episode_Reward/feet_slide: 0.0000
+Episode_Reward/feet_contact_suggestion: 0.0019
+Episode_Reward/feet_to_base_distance_l2: 0.0000
+Episode_Reward/feet_to_hip_distance_l2: -0.0031
+Episode_Reward/feet_vertical_surface_contacts: -0.0000
+  Episode_Termination/base_contact: 545.7500
+      Episode_Termination/time_out: 0.0000
+--------------------------------------------------------------------------------
+                   Total timesteps: 5111808
+                    Iteration time: 2.20s
+                      Time elapsed: 00:00:56
+                               ETA: 00:17:17
+
+################################################################################
+                      [1m Learning iteration 26/500 [0m
+
+                       Computation: 93439 steps/s (collection: 1.982s, learning 0.122s)
+             Mean action noise std: 0.88
+          Mean value_function loss: 0.0132
+               Mean surrogate loss: -0.0092
+                 Mean entropy loss: 15.5808
+                       Mean reward: -1.24
+               Mean episode length: 14.81
+   Episode_Reward/track_height_exp: 0.0115
+Episode_Reward/track_lin_vel_xy_exp: 0.0126
+ Episode_Reward/track_lin_vel_z_l2: -0.0079
+Episode_Reward/track_orientation_l2: -0.0040
+Episode_Reward/track_ang_vel_xy_l2: -0.0159
+Episode_Reward/track_ang_vel_z_exp: 0.0039
+ Episode_Reward/undesired_contacts: -0.0010
+     Episode_Reward/action_rate_l2: -0.0030
+Episode_Reward/action_smoothness_l2: -0.0008
+  Episode_Reward/joints_hip_pos_l2: -0.0005
+Episode_Reward/joints_thigh_pos_l2: -0.0004
+ Episode_Reward/joints_calf_pos_l2: -0.0000
+      Episode_Reward/joints_acc_l2: -0.0570
+  Episode_Reward/joints_torques_l2: -0.0001
+   Episode_Reward/joints_energy_l1: -0.0009
+      Episode_Reward/feet_air_time: 0.0000
+Episode_Reward/feet_height_clearance: 0.0025
+Episode_Reward/feet_height_clearance_mujoco: 0.0000
+         Episode_Reward/feet_slide: 0.0000
+Episode_Reward/feet_contact_suggestion: 0.0019
+Episode_Reward/feet_to_base_distance_l2: 0.0000
+Episode_Reward/feet_to_hip_distance_l2: -0.0031
+Episode_Reward/feet_vertical_surface_contacts: -0.0000
+  Episode_Termination/base_contact: 548.0834
+      Episode_Termination/time_out: 0.0000
+--------------------------------------------------------------------------------
+                   Total timesteps: 5308416
+                    Iteration time: 2.10s
+                      Time elapsed: 00:00:58
+                               ETA: 00:17:14
+
+################################################################################
+                      [1m Learning iteration 27/500 [0m
+
+                       Computation: 93575 steps/s (collection: 1.980s, learning 0.121s)
+             Mean action noise std: 0.88
+          Mean value_function loss: 0.0131
+               Mean surrogate loss: -0.0072
+                 Mean entropy loss: 15.4772
+                       Mean reward: -1.21
+               Mean episode length: 14.94
+   Episode_Reward/track_height_exp: 0.0114
+Episode_Reward/track_lin_vel_xy_exp: 0.0126
+ Episode_Reward/track_lin_vel_z_l2: -0.0081
+Episode_Reward/track_orientation_l2: -0.0038
+Episode_Reward/track_ang_vel_xy_l2: -0.0153
+Episode_Reward/track_ang_vel_z_exp: 0.0039
+ Episode_Reward/undesired_contacts: -0.0010
+     Episode_Reward/action_rate_l2: -0.0029
+Episode_Reward/action_smoothness_l2: -0.0008
+  Episode_Reward/joints_hip_pos_l2: -0.0005
+Episode_Reward/joints_thigh_pos_l2: -0.0004
+ Episode_Reward/joints_calf_pos_l2: -0.0000
+      Episode_Reward/joints_acc_l2: -0.0569
+  Episode_Reward/joints_torques_l2: -0.0001
+   Episode_Reward/joints_energy_l1: -0.0009
+      Episode_Reward/feet_air_time: 0.0000
+Episode_Reward/feet_height_clearance: 0.0025
+Episode_Reward/feet_height_clearance_mujoco: 0.0000
+         Episode_Reward/feet_slide: 0.0000
+Episode_Reward/feet_contact_suggestion: 0.0019
+Episode_Reward/feet_to_base_distance_l2: 0.0000
+Episode_Reward/feet_to_hip_distance_l2: -0.0031
+Episode_Reward/feet_vertical_surface_contacts: -0.0000
+  Episode_Termination/base_contact: 547.9584
+      Episode_Termination/time_out: 0.0000
+--------------------------------------------------------------------------------
+                   Total timesteps: 5505024
+                    Iteration time: 2.10s
+                      Time elapsed: 00:01:01
+                               ETA: 00:17:10
