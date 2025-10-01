@@ -1,5 +1,5 @@
 <mujoco model="aliengo scene">
-    <include file="aliengo_z1.xml"/>
+    <include file="aliengo_z1_nogripper.xml"/>
 
     <statistic center="0 0 0.1" extent="0.8"/>
 

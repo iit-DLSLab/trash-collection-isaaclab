@@ -62,7 +62,7 @@ ALIENGO_ARM_ACTUATOR_CFG = IdentifiedActuatorElectricCfg(
     velocity_limit=3.1415,
     saturation_effort=10.0,
     stiffness=50.0,
-    damping=5.0,
+    damping=250.0,
     armature=0.01,
     friction_static=0.1,
     activation_vel=0.1,
@@ -84,7 +84,7 @@ ALIENGO_CFG = ArticulationCfg(
             max_depenetration_velocity=1.0,
         ),
         articulation_props=sim_utils.ArticulationRootPropertiesCfg(
-            enabled_self_collisions=True, solver_position_iteration_count=4, solver_velocity_iteration_count=0
+            enabled_self_collisions=False, solver_position_iteration_count=4, solver_velocity_iteration_count=0
         ),
     ),
     init_state=ArticulationCfg.InitialStateCfg(

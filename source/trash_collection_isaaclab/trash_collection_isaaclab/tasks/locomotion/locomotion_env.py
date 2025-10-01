@@ -140,6 +140,8 @@ class LocomotionEnv(DirectRLEnv):
         
         self._feet_ids_robot, _ = self._robot .find_bodies(".*foot")
         self._hip_ids_robot, _ = self._robot.find_bodies(".*hip")
+        self._ids_joints_order = self._robot.find_joints(name_keys=self.cfg.desired_joints_order, preserve_order=True)[0]
+        self._ids_only_legs_joints_order = self._robot.find_joints(name_keys=self.cfg.desired_joints_order[0:12], preserve_order=True)[0]
 
 
     def _setup_scene(self):
@@ -181,17 +183,18 @@ class LocomotionEnv(DirectRLEnv):
         if(self.cfg.use_filter_actions):
             alpha = 0.8
             temp = alpha * self._actions + (1 - alpha) * self._previous_actions
-            self._processed_actions = self.cfg.action_scale * temp + self._robot.data.default_joint_pos[:,0:12]
+            #self._processed_actions = self.cfg.action_scale * temp + self._robot.data.default_joint_pos[:,0:12]
+            self._processed_actions = self.cfg.action_scale * temp + self._robot.data.default_joint_pos[:,self._ids_joints_order[0:12]]
         else:
-            self._processed_actions = self.cfg.action_scale * self._actions + self._robot.data.default_joint_pos[:,0:12]
+            #self._processed_actions = self.cfg.action_scale * self._actions + self._robot.data.default_joint_pos[:,0:12]
+            self._processed_actions = self.cfg.action_scale * self._actions + self._robot.data.default_joint_pos[:,self._ids_joints_order[0:12]]
 
 
     def _apply_action(self):
-        processed_actions_with_arm = self._processed_actions.clone()
         #TODO randomize pd target arms?
-        processed_actions_with_arm = torch.cat((processed_actions_with_arm, torch.zeros(self.num_envs, 6, device=self.device)), dim=1)
+        processed_actions_with_arm = torch.zeros(self.num_envs, 18, device=self.device)
+        processed_actions_with_arm[:, self._ids_only_legs_joints_order] = self._processed_actions
         self._robot.set_joint_position_target(processed_actions_with_arm)
-
 
 
     def _get_observations(self) -> dict:
@@ -237,8 +240,8 @@ class LocomotionEnv(DirectRLEnv):
                     projected_gravity_b,
                     self._velocity_commands,
                     self._pose_commands,
-                    self._robot.data.joint_pos - self._robot.data.default_joint_pos,
-                    self._robot.data.joint_vel,
+                    self._robot.data.joint_pos[:,self._ids_joints_order] - self._robot.data.default_joint_pos[:,self._ids_joints_order],
+                    self._robot.data.joint_vel[:,self._ids_joints_order],
                     self._actions,
                     clock_data,
                 )
@@ -280,23 +283,6 @@ class LocomotionEnv(DirectRLEnv):
         # ------------------------------------------------------------------------------------------
 
 
-        # AMP related observation if used
-        if(self.cfg.use_amp):
-            obs_amp = torch.cat(
-                [
-                    tensor
-                    for tensor in (
-                        #self._robot.data.root_quat_w,
-                        self._robot.data.joint_pos,
-                        self._robot.data.joint_vel,
-                        self._robot.data.root_lin_vel_b,
-                        # self._robot.data.root_ang_vel_b,
-                    )
-                    if tensor is not None
-                ],
-                dim=-1,
-            )
-            observations["amp"] = obs_amp
 
 
         return observations
@@ -390,20 +376,20 @@ class LocomotionEnv(DirectRLEnv):
 
         
         # hip position
-        hip_joints_position = self._robot.data.joint_pos[:,0:4]
-        hip_joints_position_error = torch.square(hip_joints_position - self._robot.data.default_joint_pos[:,0:4])
+        hip_joints_position = self._robot.data.joint_pos[:,self._ids_joints_order[0:4]]
+        hip_joints_position_error = torch.square(hip_joints_position - self._robot.data.default_joint_pos[:,self._ids_joints_order[0:4]])
         hip_joints_position_reward = torch.sum(hip_joints_position_error,dim=1)
 
 
         # thigh position
-        thigh_joints_position = self._robot.data.joint_pos[:,4:8]
-        thigh_joints_position_error = torch.square(thigh_joints_position - self._robot.data.default_joint_pos[:,4:8])
+        thigh_joints_position = self._robot.data.joint_pos[:,self._ids_joints_order[4:8]]
+        thigh_joints_position_error = torch.square(thigh_joints_position - self._robot.data.default_joint_pos[:,self._ids_joints_order[4:8]])
         thigh_joints_position_reward = torch.sum(thigh_joints_position_error,dim=1)
 
 
         # calf position
-        calf_joints_position = self._robot.data.joint_pos[:,8:12]
-        calf_joints_position_error = torch.square(calf_joints_position - self._robot.data.default_joint_pos[:,8:12])
+        calf_joints_position = self._robot.data.joint_pos[:,self._ids_joints_order[8:12]]
+        calf_joints_position_error = torch.square(calf_joints_position - self._robot.data.default_joint_pos[:,self._ids_joints_order[8:12]])
         calf_joints_position_reward = torch.sum(calf_joints_position_error,dim=1)
 
 
@@ -663,8 +649,8 @@ class LocomotionEnv(DirectRLEnv):
                     self._robot.data.projected_gravity_b,
                     self._velocity_commands,
                     self._pose_commands,
-                    self._robot.data.joint_pos - self._robot.data.default_joint_pos,
-                    self._robot.data.joint_vel,
+                    self._robot.data.joint_pos[:,self._ids_joints_order] - self._robot.data.default_joint_pos[:,self._ids_joints_order],
+                    self._robot.data.joint_vel[:,self._ids_joints_order],
                     self._actions,
                     clock_data,
                 )
@@ -717,8 +703,8 @@ class LocomotionEnv(DirectRLEnv):
                     self._robot.data.projected_gravity_b,
                     self._velocity_commands,
                     self._pose_commands,
-                    self._robot.data.joint_pos - self._robot.data.default_joint_pos,
-                    self._robot.data.joint_vel,
+                    self._robot.data.joint_pos[:,self._ids_joints_order] - self._robot.data.default_joint_pos[:,self._ids_joints_order],
+                    self._robot.data.joint_vel[:,self._ids_joints_order],
                     self._actions,
                     clock_data,
                 )

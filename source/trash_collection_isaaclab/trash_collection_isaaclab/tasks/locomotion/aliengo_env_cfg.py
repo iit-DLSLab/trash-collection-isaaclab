@@ -268,6 +268,11 @@ class AliengoFlatEnvCfg(DirectRLEnvCfg):
         prim_path="/World/envs/env_.*/Robot/.*", history_length=3, update_period=0.005, track_air_time=True
     )
 
+    desired_joints_order = ['FL_hip_joint', 'FR_hip_joint', 'RL_hip_joint', 'RR_hip_joint',
+                           'FL_thigh_joint', 'FR_thigh_joint', 'RL_thigh_joint', 'RR_thigh_joint',  
+                           'FL_calf_joint', 'FR_calf_joint', 'RL_calf_joint', 'RR_calf_joint',
+                           'arm_joint1', 'arm_joint2', 'arm_joint3', 'arm_joint4', 'arm_joint5', 'arm_joint6']
+
     # Desired gait
     desired_gait = "trot" #crawl, pace, multigait
 
