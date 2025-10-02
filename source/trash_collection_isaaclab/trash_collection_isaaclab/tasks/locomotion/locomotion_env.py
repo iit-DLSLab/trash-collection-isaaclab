@@ -364,15 +364,15 @@ class LocomotionEnv(DirectRLEnv):
         
 
         # joint acceleration
-        joints_accel = torch.sum(torch.square(self._robot.data.joint_acc), dim=1)
+        joints_accel = torch.sum(torch.square(self._robot.data.joint_acc[:,self._ids_joints_order[0:12]]), dim=1)
 
 
         # joint torques
-        joints_torques = torch.sum(torch.square(self._robot.data.applied_torque), dim=1)
+        joints_torques = torch.sum(torch.square(self._robot.data.applied_torque[:,self._ids_joints_order[0:12]]), dim=1)
 
 
         # energy = torque * velocity
-        joints_energy = torch.sum(torch.abs(self._robot.data.applied_torque * self._robot.data.joint_vel), dim=1)
+        joints_energy = torch.sum(torch.abs(self._robot.data.applied_torque[:,self._ids_joints_order[0:12]] * self._robot.data.joint_vel[:,self._ids_joints_order[0:12]]), dim=1)
 
         
         # hip position
