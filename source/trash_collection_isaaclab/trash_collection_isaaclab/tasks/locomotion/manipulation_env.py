@@ -47,22 +47,6 @@ class ManipulationEnv(DirectRLEnv):
         # Observation history arm
         self._observation_history = torch.zeros(self.num_envs, cfg.history_length, cfg.single_observation_space, device=self.device)
 
-        # Observation history locomotion
-        self._observation_history_locomotion = torch.zeros(self.num_envs, cfg.history_length, cfg.single_locomotion_observation_space, device=self.device)
-        if self.cfg.observation_noise_model:
-            self._observation_noise_model_locomotion: NoiseModel = self.cfg.observation_noise_model.class_type(
-                self.cfg.observation_noise_model, num_envs=self.num_envs, device=self.device
-            )
-
-        # RMA
-        if(cfg.use_rma == True):
-            self._rma_network = SimpleNN(cfg.rma_observation_space, cfg.rma_output_space)
-            self._rma_network.to(self.device)
-            self._observation_history_rma = torch.zeros(self.num_envs, cfg.history_length, cfg.single_rma_observation_space, device=self.device)
-            if self.cfg.observation_noise_model:
-                self._observation_noise_model_rma: NoiseModel = self.cfg.observation_noise_model.class_type(
-                    self.cfg.observation_noise_model, num_envs=self.num_envs, device=self.device
-                )
 
         # Periodic gait
         if(cfg.desired_gait == "trot"):
@@ -109,11 +93,14 @@ class ManipulationEnv(DirectRLEnv):
         self._feet_ids, _ = self._contact_sensor.find_bodies(".*foot")
         self._hip_ids, _ = self._contact_sensor.find_bodies(".*hip")
         self._thigh_ids, _ = self._contact_sensor.find_bodies(".*thigh")
-        self._undesired_contact_body_ids = self._base_id + self._hip_ids + self._thigh_ids
+        self._arm_links_ids, _ = self._contact_sensor.find_bodies("link.*")
+        self._undesired_contact_body_ids = self._base_id + self._hip_ids + self._thigh_ids + self._arm_links_ids
 
         
         self._feet_ids_robot, _ = self._robot .find_bodies(".*foot")
         self._hip_ids_robot, _ = self._robot.find_bodies(".*hip")
+        self._ee_id_robot, _ = self._robot.find_bodies("link06")
+
         self._ids_joints_order = self._robot.find_joints(name_keys=self.cfg.desired_joints_order, preserve_order=True)[0]
         self._ids_only_legs_joints_order = self._robot.find_joints(name_keys=self.cfg.desired_joints_order[0:12], preserve_order=True)[0]
         self._ids_only_arms_joints_order = self._robot.find_joints(name_keys=self.cfg.desired_joints_order[12:18], preserve_order=True)[0]
@@ -180,14 +167,42 @@ class ManipulationEnv(DirectRLEnv):
 
 
         # Observation --------------------------------------------------------------------------------------
+        clock_data = None
+        if(self.cfg.use_clock_signal):
+            clock_data = torch.vstack([self._phase_signal[:,0], self._phase_signal[:,1], self._phase_signal[:,2], self._phase_signal[:,3]]).T
+            # all the envs that are not moving, we put -1
+            clock_data[:, :] = -1.0
+            
+
+        # Choosing the main source of observation
+        if(self.cfg.use_cuncurrent_state_est):
+            # If Cuncurrent SE/Learned State Estimator, we predict linear and angular vel from IMU
+            velocity_b = self._get_cuncurrent_state_estimation(clock_data)
+            angular_velocity_b = self._imu.data.ang_vel_b
+            projected_gravity_b = self._imu.data.projected_gravity_b
+        elif(self.cfg.use_imu):
+            # Using directly the IMU
+            velocity_b = self._imu.data.lin_acc_b
+            angular_velocity_b = self._imu.data.ang_vel_b
+            projected_gravity_b = self._imu.data.projected_gravity_b
+        else:
+            #Using a model-based state estimation
+            velocity_b = self._robot.data.root_lin_vel_b
+            angular_velocity_b = self._robot.data.root_ang_vel_b
+            projected_gravity_b = self._robot.data.projected_gravity_b
+
+        
         # Standard Obs for the Actor/Critic
         obs = torch.cat(
             [
                 tensor
                 for tensor in (
+                    velocity_b,
+                    angular_velocity_b,
+                    projected_gravity_b,
                     self._ee_commands,
-                    self._robot.data.joint_pos[:,self._ids_only_arms_joints_order] - self._robot.data.default_joint_pos[:,self._ids_only_arms_joints_order],
-                    self._robot.data.joint_vel[:,self._ids_only_arms_joints_order],
+                    self._robot.data.joint_pos[:,self._ids_joints_order] - self._robot.data.default_joint_pos[:,self._ids_joints_order],
+                    self._robot.data.joint_vel[:,self._ids_joints_order],
                     self._actions,
                 )
                 if tensor is not None
@@ -210,27 +225,21 @@ class ManipulationEnv(DirectRLEnv):
             obs = torch.cat((obs, height_data), dim=-1)      
 
 
-        # If RMA, we add some other predicted obs
-        if(self.cfg.use_rma):
-            # Predict the RMA observation
-            obs_rma = self._get_rma(None)
-            obs = torch.cat((obs, obs_rma), dim=-1)
-
-
         # Final observations dictionary
         observations = {"policy": obs}    
-        
-
-        # Critic OBS could be different if needed
-        if(self.cfg.use_asymmetric_ppo):
-            obs_critic = self._get_privileged_observation()
-            observations["critic"] = torch.cat((obs, obs_critic), dim=-1)
         # ------------------------------------------------------------------------------------------
         return observations
 
 
     def _get_rewards(self) -> torch.Tensor:
-        
+
+        # tracking ee in horizontal frame
+        ROT_W2H = math_utils.matrix_from_quat(math_utils.yaw_quat(self._robot.data.root_quat_w))
+        ee_to_base_w = self._robot.data.body_pos_w[:, self._ee_id_robot, :3] - self._robot.data.root_state_w[:, :3].unsqueeze(1)
+        ee_to_base_h = torch.matmul(ROT_W2H.transpose(1,2), ee_to_base_w.transpose(1, 2))
+        ee_pose_error = torch.sum(torch.square(self._ee_commands - ee_to_base_h), dim=1)
+        ee_pose_error_mapped = torch.exp(-ee_pose_error / 0.25)
+
         # action rate
         action_rate = torch.sum(torch.square(self._actions - self._previous_actions), dim=1)
         action_smoothness = torch.sum(torch.square(self._actions - 2*self._previous_actions + self._previous_previous_actions), dim=1)
@@ -263,6 +272,8 @@ class ManipulationEnv(DirectRLEnv):
     
 
         rewards = {
+            "track_ee_exp": ee_pose_error_mapped * self.cfg.ee_pose_reward_scale * self.step_dt,
+
             "undesired_contacts": contacts * self.cfg.undersired_contact_reward_scale * self.step_dt,
             "action_rate_l2": action_rate * self.cfg.action_rate_reward_scale * self.step_dt,
             "action_smoothness_l2": action_smoothness * self.cfg.action_smoothness_reward_scale * self.step_dt,
@@ -285,7 +296,7 @@ class ManipulationEnv(DirectRLEnv):
         net_contact_forces = self._contact_sensor.data.net_forces_w_history
         died_check_base = torch.any(torch.max(torch.norm(net_contact_forces[:, :, self._base_id], dim=-1), dim=1)[0] > 1.0, dim=1)
         died_check_hips = torch.any(torch.max(torch.norm(net_contact_forces[:, :, self._hip_ids], dim=-1), dim=1)[0] > 1.0, dim=1) 
-        died_arms_collision = torch.any(torch.max(torch.norm(net_contact_forces[:, :, self._ids_only_arms_joints_order], dim=-1), dim=1)[0] > 1.0, dim=1)
+        died_arms_collision = torch.any(torch.max(torch.norm(net_contact_forces[:, :, self._arm_links_ids], dim=-1), dim=1)[0] > 1.0, dim=1)
         died = torch.logical_or(died_check_base, died_check_hips)
         died = torch.logical_or(died, died_arms_collision)
         return died, time_out
@@ -312,13 +323,6 @@ class ManipulationEnv(DirectRLEnv):
         self._phase_signal[env_ids] = self._phase_offset[env_ids].clone()# + self.step_dt * self._step_freq * torch.rand(env_ids.shape[0], 1, device=self.device)*10.
         self._phase_signal[env_ids] = self._phase_signal[env_ids]  % 1.0
 
-        # Reset noise
-        if self.cfg.observation_noise_model:
-            self._observation_noise_model_locomotion.reset(env_ids)
-        
-        if(self.cfg.use_rma):
-            if self.cfg.observation_noise_model:
-                self._observation_noise_model_rma.reset(env_ids)
 
         # Reset robot state
         joint_pos = self._robot.data.default_joint_pos[env_ids]
@@ -360,80 +364,10 @@ class ManipulationEnv(DirectRLEnv):
 
 
     def _get_locomotion_policy_action(self,):
-        print("TODO")
-        return None
+        return torch.zeros(self.num_envs, 12, device=self.device)
 
 
-    def _get_rma(self, clock_data):
-        # Learning privileged information via supervised learning
-        obs_rma = torch.cat(
-            [
-                tensor
-                for tensor in (
-                    self._ee_commands,
-                    self._robot.data.joint_pos[:,self._ids_only_arms_joints_order] - self._robot.data.default_joint_pos[:,self._ids_only_arms_joints_order],
-                    self._robot.data.joint_vel[:,self._ids_only_arms_joints_order],
-                    self._actions,
-                )
-                if tensor is not None
-            ],
-            dim=-1,
-        )
-
-        #the bottom element is the newest observation!!
-        self._observation_history_rma = torch.cat((self._observation_history_rma[:,1:,:], obs_rma.unsqueeze(1)), dim=1)
-        obs = torch.flatten(self._observation_history_rma, start_dim=1)
-
-        # Add noise to the observation - this is usually done in direct_rl.py in IsaacLab, but 
-        # the obs of cuncurrent SE does not pass from there - its prediciton yes instead!
-        if self.cfg.observation_noise_model:          
-            obs = self._observation_noise_model_rma(obs.clone())  
-        
-        outputs_rma = self._get_privileged_observation()
-
-        self._rma_network.dataset.add_sample(obs, outputs_rma)
-
-        # Prediction
-        num_episode_from_start = self.common_step_counter / 24. #self.max_episode_length #HACK this should be taken from rsl rl
-        num_final_episode_from_start = 8000.
-        if num_episode_from_start > self.cfg.rma_ep_saving_interval:
-            prediction_rma = self._rma_network(obs)
-            obs_rma = prediction_rma
-        else:
-            obs_rma = outputs_rma
-
-        # Train at some interval
-        if num_episode_from_start % self.cfg.rma_ep_saving_interval == 0 and num_episode_from_start > self.cfg.rma_ep_saving_interval - 1:  # Adjust the interval as needed
-            self._rma_network.train_network(batch_size=self.cfg.rma_batch_size, 
-                                            epochs=self.cfg.rma_train_epochs, 
-                                            learning_rate=self.cfg.rma_lr, 
-                                            device=self.device)
-        if num_episode_from_start == num_final_episode_from_start - 10:
-            # Save the network
-            self._rma_network.save_network("arm_rma.pth", self.device)
-        
-        return obs_rma
+    def _get_concurrent_state_estimation(self, clock_data):
+        return torch.zeros(self.num_envs, 3, device=self.device)
 
 
-    def _get_privileged_observation(self):
-        asset_cfg = SceneEntityCfg("robot", joint_names=[".*"])
-        asset: Articulation = self.scene[asset_cfg.name]
-        arm_joints_static_friction = asset.actuators["arm_joint.*"].friction_static
-
-        arm_joints_dynamic_friction = asset.actuators["arm_joint.*"].friction_dynamic
-
-        arm_joints_armature = asset.actuators["arm_joint.*"].armature
-
-        arm_joints_stiffness = asset.actuators["arm_joint.*"].stiffness
-
-        arm_joints_damping = asset.actuators["arm_joint.*"].damping
-
-        default_stiffness = asset.data.default_joint_stiffness[0][0]
-        default_damping = asset.data.default_joint_damping[0][0]
-
-        obs_privileged = torch.cat(( 
-                            arm_joints_stiffness/default_stiffness, #P gain
-                            arm_joints_damping/default_damping, #D gain
-                            ) 
-                        , dim=-1)
-        return obs_privileged

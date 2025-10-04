@@ -109,8 +109,15 @@ class ArmFlatEnvCfg(DirectRLEnvCfg):
     decimation = 4
     action_scale = 0.5
     action_space = 6
-    observation_space = 12 + 12 #12 are the arm joints pos and vel, 12 the pose and the pose vel of the robot 
+    observation_space = 18 + 18 # 12 are the arm joints pos and vel
+    observation_space += 9 # 9 the pose linear vel and angular, and orientation 
+    observation_space += 3 # ee goal
+    observation_space += 6 # action
     state_space = 0
+
+    use_clock_signal = False
+    if(use_clock_signal):
+        observation_space += 4
 
 
     # observation history
@@ -120,6 +127,18 @@ class ArmFlatEnvCfg(DirectRLEnvCfg):
         single_observation_space = observation_space # Placeholder. Later we may add map, but only from the latest obs
         observation_space *= history_length
 
+
+    use_imu = False
+
+    use_cuncurrent_state_est = False
+    if(use_cuncurrent_state_est):
+        cuncurrent_state_est_output_space = 3 #lin_vel_b
+        single_cuncurrent_state_est_observation_space = single_observation_space
+        cuncurrent_state_est_observation_space = observation_space
+        cuncurrent_state_est_batch_size = 32
+        cuncurrent_state_est_train_epochs = 500
+        cuncurrent_state_est_lr = 1e-3
+        cuncurrent_state_est_ep_saving_interval = 1000
 
     use_rma = False
     if(use_rma):
@@ -199,7 +218,8 @@ class ArmFlatEnvCfg(DirectRLEnvCfg):
         mesh_prim_paths=["/World/ground"],
     )
 
-
+    # an imu sensor in case we don't want any state estimator
+    imu = ImuCfg(prim_path="/World/envs/env_.*/Robot/base", debug_vis=True)
 
     # scene
     scene: InteractiveSceneCfg = InteractiveSceneCfg(num_envs=4096, env_spacing=4.0, replicate_physics=True)
@@ -225,25 +245,26 @@ class ArmFlatEnvCfg(DirectRLEnvCfg):
         prim_path="/World/envs/env_.*/Robot/.*", history_length=3, update_period=0.005, track_air_time=True
     )
 
+    desired_joints_order = ['FL_hip_joint', 'FR_hip_joint', 'RL_hip_joint', 'RR_hip_joint',
+                           'FL_thigh_joint', 'FR_thigh_joint', 'RL_thigh_joint', 'RR_thigh_joint',  
+                           'FL_calf_joint', 'FR_calf_joint', 'RL_calf_joint', 'RR_calf_joint',
+                           'arm_joint1', 'arm_joint2', 'arm_joint3', 'arm_joint4', 'arm_joint5', 'arm_joint6']
+
+
+    # Desired gait
+    desired_gait = "trot" #crawl, pace, multigait
  
     # Desired clip actions
     desired_clip_actions = 3.0
     
     # Tracking reward scale
-    lin_vel_reward_scale = 2.0
-    yaw_rate_reward_scale = 0.5
-    z_vel_reward_scale = -2.0
-    ang_vel_reward_scale = -0.25
-    orientation_reward_scale = -5.0
-    height_reward_scale = 1.0
+    ee_pose_reward_scale = 1.5
     
     # Joint reward scale
     joints_torque_reward_scale = -2.5e-6
     joints_accel_reward_scale = -2.5e-7
     joints_energy_reward_scale = -1e-4
-    joints_hip_position_reward_scale = -0.1
-    joints_thigh_position_reward_scale = -0.1
-    joints_calf_position_reward_scale = -0.001
+    joints_arm_position_reward_scale = -0.01
    
     
     # Undesired contacts reward scale

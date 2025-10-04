@@ -50,3 +50,36 @@ gym.register(
     },
 )
 
+from .manipulation_env import ManipulationEnv
+from .manipulation_env import ArmFlatEnvCfg, ArmRoughBlindEnvCfg, ArmRoughVisionEnvCfg
+
+gym.register(
+    id="Manipulation-Aliengo-Flat",
+    entry_point=ManipulationEnv,
+    disable_env_checker=True,
+    kwargs={
+        "env_cfg_entry_point": ArmFlatEnvCfg,
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:FlatPPORunnerCfg",
+    },
+)
+
+gym.register(
+    id="Manipulation-Aliengo-Rough-Blind",
+    entry_point=ManipulationEnv,
+    disable_env_checker=True,
+    kwargs={
+        "env_cfg_entry_point": ArmRoughBlindEnvCfg,
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:RoughPPORunnerCfg",
+    },
+)
+
+gym.register(
+    id="Manipulation-Aliengo-Rough-Vision",
+    entry_point=ManipulationEnv,
+    disable_env_checker=True,
+    kwargs={
+        "env_cfg_entry_point": ArmRoughVisionEnvCfg,
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:RoughPPORunnerCfg",
+    },
+)
+
