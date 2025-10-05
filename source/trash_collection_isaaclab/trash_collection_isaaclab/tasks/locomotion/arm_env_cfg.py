@@ -20,6 +20,10 @@ from isaaclab.terrains.config.rough import ROUGH_TERRAINS_CFG
 import trash_collection_isaaclab.tasks.custom_events as custom_events
 import trash_collection_isaaclab.tasks.custom_curriculums as custom_curriculums
 
+import sys
+import os 
+import yaml 
+
 @configclass
 class EventCfg:
     """Configuration for randomization."""
@@ -112,7 +116,8 @@ class ArmFlatEnvCfg(DirectRLEnvCfg):
     observation_space = 18 + 18 # 12 are the arm joints pos and vel
     observation_space += 9 # 9 the pose linear vel and angular, and orientation 
     observation_space += 3 # ee goal
-    observation_space += 6 # action
+    observation_space += 6 # action arm
+    observation_space += 2 # pose commands 
     state_space = 0
 
 
@@ -255,49 +260,46 @@ class ArmFlatEnvCfg(DirectRLEnvCfg):
 
 
     # Loading the locomotion policy --------------------------------------------------------------------------------
-    try:
-        import sys
-        import os 
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-        locomotion_policy_folder_path = dir_path + "/../../../../../../tested_policies/aliengo_with_z1/policy_folder_path"
-        cuncurrent_state_est_network_path = locomotion_policy_folder_path + "/exported/cuncurrent_state_estimator.pth"
-        rma_network_path = locomotion_policy_folder_path + "/exported/rma.pth"
+    #try:
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    locomotion_policy_folder_path = dir_path + "/../../../../../tested_policies/aliengo_with_z1"
 
-        # Load specific training parameters
-        import yaml 
-        with open(locomotion_policy_folder_path + "/params/env.yaml", "r") as file:
-            locomotion_policy_env_cfg = yaml.unsafe_load(file)
+    cuncurrent_state_est_network_path = locomotion_policy_folder_path + "/exported/cuncurrent_state_estimator.pth"
+    rma_network_path = locomotion_policy_folder_path + "/exported/rma.pth"
 
-        # state estimator locomotion
-        use_imu = locomotion_policy_env_cfg["use_imu"]
+    # Load specific training parameters
+    locomotion_policy_env_cfg = yaml.unsafe_load(open(locomotion_policy_folder_path + "/params/env.yaml", "r"))
 
-        use_cuncurrent_state_est = locomotion_policy_env_cfg["use_cuncurrent_state_est"]
-        if(use_cuncurrent_state_est):
-            cuncurrent_state_est_output_space = locomotion_policy_env_cfg["cuncurrent_state_est_output_space"]
-            single_cuncurrent_state_est_observation_space = locomotion_policy_env_cfg["single_observation_space"]
-            cuncurrent_state_est_observation_space = locomotion_policy_env_cfg["observation_space"]
-        
-        # action locomotion
-        use_filter_actions_locomotion = locomotion_policy_env_cfg["use_filter_actions"]
-        desired_clip_actions_locomotion = locomotion_policy_env_cfg["desired_clip_actions"]
-        action_scale_locomotion = locomotion_policy_env_cfg["action_scale"]
-        single_action_space_locomotion = locomotion_policy_env_cfg["single_action_space"]
+    # state estimator locomotion
+    use_imu = locomotion_policy_env_cfg["use_imu"]
 
-        # periodic gait locomotion
-        use_clock_signal = locomotion_policy_env_cfg["use_clock_signal"]
-        # Desired step freq and duty factor (if periodic gait is used)
-        desired_step_freq = locomotion_policy_env_cfg["desired_step_freq"]
-        desired_duty_factor = locomotion_policy_env_cfg["desired_duty_factor"]
-        desired_phase_offset = locomotion_policy_env_cfg["desired_phase_offset"]
+    use_cuncurrent_state_est = locomotion_policy_env_cfg["use_cuncurrent_state_est"]
+    if(use_cuncurrent_state_est):
+        cuncurrent_state_est_output_space = locomotion_policy_env_cfg["cuncurrent_state_est_output_space"]
+        single_cuncurrent_state_est_observation_space = locomotion_policy_env_cfg["single_observation_space"]
+        cuncurrent_state_est_observation_space = locomotion_policy_env_cfg["observation_space"]
+    
+    # action locomotion
+    use_filter_actions_locomotion = locomotion_policy_env_cfg["use_filter_actions"]
+    desired_clip_actions_locomotion = locomotion_policy_env_cfg["desired_clip_actions"]
+    action_scale_locomotion = locomotion_policy_env_cfg["action_scale"]
+    action_space_locomotion = locomotion_policy_env_cfg["action_space"]
 
-        # observation locomotion
-        observation_space_locomotion = locomotion_policy_env_cfg["observation_space"]
-        use_observation_history_locomotion = locomotion_policy_env_cfg["use_observation_history"]
-        history_length_locomotion = locomotion_policy_env_cfg["history_length"]
-        if(use_observation_history_locomotion):
-            single_observation_space_locomotion = locomotion_policy_env_cfg["single_observation_space"]
-    except:
-        print("Error loading the locomotion policy parameters")  
+    # periodic gait locomotion
+    use_clock_signal = locomotion_policy_env_cfg["use_clock_signal"]
+    # Desired step freq and duty factor (if periodic gait is used)
+    desired_step_freq = locomotion_policy_env_cfg["desired_step_freq"]
+    desired_duty_factor = locomotion_policy_env_cfg["desired_duty_factor"]
+    desired_phase_offset = locomotion_policy_env_cfg["desired_phase_offset"]
+
+    # observation locomotion
+    observation_space_locomotion = locomotion_policy_env_cfg["observation_space"]
+    use_observation_history_locomotion = locomotion_policy_env_cfg["use_observation_history"]
+    history_length_locomotion = locomotion_policy_env_cfg["history_length"]
+    if(use_observation_history_locomotion):
+        single_observation_space_locomotion = locomotion_policy_env_cfg["single_observation_space"]
+    #except:
+    #    print("Error loading the locomotion policy parameters")  
     # -----------------------------------------------------------------------------------------------------------------
 
 

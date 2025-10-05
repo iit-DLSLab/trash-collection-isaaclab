@@ -59,9 +59,14 @@ class ManipulationEnv(DirectRLEnv):
         # Observation history locomotion
         self._observation_history_locomotion = torch.zeros(self.num_envs, cfg.locomotion_policy_env_cfg["history_length"], cfg.locomotion_policy_env_cfg["single_observation_space"], device=self.device)
 
-        self._locomotion_policy = ort.InferenceSession(cfg.locomotion_policy_env_cfg["policy_path"] + "/exported/policy.onnx")
+        self._locomotion_policy = ort.InferenceSession(cfg.locomotion_policy_folder_path + "/exported/policy.onnx")
+        
+        single_action_space_locomotion = gym.spaces.Box(low=-float('inf'), high=float('inf'), shape=(cfg.action_space_locomotion,), dtype=float)
+        self._actions_locomotion = torch.zeros(
+            self.num_envs, gym.spaces.flatdim(single_action_space_locomotion), device=self.device
+        )
         self._previous_actions_locomotion = torch.zeros(
-            self.num_envs, gym.spaces.flatdim(self.single_action_space_locomotion), device=self.device
+            self.num_envs, gym.spaces.flatdim(single_action_space_locomotion), device=self.device
         )
 
         # Logging
@@ -138,9 +143,10 @@ class ManipulationEnv(DirectRLEnv):
         if(self.cfg.use_filter_actions):
             alpha = 0.8
             temp = alpha * self._actions + (1 - alpha) * self._previous_actions
-            self._processed_actions = self.cfg.action_scale * temp + self._robot.data.default_joint_pos[:,self._ids_only_arms_joints_order]
+            self._processed_actions = self.cfg.action_scale * temp 
         else:
-            self._processed_actions = self.cfg.action_scale * self._actions + self._robot.data.default_joint_pos[:,self._ids_only_arms_joints_order]
+            self._processed_actions = self.cfg.action_scale * self._actions
+        self._processed_actions[:,0:6] += self._robot.data.default_joint_pos[:,self._ids_only_arms_joints_order]
 
 
     def _apply_action(self):
@@ -232,7 +238,8 @@ class ManipulationEnv(DirectRLEnv):
         ROT_W2H = math_utils.matrix_from_quat(math_utils.yaw_quat(self._robot.data.root_quat_w))
         ee_to_base_w = self._robot.data.body_pos_w[:, self._ee_id_robot, :3] - self._robot.data.root_state_w[:, :3].unsqueeze(1)
         ee_to_base_h = torch.matmul(ROT_W2H.transpose(1,2), ee_to_base_w.transpose(1, 2))
-        ee_pose_error = torch.sum(torch.square(self._ee_commands - ee_to_base_h), dim=1)
+        #TODO check, there is an extra dimension added here
+        ee_pose_error = torch.sum(torch.square(self._ee_commands - ee_to_base_h[:,:,0]), dim=1)
         ee_pose_error_mapped = torch.exp(-ee_pose_error / 0.25)
 
         # action rate
@@ -397,7 +404,7 @@ class ManipulationEnv(DirectRLEnv):
                     pose_commands,
                     self._robot.data.joint_pos[:,self._ids_joints_order] - self._robot.data.default_joint_pos[:,self._ids_joints_order],
                     self._robot.data.joint_vel[:,self._ids_joints_order],
-                    self._actions,
+                    self._actions_locomotion,
                     clock_data,
                 )
                 if tensor is not None
@@ -409,19 +416,19 @@ class ManipulationEnv(DirectRLEnv):
             self._observation_history_locomotion = torch.cat((self._observation_history_locomotion[:,1:,:], obs.unsqueeze(1)), dim=1)
             obs = torch.flatten(self._observation_history_locomotion, start_dim=1)
 
-
-        self._actions_locomotion = self._locomotion_policy.run(None, {'obs': obs})[0][0]
+        #TODO
+        #self._actions_locomotion = self._locomotion_policy.run(None, {'obs': obs})[0][0]
 
         # Clip the action
         self._actions_locomotion = torch.clamp(self._actions_locomotion, -self.cfg.desired_clip_actions_locomotion, self.cfg.desired_clip_actions_locomotion)
 
         # Filter the action
-        if(self.use_filter_actions_locomotion):
+        if(self.cfg.use_filter_actions_locomotion):
             alpha = 0.8
             temp = alpha * self._actions_locomotion + (1 - alpha) * self._previous_actions_locomotion
-            self._processed_actions_locomotion = self.cfg.action_scale_locomotion * temp + self._robot.data.default_joint_pos[:,self._ids_only_arms_joints_order]
+            self._processed_actions_locomotion = self.cfg.action_scale_locomotion * temp + self._robot.data.default_joint_pos[:,self._ids_only_legs_joints_order]
         else:
-            self._processed_actions_locomotion = self.cfg.action_scale_locomotion * self._actions_locomotion + self._robot.data.default_joint_pos[:,self._ids_only_arms_joints_order]
+            self._processed_actions_locomotion = self.cfg.action_scale_locomotion * self._actions_locomotion + self._robot.data.default_joint_pos[:,self._ids_only_legs_joints_order]
 
         return self._processed_actions_locomotion
 
