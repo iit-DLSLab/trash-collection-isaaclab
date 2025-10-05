@@ -53,24 +53,9 @@ class LocomotionEnv(DirectRLEnv):
         self._desired_hip_offset = torch.tensor([-self.cfg.desired_hip_offset, self.cfg.desired_hip_offset, -self.cfg.desired_hip_offset, self.cfg.desired_hip_offset], device=self.device)
         
         # Periodic gait
-        if(cfg.desired_gait == "trot"):
-            self._step_freq = 1.4
-            self._duty_factor = 0.65
-            self._phase_offset = torch.tensor([0.0, 0.5, 0.5, 0.0], device=self.device).repeat(self.num_envs,1)
-            self._velocity_gait_multiplier = 1.0
-        elif(cfg.desired_gait == "crawl"):
-            self._step_freq = 0.5
-            self._duty_factor = 0.8
-            self._phase_offset = torch.tensor([0.0, 0.5, 0.75, 0.25], device=self.device).repeat(self.num_envs,1)
-            self._velocity_gait_multiplier = 0.5
-        elif(cfg.desired_gait == "pace"):
-            self._step_freq = 1.4
-            self._duty_factor = 0.7
-            self._phase_offset = torch.tensor([0.8, 0.3, 0.8, 0.3], device=self.device).repeat(self.num_envs,1)
-            self._velocity_gait_multiplier = 1.0
-        elif(cfg.desired_gait == "multigait"):
-            #TODO: implement multigait
-            raise NotImplementedError("Multigait not implemented yet")
+        self._step_freq = torch.tensor(self.cfg.desired_step_freq, device=self.device)
+        self._duty_factor = torch.tensor(self.cfg.desired_duty_factor, device=self.device)
+        self._phase_offset = torch.tensor(self.cfg.desired_phase_offset, device=self.device).repeat(self.num_envs,1)
         self._phase_signal = self._phase_offset.clone()# + self.step_dt * self._step_freq * torch.rand(self.num_envs, 1, device=self.device)*10.
         self._phase_signal = self._phase_signal % 1.0
 
@@ -568,7 +553,7 @@ class LocomotionEnv(DirectRLEnv):
         
         # Sample new commands
         self._velocity_commands[env_ids] = torch.zeros_like(self._velocity_commands[env_ids]).uniform_(-1.0, 1.0)
-        self._velocity_commands[env_ids, 0] *= 0.5 * self._velocity_gait_multiplier
+        self._velocity_commands[env_ids, 0] *= 0.5
         self._velocity_commands[env_ids, 1] *= 0.25 
         self._velocity_commands[env_ids, 2] *= 0.3 
         self._pose_commands[env_ids] = torch.zeros_like(self._pose_commands[env_ids])
@@ -621,7 +606,7 @@ class LocomotionEnv(DirectRLEnv):
     def _get_new_random_commands(self):
         resample_time = self.episode_length_buf == self.max_episode_length - 300
         commands_resample = torch.zeros_like(self._velocity_commands).uniform_(-1.0, 1.0)
-        commands_resample[:, 0] *= 0.5 * self._velocity_gait_multiplier
+        commands_resample[:, 0] *= 0.5
         commands_resample[:, 1] *= 0.25 
         commands_resample[:, 2] *= 0.3 
         self._velocity_commands[:, :3] = self._velocity_commands[:, :3] * ~resample_time.unsqueeze(1).expand(-1, 3) + commands_resample * resample_time.unsqueeze(1).expand(-1, 3)

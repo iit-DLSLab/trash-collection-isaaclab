@@ -273,12 +273,14 @@ class AliengoFlatEnvCfg(DirectRLEnvCfg):
                            'FL_calf_joint', 'FR_calf_joint', 'RL_calf_joint', 'RR_calf_joint',
                            'arm_joint1', 'arm_joint2', 'arm_joint3', 'arm_joint4', 'arm_joint5', 'arm_joint6']
 
-    # Desired gait
-    desired_gait = "trot" #crawl, pace, multigait
-
     # Desired tracking variables
     desired_base_height = 0.35
     desired_feet_height = 0.05
+
+    # Desired step freq and duty factor (if periodic gait is used)
+    desired_step_freq = 1.4
+    desired_duty_factor = 0.65
+    desired_phase_offset = [0.0, 0.5, 0.5, 0.0] #FL, FR, RL, RR
 
     # Desired clip actions
     desired_clip_actions = 3.0

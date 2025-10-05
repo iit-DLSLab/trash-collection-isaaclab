@@ -108,16 +108,12 @@ class ArmFlatEnvCfg(DirectRLEnvCfg):
     episode_length_s = 20.0
     decimation = 4
     action_scale = 0.5
-    action_space = 6
+    action_space = 6 + 2 # 6 for the arm, 2 for robot pose commands
     observation_space = 18 + 18 # 12 are the arm joints pos and vel
     observation_space += 9 # 9 the pose linear vel and angular, and orientation 
     observation_space += 3 # ee goal
     observation_space += 6 # action
     state_space = 0
-
-    use_clock_signal = False
-    if(use_clock_signal):
-        observation_space += 4
 
 
     # observation history
@@ -127,18 +123,6 @@ class ArmFlatEnvCfg(DirectRLEnvCfg):
         single_observation_space = observation_space # Placeholder. Later we may add map, but only from the latest obs
         observation_space *= history_length
 
-
-    use_imu = False
-
-    use_cuncurrent_state_est = False
-    if(use_cuncurrent_state_est):
-        cuncurrent_state_est_output_space = 3 #lin_vel_b
-        single_cuncurrent_state_est_observation_space = single_observation_space
-        cuncurrent_state_est_observation_space = observation_space
-        cuncurrent_state_est_batch_size = 32
-        cuncurrent_state_est_train_epochs = 500
-        cuncurrent_state_est_lr = 1e-3
-        cuncurrent_state_est_ep_saving_interval = 1000
 
     use_rma = False
     if(use_rma):
@@ -251,9 +235,6 @@ class ArmFlatEnvCfg(DirectRLEnvCfg):
                            'arm_joint1', 'arm_joint2', 'arm_joint3', 'arm_joint4', 'arm_joint5', 'arm_joint6']
 
 
-    # Desired gait
-    desired_gait = "trot" #crawl, pace, multigait
- 
     # Desired clip actions
     desired_clip_actions = 3.0
     
@@ -272,6 +253,52 @@ class ArmFlatEnvCfg(DirectRLEnvCfg):
     action_rate_reward_scale = -0.01
     action_smoothness_reward_scale = -0.001
 
+
+    # Loading the locomotion policy --------------------------------------------------------------------------------
+    try:
+        import sys
+        import os 
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        locomotion_policy_folder_path = dir_path + "/../../../../../../tested_policies/aliengo_with_z1/policy_folder_path"
+        cuncurrent_state_est_network_path = locomotion_policy_folder_path + "/exported/cuncurrent_state_estimator.pth"
+        rma_network_path = locomotion_policy_folder_path + "/exported/rma.pth"
+
+        # Load specific training parameters
+        import yaml 
+        with open(locomotion_policy_folder_path + "/params/env.yaml", "r") as file:
+            locomotion_policy_env_cfg = yaml.unsafe_load(file)
+
+        # state estimator locomotion
+        use_imu = locomotion_policy_env_cfg["use_imu"]
+
+        use_cuncurrent_state_est = locomotion_policy_env_cfg["use_cuncurrent_state_est"]
+        if(use_cuncurrent_state_est):
+            cuncurrent_state_est_output_space = locomotion_policy_env_cfg["cuncurrent_state_est_output_space"]
+            single_cuncurrent_state_est_observation_space = locomotion_policy_env_cfg["single_observation_space"]
+            cuncurrent_state_est_observation_space = locomotion_policy_env_cfg["observation_space"]
+        
+        # action locomotion
+        use_filter_actions_locomotion = locomotion_policy_env_cfg["use_filter_actions"]
+        desired_clip_actions_locomotion = locomotion_policy_env_cfg["desired_clip_actions"]
+        action_scale_locomotion = locomotion_policy_env_cfg["action_scale"]
+        single_action_space_locomotion = locomotion_policy_env_cfg["single_action_space"]
+
+        # periodic gait locomotion
+        use_clock_signal = locomotion_policy_env_cfg["use_clock_signal"]
+        # Desired step freq and duty factor (if periodic gait is used)
+        desired_step_freq = locomotion_policy_env_cfg["desired_step_freq"]
+        desired_duty_factor = locomotion_policy_env_cfg["desired_duty_factor"]
+        desired_phase_offset = locomotion_policy_env_cfg["desired_phase_offset"]
+
+        # observation locomotion
+        observation_space_locomotion = locomotion_policy_env_cfg["observation_space"]
+        use_observation_history_locomotion = locomotion_policy_env_cfg["use_observation_history"]
+        history_length_locomotion = locomotion_policy_env_cfg["history_length"]
+        if(use_observation_history_locomotion):
+            single_observation_space_locomotion = locomotion_policy_env_cfg["single_observation_space"]
+    except:
+        print("Error loading the locomotion policy parameters")  
+    # -----------------------------------------------------------------------------------------------------------------
 
 
 

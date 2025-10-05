@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import gymnasium as gym
 import torch
+import onnxruntime as ort
 
 import isaaclab.envs.mdp as mdp
 import isaaclab.sim as sim_utils
@@ -49,27 +50,19 @@ class ManipulationEnv(DirectRLEnv):
 
 
         # Periodic gait
-        if(cfg.desired_gait == "trot"):
-            self._step_freq = 1.4
-            self._duty_factor = 0.65
-            self._phase_offset = torch.tensor([0.0, 0.5, 0.5, 0.0], device=self.device).repeat(self.num_envs,1)
-            self._velocity_gait_multiplier = 1.0
-        elif(cfg.desired_gait == "crawl"):
-            self._step_freq = 0.5
-            self._duty_factor = 0.8
-            self._phase_offset = torch.tensor([0.0, 0.5, 0.75, 0.25], device=self.device).repeat(self.num_envs,1)
-            self._velocity_gait_multiplier = 0.5
-        elif(cfg.desired_gait == "pace"):
-            self._step_freq = 1.4
-            self._duty_factor = 0.7
-            self._phase_offset = torch.tensor([0.8, 0.3, 0.8, 0.3], device=self.device).repeat(self.num_envs,1)
-            self._velocity_gait_multiplier = 1.0
-        elif(cfg.desired_gait == "multigait"):
-            #TODO: implement multigait
-            raise NotImplementedError("Multigait not implemented yet")
+        self._step_freq = torch.tensor(self.cfg.desired_step_freq, device=self.device)
+        self._duty_factor = torch.tensor(self.cfg.desired_duty_factor, device=self.device)
+        self._phase_offset = torch.tensor(self.cfg.desired_phase_offset, device=self.device).repeat(self.num_envs,1)
         self._phase_signal = self._phase_offset.clone()# + self.step_dt * self._step_freq * torch.rand(self.num_envs, 1, device=self.device)*10.
         self._phase_signal = self._phase_signal % 1.0
 
+        # Observation history locomotion
+        self._observation_history_locomotion = torch.zeros(self.num_envs, cfg.locomotion_policy_env_cfg["history_length"], cfg.locomotion_policy_env_cfg["single_observation_space"], device=self.device)
+
+        self._locomotion_policy = ort.InferenceSession(cfg.locomotion_policy_env_cfg["policy_path"] + "/exported/policy.onnx")
+        self._previous_actions_locomotion = torch.zeros(
+            self.num_envs, gym.spaces.flatdim(self.single_action_space_locomotion), device=self.device
+        )
 
         # Logging
         self._episode_sums = {
@@ -151,11 +144,13 @@ class ManipulationEnv(DirectRLEnv):
 
 
     def _apply_action(self):
-        processed_actions_with_arm = torch.zeros(self.num_envs, 18, device=self.device)
-        processed_actions_with_arm[:, self._ids_only_arms_joints_order] = self._processed_actions
-
+        arm_commands = self._processed_actions[:, 0:6]
+        pose_commands = self._processed_actions[:, 6:8]
         # Get locomotion policy action
-        locomotion_actions = self._get_locomotion_policy_action()
+        locomotion_actions = self._get_locomotion_policy_action(pose_commands)
+        
+        processed_actions_with_arm = torch.zeros(self.num_envs, 18, device=self.device)
+        processed_actions_with_arm[:, self._ids_only_arms_joints_order] = arm_commands
         processed_actions_with_arm[:, self._ids_only_legs_joints_order] = locomotion_actions
         self._robot.set_joint_position_target(processed_actions_with_arm)
 
@@ -363,11 +358,75 @@ class ManipulationEnv(DirectRLEnv):
         self._ee_commands[:, :3] = self._ee_commands[:, :3] * ~resample_time_2.unsqueeze(1).expand(-1, 3) + commands_resample * resample_time_2.unsqueeze(1).expand(-1, 3)
 
 
-    def _get_locomotion_policy_action(self,):
-        return torch.zeros(self.num_envs, 12, device=self.device)
+    def _get_locomotion_policy_action(self, pose_commands):
+        # Observation --------------------------------------------------------------------------------------
+        clock_data = None
+        if(self.cfg.use_clock_signal):
+            clock_data = torch.vstack([self._phase_signal[:,0], self._phase_signal[:,1], self._phase_signal[:,2], self._phase_signal[:,3]]).T
+            clock_data[:, :] = -1.0
+
+        # Choosing the main source of observation
+        if(self.cfg.use_cuncurrent_state_est):
+            # If Cuncurrent SE/Learned State Estimator, we predict linear and angular vel from IMU
+            velocity_b = self._get_cuncurrent_state_estimation(clock_data)
+            angular_velocity_b = self._imu.data.ang_vel_b
+            projected_gravity_b = self._imu.data.projected_gravity_b
+        elif(self.cfg.use_imu):
+            # Using directly the IMU
+            velocity_b = self._imu.data.lin_acc_b
+            angular_velocity_b = self._imu.data.ang_vel_b
+            projected_gravity_b = self._imu.data.projected_gravity_b
+        else:
+            #Using a model-based state estimation
+            velocity_b = self._robot.data.root_lin_vel_b
+            angular_velocity_b = self._robot.data.root_ang_vel_b
+            projected_gravity_b = self._robot.data.projected_gravity_b
+
+        velocity_commands = torch.zeros(self.num_envs, 3, device=self.device)
+        
+        
+        # Standard Obs for the Actor/Critic
+        obs = torch.cat(
+            [
+                tensor
+                for tensor in (
+                    velocity_b,
+                    angular_velocity_b,
+                    projected_gravity_b,
+                    velocity_commands,
+                    pose_commands,
+                    self._robot.data.joint_pos[:,self._ids_joints_order] - self._robot.data.default_joint_pos[:,self._ids_joints_order],
+                    self._robot.data.joint_vel[:,self._ids_joints_order],
+                    self._actions,
+                    clock_data,
+                )
+                if tensor is not None
+            ],
+            dim=-1,
+        )
+        if(self.cfg.use_observation_history_locomotion):
+            #the bottom element is the newest observation!!
+            self._observation_history_locomotion = torch.cat((self._observation_history_locomotion[:,1:,:], obs.unsqueeze(1)), dim=1)
+            obs = torch.flatten(self._observation_history_locomotion, start_dim=1)
 
 
-    def _get_concurrent_state_estimation(self, clock_data):
+        self._actions_locomotion = self._locomotion_policy.run(None, {'obs': obs})[0][0]
+
+        # Clip the action
+        self._actions_locomotion = torch.clamp(self._actions_locomotion, -self.cfg.desired_clip_actions_locomotion, self.cfg.desired_clip_actions_locomotion)
+
+        # Filter the action
+        if(self.use_filter_actions_locomotion):
+            alpha = 0.8
+            temp = alpha * self._actions_locomotion + (1 - alpha) * self._previous_actions_locomotion
+            self._processed_actions_locomotion = self.cfg.action_scale_locomotion * temp + self._robot.data.default_joint_pos[:,self._ids_only_arms_joints_order]
+        else:
+            self._processed_actions_locomotion = self.cfg.action_scale_locomotion * self._actions_locomotion + self._robot.data.default_joint_pos[:,self._ids_only_arms_joints_order]
+
+        return self._processed_actions_locomotion
+
+
+    def _get_cuncurrent_state_estimation(self, clock_data):
         return torch.zeros(self.num_envs, 3, device=self.device)
 
 
