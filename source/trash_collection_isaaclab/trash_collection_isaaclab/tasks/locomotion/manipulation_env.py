@@ -22,6 +22,7 @@ from isaaclab.sim import SimulationCfg
 from isaaclab.terrains import TerrainImporterCfg
 from isaaclab.utils import configclass
 
+from isaaclab.markers import VisualizationMarkers
 
 from .arm_env_cfg import ArmFlatEnvCfg, ArmRoughBlindEnvCfg, ArmRoughVisionEnvCfg
 
@@ -43,7 +44,10 @@ class ManipulationEnv(DirectRLEnv):
         )
         
         # pose ee commands #TODO add roll pitch yaw
-        self._ee_commands = torch.zeros(self.num_envs, 3, device=self.device)
+        self._ee_commands = torch.zeros(self.num_envs, 7, device=self.device)
+
+        # initial robot orientation
+        self._initial_root_quat = self._robot.data.root_quat_w.clone()
 
         # Observation history arm
         self._observation_history = torch.zeros(self.num_envs, cfg.history_length, cfg.single_observation_space, device=self.device)
@@ -59,7 +63,13 @@ class ManipulationEnv(DirectRLEnv):
         # Observation history locomotion
         self._observation_history_locomotion = torch.zeros(self.num_envs, cfg.locomotion_policy_env_cfg["history_length"], cfg.locomotion_policy_env_cfg["single_observation_space"], device=self.device)
 
-        self._locomotion_policy = ort.InferenceSession(cfg.locomotion_policy_folder_path + "/exported/policy.onnx")
+        #self._locomotion_policy_onnx = ort.InferenceSession(cfg.locomotion_policy_folder_path + "/exported/policy.onnx")
+        self._locomotion_policy = torch.load(
+            cfg.locomotion_policy_folder_path + "/exported/policy.pt",
+            map_location="cuda" if torch.cuda.is_available() else "cpu",
+            weights_only=False  # <-- add this
+        )
+        self._locomotion_policy.eval()
         
         single_action_space_locomotion = gym.spaces.Box(low=-float('inf'), high=float('inf'), shape=(cfg.action_space_locomotion,), dtype=float)
         self._actions_locomotion = torch.zeros(
@@ -102,6 +112,9 @@ class ManipulationEnv(DirectRLEnv):
         self._ids_joints_order = self._robot.find_joints(name_keys=self.cfg.desired_joints_order, preserve_order=True)[0]
         self._ids_only_legs_joints_order = self._robot.find_joints(name_keys=self.cfg.desired_joints_order[0:12], preserve_order=True)[0]
         self._ids_only_arms_joints_order = self._robot.find_joints(name_keys=self.cfg.desired_joints_order[12:18], preserve_order=True)[0]
+
+        # initialize goal marker
+        self.goal_markers = VisualizationMarkers(self.cfg.goal_object_cfg)
 
 
     def _setup_scene(self):
@@ -194,6 +207,12 @@ class ManipulationEnv(DirectRLEnv):
 
         
         # Standard Obs for the Actor/Critic
+        ROT_W2H_env = math_utils.matrix_from_quat(math_utils.yaw_quat(self._initial_root_quat))
+        ee_position_commands_local_env_w = torch.matmul(ROT_W2H_env, self._ee_commands[:, :3].unsqueeze(2))
+        ee_position_commands_env_w = ee_position_commands_local_env_w[:,:,0] + self._robot.data.default_root_state[:,0:3] + self.scene.env_origins
+        ROT_W2H_robot = math_utils.matrix_from_quat(math_utils.yaw_quat(self._robot.data.root_quat_w))
+        ee_position_commands_local_robot_w = ee_position_commands_env_w - self._robot.data.body_pos_w[:, self._ee_id_robot, :3].reshape((self._robot.data.body_pos_w.shape[0],3))
+        ee_position_commands_local_robot_h = torch.matmul(ROT_W2H_robot.transpose(1,2), ee_position_commands_local_robot_w.unsqueeze(2)).squeeze(2)
         obs = torch.cat(
             [
                 tensor
@@ -201,7 +220,8 @@ class ManipulationEnv(DirectRLEnv):
                     velocity_b,
                     angular_velocity_b,
                     projected_gravity_b,
-                    self._ee_commands,
+                    ee_position_commands_local_robot_h, #position
+                    self._ee_commands[:, 3:], #orientation
                     self._robot.data.joint_pos[:,self._ids_joints_order] - self._robot.data.default_joint_pos[:,self._ids_joints_order],
                     self._robot.data.joint_vel[:,self._ids_joints_order],
                     self._actions,
@@ -235,12 +255,12 @@ class ManipulationEnv(DirectRLEnv):
     def _get_rewards(self) -> torch.Tensor:
 
         # tracking ee in horizontal frame
-        ROT_W2H = math_utils.matrix_from_quat(math_utils.yaw_quat(self._robot.data.root_quat_w))
-        ee_to_base_w = self._robot.data.body_pos_w[:, self._ee_id_robot, :3] - self._robot.data.root_state_w[:, :3].unsqueeze(1)
-        ee_to_base_h = torch.matmul(ROT_W2H.transpose(1,2), ee_to_base_w.transpose(1, 2))
-        #TODO check, there is an extra dimension added here
-        ee_pose_error = torch.sum(torch.square(self._ee_commands - ee_to_base_h[:,:,0]), dim=1)
-        ee_pose_error_mapped = torch.exp(-ee_pose_error / 0.25)
+        ROT_W2H = math_utils.matrix_from_quat(math_utils.yaw_quat(self._initial_root_quat))
+        ee_position_commands_local_w = torch.matmul(ROT_W2H, self._ee_commands[:, :3].unsqueeze(2))
+        ee_position_commands_w = ee_position_commands_local_w[:,:,0] + self._robot.data.default_root_state[:,0:3] + self.scene.env_origins
+        ee_position_error = torch.sum(torch.square(ee_position_commands_w - (self._robot.data.body_pos_w[:, self._ee_id_robot, :3]).reshape((self._robot.data.body_pos_w.shape[0],3))), dim=1)
+        ee_position_error_mapped = torch.exp(-ee_position_error / 0.25)
+        ee_pose_error_mapped = ee_position_error_mapped #+ ee_orientation_error_mapped
 
         # action rate
         action_rate = torch.sum(torch.square(self._actions - self._previous_actions), dim=1)
@@ -318,9 +338,10 @@ class ManipulationEnv(DirectRLEnv):
         self._previous_previous_actions[env_ids] = 0.0
 
         # Sample new commands
-        self._ee_commands[env_ids] = torch.zeros_like(self._ee_commands[env_ids]).uniform_(-1.0, 1.0)
+        self._ee_commands[env_ids, 0] = torch.zeros_like(self._ee_commands[env_ids,0]).uniform_(0.3, 0.6)
+        self._ee_commands[env_ids, 1] = torch.zeros_like(self._ee_commands[env_ids,1]).uniform_(0.5, 0.5)
+        self._ee_commands[env_ids, 2] = torch.zeros_like(self._ee_commands[env_ids,2]).uniform_(-0.3, 0.3)
 
-        
         # Reset contact periodic
         self._phase_signal[env_ids] = self._phase_offset[env_ids].clone()# + self.step_dt * self._step_freq * torch.rand(env_ids.shape[0], 1, device=self.device)*10.
         self._phase_signal[env_ids] = self._phase_signal[env_ids]  % 1.0
@@ -335,6 +356,9 @@ class ManipulationEnv(DirectRLEnv):
         self._robot.write_root_pose_to_sim(default_root_state[:, :7], env_ids)
         self._robot.write_root_velocity_to_sim(default_root_state[:, 7:], env_ids)
         self._robot.write_joint_state_to_sim(joint_pos, joint_vel, None, env_ids)
+
+        # Save initial orientation
+        self._initial_root_quat[env_ids] = default_root_state[:, 3:7].clone()
         
         # Logging
         extras = dict()
@@ -356,13 +380,19 @@ class ManipulationEnv(DirectRLEnv):
 
 
     def _get_new_random_commands(self):
-        resample_time = self.episode_length_buf == self.max_episode_length - 300
-        commands_resample = torch.zeros_like(self._ee_commands).uniform_(-1.0, 1.0)
-        self._ee_commands[:, :3] = self._ee_commands[:, :3] * ~resample_time.unsqueeze(1).expand(-1, 3) + commands_resample * resample_time.unsqueeze(1).expand(-1, 3)
+        """resample_time = self.episode_length_buf == self.max_episode_length - 300
+        commands_resample = torch.zeros_like(self._ee_commands).uniform_(-0.5, 0.5)
+        self._ee_commands = self._ee_commands * ~resample_time.unsqueeze(1).expand(-1, 7) + commands_resample * resample_time.unsqueeze(1).expand(-1, 7)
 
         resample_time_2 = self.episode_length_buf == self.max_episode_length - 600
-        commands_resample = torch.zeros_like(self._ee_commands).uniform_(-1.0, 1.0)
-        self._ee_commands[:, :3] = self._ee_commands[:, :3] * ~resample_time_2.unsqueeze(1).expand(-1, 3) + commands_resample * resample_time_2.unsqueeze(1).expand(-1, 3)
+        commands_resample = torch.zeros_like(self._ee_commands).uniform_(-0.5, 0.5)
+        self._ee_commands = self._ee_commands * ~resample_time_2.unsqueeze(1).expand(-1, 7) + commands_resample * resample_time_2.unsqueeze(1).expand(-1, 7)"""
+
+        # visualize goal
+        ROT_W2H = math_utils.matrix_from_quat(math_utils.yaw_quat(self._initial_root_quat))  
+        ee_position_commands_local_w = torch.matmul(ROT_W2H, self._ee_commands[:, :3].unsqueeze(2))
+        goal_pos = ee_position_commands_local_w[:,:,0] + self._robot.data.default_root_state[:,0:3] + self.scene.env_origins
+        self.goal_markers.visualize(goal_pos)
 
 
     def _get_locomotion_policy_action(self, pose_commands):
@@ -416,8 +446,12 @@ class ManipulationEnv(DirectRLEnv):
             self._observation_history_locomotion = torch.cat((self._observation_history_locomotion[:,1:,:], obs.unsqueeze(1)), dim=1)
             obs = torch.flatten(self._observation_history_locomotion, start_dim=1)
 
-        #TODO
-        #self._actions_locomotion = self._locomotion_policy.run(None, {'obs': obs})[0][0]
+
+        with torch.no_grad():
+            self._actions_locomotion = self._locomotion_policy(obs)
+        # For check results against ONNX
+        #obs_onnx = obs.detach().cpu().numpy()
+        #self._actions_locomotion = self._locomotion_policy_onnx.run(None, {'obs': obs_onnx[1].reshape((1,330))})
 
         # Clip the action
         self._actions_locomotion = torch.clamp(self._actions_locomotion, -self.cfg.desired_clip_actions_locomotion, self.cfg.desired_clip_actions_locomotion)

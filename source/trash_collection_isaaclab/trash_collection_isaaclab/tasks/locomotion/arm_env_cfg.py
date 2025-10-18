@@ -14,6 +14,8 @@ from isaaclab.sensors import ImuCfg
 from isaaclab.utils import configclass
 from isaaclab.utils.noise import GaussianNoiseCfg, NoiseModelWithAdditiveBiasCfg
 
+from isaaclab.markers import VisualizationMarkersCfg
+
 from trash_collection_isaaclab.assets.aliengo_asset import ALIENGO_CFG
 from isaaclab.terrains.config.rough import ROUGH_TERRAINS_CFG
 
@@ -115,7 +117,7 @@ class ArmFlatEnvCfg(DirectRLEnvCfg):
     action_space = 6 + 2 # 6 for the arm, 2 for robot pose commands
     observation_space = 18 + 18 # 12 are the arm joints pos and vel
     observation_space += 9 # 9 the pose linear vel and angular, and orientation 
-    observation_space += 3 # ee goal
+    observation_space += 7 # ee goal
     observation_space += 6 # action arm
     observation_space += 2 # pose commands 
     state_space = 0
@@ -209,6 +211,17 @@ class ArmFlatEnvCfg(DirectRLEnvCfg):
 
     # an imu sensor in case we don't want any state estimator
     imu = ImuCfg(prim_path="/World/envs/env_.*/Robot/base", debug_vis=True)
+
+    # some marker for visualization
+    goal_object_cfg = VisualizationMarkersCfg(
+        prim_path="/Visuals/myMarkers",
+        markers={
+            "sphere": sim_utils.SphereCfg(
+                radius=0.02,
+                visual_material=sim_utils.PreviewSurfaceCfg(diffuse_color=(0.0, 1.0, 0.0)),
+            ),
+        },
+)
 
     # scene
     scene: InteractiveSceneCfg = InteractiveSceneCfg(num_envs=4096, env_spacing=4.0, replicate_physics=True)
