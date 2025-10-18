@@ -211,7 +211,7 @@ class ManipulationEnv(DirectRLEnv):
         ee_position_commands_local_env_w = torch.matmul(ROT_W2H_env, self._ee_commands[:, :3].unsqueeze(2))
         ee_position_commands_env_w = ee_position_commands_local_env_w[:,:,0] + self._robot.data.default_root_state[:,0:3] + self.scene.env_origins
         ROT_W2H_robot = math_utils.matrix_from_quat(math_utils.yaw_quat(self._robot.data.root_quat_w))
-        ee_position_commands_local_robot_w = ee_position_commands_env_w - self._robot.data.body_pos_w[:, self._ee_id_robot, :3].reshape((self._robot.data.body_pos_w.shape[0],3))
+        ee_position_commands_local_robot_w = ee_position_commands_env_w - self._robot.data.root_state_w[:, :3]
         ee_position_commands_local_robot_h = torch.matmul(ROT_W2H_robot.transpose(1,2), ee_position_commands_local_robot_w.unsqueeze(2)).squeeze(2)
         obs = torch.cat(
             [

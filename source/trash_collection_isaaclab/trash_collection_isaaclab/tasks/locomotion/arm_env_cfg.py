@@ -254,7 +254,7 @@ class ArmFlatEnvCfg(DirectRLEnvCfg):
 
 
     # Desired clip actions
-    desired_clip_actions = 3.0
+    desired_clip_actions = 6.0
     
     # Tracking reward scale
     ee_pose_reward_scale = 1.5
