@@ -42,7 +42,13 @@ class ManipulationEnv(DirectRLEnv):
         self._previous_previous_actions = torch.zeros(
             self.num_envs, gym.spaces.flatdim(self.single_action_space), device=self.device
         )
-        
+        self._processed_actions_with_arm = torch.zeros(self.num_envs, 18, device=self.device)
+
+        # Reset joints smoothness
+        self._previous_joints_vel = torch.zeros(self.num_envs, 6, device=self.device)
+        self._previous_previous_joints_vel = self._previous_joints_vel[:].clone()
+
+
         # pose ee commands #TODO add roll pitch yaw
         self._ee_commands = torch.zeros(self.num_envs, 7, device=self.device)
 
@@ -93,6 +99,7 @@ class ManipulationEnv(DirectRLEnv):
                 "joints_acc_l2",
                 "joints_torques_l2",
                 "joints_energy_l1",
+                #"joints_vel_smoothness_l2",
                 
             ]
         }
@@ -160,18 +167,24 @@ class ManipulationEnv(DirectRLEnv):
         else:
             self._processed_actions = self.cfg.action_scale * self._actions
         self._processed_actions[:,0:6] += self._robot.data.default_joint_pos[:,self._ids_only_arms_joints_order]
-
-
-    def _apply_action(self):
+        
         arm_commands = self._processed_actions[:, 0:6]
         pose_commands = self._processed_actions[:, 6:8]
         # Get locomotion policy action
         locomotion_actions = self._get_locomotion_policy_action(pose_commands)
-        
-        processed_actions_with_arm = torch.zeros(self.num_envs, 18, device=self.device)
-        processed_actions_with_arm[:, self._ids_only_arms_joints_order] = arm_commands
-        processed_actions_with_arm[:, self._ids_only_legs_joints_order] = locomotion_actions
-        self._robot.set_joint_position_target(processed_actions_with_arm)
+        self._processed_actions_with_arm[:, self._ids_only_arms_joints_order] = arm_commands
+        self._processed_actions_with_arm[:, self._ids_only_legs_joints_order] = locomotion_actions
+
+
+    def _apply_action(self):
+        # Reset robot state #TODO eliminate
+        env_ids = self._robot._ALL_INDICES
+        default_root_state = self._robot.data.default_root_state[env_ids]
+        default_root_state[:, :3] += self._terrain.env_origins[env_ids]
+        self._robot.write_root_pose_to_sim(default_root_state[:, :7], env_ids)
+        self._robot.write_root_velocity_to_sim(default_root_state[:, 7:], env_ids)
+
+        self._robot.set_joint_position_target(self._processed_actions_with_arm)
 
 
     def _get_observations(self) -> dict:
@@ -291,7 +304,10 @@ class ManipulationEnv(DirectRLEnv):
         joints_arm_position = self._robot.data.joint_pos[:,self._ids_only_arms_joints_order[0:4]]
         joints_arm_position_error = torch.square(joints_arm_position - self._robot.data.default_joint_pos[:,self._ids_only_arms_joints_order[0:4]])
         joints_arm_position_reward = torch.sum(joints_arm_position_error,dim=1)
-    
+
+        # joints vel smoothness #TODO
+        #joints_vel_smoothness = torch.sum(torch.square(self._robot.data.joint_vel[:,self._ids_only_arms_joints_order] - 2*self._previous_joints_vel + self._previous_previous_joints_vel), dim=1)
+
 
         rewards = {
             "track_ee_exp": ee_pose_error_mapped * self.cfg.ee_pose_reward_scale * self.step_dt,
@@ -304,6 +320,7 @@ class ManipulationEnv(DirectRLEnv):
             "joints_acc_l2": joints_accel * self.cfg.joints_accel_reward_scale * self.step_dt,
             "joints_torques_l2": joints_torques * self.cfg.joints_torque_reward_scale * self.step_dt,
             "joints_energy_l1": joints_energy * self.cfg.joints_energy_reward_scale * self.step_dt,
+            #"joints_vel_smoothness_l2": joints_vel_smoothness * self.cfg.joints_vel_smoothness_reward_scale * self.step_dt,
         }
         reward = torch.sum(torch.stack(list(rewards.values())), dim=0)
         
@@ -339,7 +356,7 @@ class ManipulationEnv(DirectRLEnv):
 
         # Sample new commands
         self._ee_commands[env_ids, 0] = torch.zeros_like(self._ee_commands[env_ids,0]).uniform_(0.3, 0.6)
-        self._ee_commands[env_ids, 1] = torch.zeros_like(self._ee_commands[env_ids,1]).uniform_(0.5, 0.5)
+        self._ee_commands[env_ids, 1] = torch.zeros_like(self._ee_commands[env_ids,1]).uniform_(-0.3, 0.3)
         self._ee_commands[env_ids, 2] = torch.zeros_like(self._ee_commands[env_ids,2]).uniform_(-0.3, 0.3)
 
         # Reset contact periodic
@@ -349,13 +366,18 @@ class ManipulationEnv(DirectRLEnv):
 
         # Reset robot state
         joint_pos = self._robot.data.default_joint_pos[env_ids]
+        joint_pos[:, self._ids_only_arms_joints_order] += torch.zeros_like(joint_pos[:, self._ids_only_arms_joints_order]).uniform_(-3.14, 3.14)
         joint_vel = self._robot.data.default_joint_vel[env_ids]
         default_root_state = self._robot.data.default_root_state[env_ids]
         default_root_state[:, :3] += self._terrain.env_origins[env_ids]
-        default_root_state[:, 3:7] = math_utils.random_yaw_orientation(env_ids.shape[0], device=self.device)
+        #default_root_state[:, 3:7] = math_utils.random_yaw_orientation(env_ids.shape[0], device=self.device)
         self._robot.write_root_pose_to_sim(default_root_state[:, :7], env_ids)
         self._robot.write_root_velocity_to_sim(default_root_state[:, 7:], env_ids)
         self._robot.write_joint_state_to_sim(joint_pos, joint_vel, None, env_ids)
+
+        # Reset joints smoothness
+        self._previous_joints_vel[env_ids] = joint_vel[:, self._ids_only_arms_joints_order].clone()*0.0
+        self._previous_previous_joints_vel[env_ids] = self._previous_joints_vel[env_ids].clone()
 
         # Save initial orientation
         self._initial_root_quat[env_ids] = default_root_state[:, 3:7].clone()
@@ -380,13 +402,20 @@ class ManipulationEnv(DirectRLEnv):
 
 
     def _get_new_random_commands(self):
-        """resample_time = self.episode_length_buf == self.max_episode_length - 300
-        commands_resample = torch.zeros_like(self._ee_commands).uniform_(-0.5, 0.5)
+        # Sample new commands
+        commands_resample = torch.zeros_like(self._ee_commands)
+        commands_resample[:, 0] = torch.zeros_like(self._ee_commands[:, 0]).uniform_(0.3, 0.6)
+        commands_resample[:, 1] = torch.zeros_like(self._ee_commands[:, 1]).uniform_(-0.3, 0.3)
+        commands_resample[:, 2] = torch.zeros_like(self._ee_commands[:, 2]).uniform_(-0.3, 0.3)
+
+        resample_time = self.episode_length_buf == self.max_episode_length - 250
         self._ee_commands = self._ee_commands * ~resample_time.unsqueeze(1).expand(-1, 7) + commands_resample * resample_time.unsqueeze(1).expand(-1, 7)
 
-        resample_time_2 = self.episode_length_buf == self.max_episode_length - 600
-        commands_resample = torch.zeros_like(self._ee_commands).uniform_(-0.5, 0.5)
-        self._ee_commands = self._ee_commands * ~resample_time_2.unsqueeze(1).expand(-1, 7) + commands_resample * resample_time_2.unsqueeze(1).expand(-1, 7)"""
+        resample_time_2 = self.episode_length_buf == self.max_episode_length - 500
+        self._ee_commands = self._ee_commands * ~resample_time_2.unsqueeze(1).expand(-1, 7) + commands_resample * resample_time_2.unsqueeze(1).expand(-1, 7)
+
+        resample_time_3 = self.episode_length_buf == self.max_episode_length - 750
+        self._ee_commands = self._ee_commands * ~resample_time_3.unsqueeze(1).expand(-1, 7) + commands_resample * resample_time_3.unsqueeze(1).expand(-1, 7)
 
         # visualize goal
         ROT_W2H = math_utils.matrix_from_quat(math_utils.yaw_quat(self._initial_root_quat))  

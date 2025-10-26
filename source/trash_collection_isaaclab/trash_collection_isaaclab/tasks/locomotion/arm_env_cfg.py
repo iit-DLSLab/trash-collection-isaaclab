@@ -113,7 +113,7 @@ class ArmFlatEnvCfg(DirectRLEnvCfg):
     # env
     episode_length_s = 20.0
     decimation = 4
-    action_scale = 0.5
+    action_scale = 1.0
     action_space = 6 + 2 # 6 for the arm, 2 for robot pose commands
     observation_space = 18 + 18 # 12 are the arm joints pos and vel
     observation_space += 9 # 9 the pose linear vel and angular, and orientation 
@@ -217,7 +217,7 @@ class ArmFlatEnvCfg(DirectRLEnvCfg):
         prim_path="/Visuals/myMarkers",
         markers={
             "sphere": sim_utils.SphereCfg(
-                radius=0.02,
+                radius=0.1,
                 visual_material=sim_utils.PreviewSurfaceCfg(diffuse_color=(0.0, 1.0, 0.0)),
             ),
         },
@@ -261,9 +261,10 @@ class ArmFlatEnvCfg(DirectRLEnvCfg):
     
     # Joint reward scale
     joints_torque_reward_scale = -2.5e-6
-    joints_accel_reward_scale = -2.5e-7
+    joints_accel_reward_scale = -2.5e-8
     joints_energy_reward_scale = -1e-4
-    joints_arm_position_reward_scale = -0.01
+    joints_arm_position_reward_scale = -0.001
+    joints_vel_smoothness_reward_scale = -1e-3
    
     
     # Undesired contacts reward scale
