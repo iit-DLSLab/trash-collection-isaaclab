@@ -263,8 +263,8 @@ class ArmFlatEnvCfg(DirectRLEnvCfg):
     joints_torque_reward_scale = -2.5e-6
     joints_accel_reward_scale = -2.5e-8
     joints_energy_reward_scale = -1e-4
-    joints_arm_position_reward_scale = -0.001
-    joints_vel_smoothness_reward_scale = -1e-3
+    #joints_arm_position_reward_scale = -0.001
+    joints_vel_smoothness_reward_scale = -1e-4
    
     
     # Undesired contacts reward scale

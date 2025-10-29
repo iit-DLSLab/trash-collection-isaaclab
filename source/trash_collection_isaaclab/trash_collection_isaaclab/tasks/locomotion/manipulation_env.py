@@ -95,11 +95,11 @@ class ManipulationEnv(DirectRLEnv):
                 "action_rate_l2",
                 "action_smoothness_l2",
                 
-                "joints_arm_l2",
+                #"joints_pos_l2",
                 "joints_acc_l2",
                 "joints_torques_l2",
                 "joints_energy_l1",
-                #"joints_vel_smoothness_l2",
+                "joints_vel_smoothness_l2",
                 
             ]
         }
@@ -271,8 +271,10 @@ class ManipulationEnv(DirectRLEnv):
         ROT_W2H = math_utils.matrix_from_quat(math_utils.yaw_quat(self._initial_root_quat))
         ee_position_commands_local_w = torch.matmul(ROT_W2H, self._ee_commands[:, :3].unsqueeze(2))
         ee_position_commands_w = ee_position_commands_local_w[:,:,0] + self._robot.data.default_root_state[:,0:3] + self.scene.env_origins
-        ee_position_error = torch.sum(torch.square(ee_position_commands_w - (self._robot.data.body_pos_w[:, self._ee_id_robot, :3]).reshape((self._robot.data.body_pos_w.shape[0],3))), dim=1)
-        ee_position_error_mapped = torch.exp(-ee_position_error / 0.25)
+        next_ee_position_w = self._robot.data.body_pos_w[:, self._ee_id_robot, :3] + self._robot.data.body_lin_vel_w[:, self._ee_id_robot, :] * self.step_dt
+        #ee_position_error = torch.sum(torch.square(ee_position_commands_w - (self._robot.data.body_pos_w[:, self._ee_id_robot, :3]).reshape((self._robot.data.body_pos_w.shape[0],3))), dim=1)
+        ee_position_error = torch.sum(torch.square(ee_position_commands_w - next_ee_position_w.reshape((self._robot.data.body_pos_w.shape[0],3))), dim=1)
+        ee_position_error_mapped = torch.exp(-ee_position_error / 0.10)
         ee_pose_error_mapped = ee_position_error_mapped #+ ee_orientation_error_mapped
 
         # action rate
@@ -306,7 +308,10 @@ class ManipulationEnv(DirectRLEnv):
         joints_arm_position_reward = torch.sum(joints_arm_position_error,dim=1)
 
         # joints vel smoothness #TODO
-        #joints_vel_smoothness = torch.sum(torch.square(self._robot.data.joint_vel[:,self._ids_only_arms_joints_order] - 2*self._previous_joints_vel + self._previous_previous_joints_vel), dim=1)
+        joints_vel_smoothness = torch.sum(torch.square(self._robot.data.joint_vel[:,self._ids_only_arms_joints_order] - 2*self._previous_joints_vel + self._previous_previous_joints_vel), dim=1)
+        self._previous_previous_joints_vel = self._previous_joints_vel.clone()
+        self._previous_joints_vel = self._robot.data.joint_vel[:,self._ids_only_arms_joints_order].clone()
+
 
 
         rewards = {
@@ -316,11 +321,11 @@ class ManipulationEnv(DirectRLEnv):
             "action_rate_l2": action_rate * self.cfg.action_rate_reward_scale * self.step_dt,
             "action_smoothness_l2": action_smoothness * self.cfg.action_smoothness_reward_scale * self.step_dt,
 
-            "joints_arm_l2": joints_arm_position_reward * self.cfg.joints_arm_position_reward_scale * self.step_dt,
+            #"joints_pos_l2": joints_arm_position_reward * self.cfg.joints_arm_position_reward_scale * self.step_dt,
             "joints_acc_l2": joints_accel * self.cfg.joints_accel_reward_scale * self.step_dt,
             "joints_torques_l2": joints_torques * self.cfg.joints_torque_reward_scale * self.step_dt,
             "joints_energy_l1": joints_energy * self.cfg.joints_energy_reward_scale * self.step_dt,
-            #"joints_vel_smoothness_l2": joints_vel_smoothness * self.cfg.joints_vel_smoothness_reward_scale * self.step_dt,
+            "joints_vel_smoothness_l2": joints_vel_smoothness * self.cfg.joints_vel_smoothness_reward_scale * self.step_dt,
         }
         reward = torch.sum(torch.stack(list(rewards.values())), dim=0)
         
