@@ -99,7 +99,7 @@ class ManipulationEnv(DirectRLEnv):
                 "joints_acc_l2",
                 "joints_torques_l2",
                 "joints_energy_l1",
-                "joints_vel_smoothness_l2",
+                #"joints_vel_smoothness_l2",
                 
             ]
         }
@@ -307,10 +307,38 @@ class ManipulationEnv(DirectRLEnv):
         joints_arm_position_error = torch.square(joints_arm_position - self._robot.data.default_joint_pos[:,self._ids_only_arms_joints_order[0:4]])
         joints_arm_position_reward = torch.sum(joints_arm_position_error,dim=1)
 
-        # joints vel smoothness #TODO
-        joints_vel_smoothness = torch.sum(torch.square(self._robot.data.joint_vel[:,self._ids_only_arms_joints_order] - 2*self._previous_joints_vel + self._previous_previous_joints_vel), dim=1)
-        self._previous_previous_joints_vel = self._previous_joints_vel.clone()
-        self._previous_joints_vel = self._robot.data.joint_vel[:,self._ids_only_arms_joints_order].clone()
+        # joints vel smoothness 
+        #joints_vel_smoothness = torch.sum(torch.square(self._robot.data.joint_vel[:,self._ids_only_arms_joints_order] - 2*self._previous_joints_vel + self._previous_previous_joints_vel), dim=1)
+        #self._previous_previous_joints_vel = self._previous_joints_vel.clone()
+        #self._previous_joints_vel = self._robot.data.joint_vel[:,self._ids_only_arms_joints_order].clone()
+
+
+        # Nan and Inf check
+        total_nans_check_ee_pose_error_mapped = torch.isnan(ee_pose_error_mapped * self.cfg.ee_pose_reward_scale * self.step_dt).sum()
+        total_nans_check_action_rate = torch.isnan(action_rate * self.cfg.action_rate_reward_scale * self.step_dt).sum()
+        total_nans_check_action_smoothness = torch.isnan(action_smoothness * self.cfg.action_smoothness_reward_scale * self.step_dt).sum()
+        total_nans_check_contacts = torch.isnan(contacts * self.cfg.undersired_contact_reward_scale * self.step_dt).sum()
+        total_nans_check_joints_accel = torch.isnan(joints_accel * self.cfg.joints_accel_reward_scale * self.step_dt).sum()
+        total_nans_check_joints_torques = torch.isnan(joints_torques * self.cfg.joints_torque_reward_scale * self.step_dt).sum()
+        total_nans_check_joints_energy = torch.isnan(joints_energy * self.cfg.joints_energy_reward_scale * self.step_dt).sum()
+        total_nan_check = total_nans_check_ee_pose_error_mapped + total_nans_check_action_rate + total_nans_check_action_smoothness + total_nans_check_contacts + \
+                total_nans_check_joints_accel + total_nans_check_joints_torques + total_nans_check_joints_energy
+        if total_nan_check > 0:
+            print("Nans in reward computation")
+            breakpoint()
+
+        total_infs_check_ee_pose_error_mapped = torch.isinf(ee_pose_error_mapped * self.cfg.ee_pose_reward_scale * self.step_dt).sum()
+        total_infs_check_action_rate = torch.isinf(action_rate * self.cfg.action_rate_reward_scale * self.step_dt).sum()
+        total_infs_check_action_smoothness = torch.isinf(action_smoothness * self.cfg.action_smoothness_reward_scale * self.step_dt).sum()
+        total_infs_check_contacts = torch.isinf(contacts * self.cfg.undersired_contact_reward_scale * self.step_dt).sum()
+        total_infs_check_joints_accel = torch.isinf(joints_accel * self.cfg.joints_accel_reward_scale * self.step_dt).sum()
+        total_infs_check_joints_torques = torch.isinf(joints_torques * self.cfg.joints_torque_reward_scale * self.step_dt).sum()
+        total_infs_check_joints_energy = torch.isinf(joints_energy * self.cfg.joints_energy_reward_scale * self.step_dt).sum()
+        total_inf_check = total_infs_check_ee_pose_error_mapped + total_infs_check_action_rate + total_infs_check_action_smoothness + total_infs_check_contacts + \
+                total_infs_check_joints_accel + total_infs_check_joints_torques + total_infs_check_joints_energy
+        if total_inf_check > 0:
+            print("Infs in reward computation")
+            breakpoint()
 
 
 
@@ -325,7 +353,7 @@ class ManipulationEnv(DirectRLEnv):
             "joints_acc_l2": joints_accel * self.cfg.joints_accel_reward_scale * self.step_dt,
             "joints_torques_l2": joints_torques * self.cfg.joints_torque_reward_scale * self.step_dt,
             "joints_energy_l1": joints_energy * self.cfg.joints_energy_reward_scale * self.step_dt,
-            "joints_vel_smoothness_l2": joints_vel_smoothness * self.cfg.joints_vel_smoothness_reward_scale * self.step_dt,
+            #"joints_vel_smoothness_l2": joints_vel_smoothness * self.cfg.joints_vel_smoothness_reward_scale * self.step_dt,
         }
         reward = torch.sum(torch.stack(list(rewards.values())), dim=0)
         
@@ -372,6 +400,11 @@ class ManipulationEnv(DirectRLEnv):
         # Reset robot state
         joint_pos = self._robot.data.default_joint_pos[env_ids]
         joint_pos[:, self._ids_only_arms_joints_order] += torch.zeros_like(joint_pos[:, self._ids_only_arms_joints_order]).uniform_(-3.14, 3.14)
+        # we need to project them inside the robots limits!
+        joints_limits = self._robot.data.default_joint_pos_limits
+        joints_arm_limits = joints_limits[:,self._ids_only_arms_joints_order]
+        joint_pos[:, self._ids_only_arms_joints_order] = torch.clamp(joint_pos[:, self._ids_only_arms_joints_order], joints_arm_limits[0,:,0], joints_arm_limits[0,:,1])
+
         joint_vel = self._robot.data.default_joint_vel[env_ids]
         default_root_state = self._robot.data.default_root_state[env_ids]
         default_root_state[:, :3] += self._terrain.env_origins[env_ids]
