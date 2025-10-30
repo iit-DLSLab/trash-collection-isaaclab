@@ -43,8 +43,10 @@ class LocomotionEnv(DirectRLEnv):
 
         # X/Y linear velocity and yaw angular velocity commands
         self._velocity_commands = torch.zeros(self.num_envs, 3, device=self.device)
-        self._pose_commands = torch.zeros(self.num_envs, 2, device=self.device) # roll pitch. #TODO height
+        self._pose_commands = torch.zeros(self.num_envs, 2, device=self.device) # pitch height
 
+        # Arm fixed position
+        self._joints_arm_fixed_pos = torch.zeros(self.num_envs, 6, device=self.device)
 
         # Swing peak
         self._swing_peak = torch.tensor([0.0, 0.0, 0.0, 0.0], device=self.device).repeat(self.num_envs,1)
@@ -127,6 +129,7 @@ class LocomotionEnv(DirectRLEnv):
         self._hip_ids_robot, _ = self._robot.find_bodies(".*hip")
         self._ids_joints_order = self._robot.find_joints(name_keys=self.cfg.desired_joints_order, preserve_order=True)[0]
         self._ids_only_legs_joints_order = self._robot.find_joints(name_keys=self.cfg.desired_joints_order[0:12], preserve_order=True)[0]
+        self._ids_only_arms_joints_order = self._robot.find_joints(name_keys=self.cfg.desired_joints_order[12:18], preserve_order=True)[0]
 
 
     def _setup_scene(self):
@@ -176,8 +179,8 @@ class LocomotionEnv(DirectRLEnv):
 
 
     def _apply_action(self):
-        #TODO randomize pd target arms?
         processed_actions_with_arm = torch.zeros(self.num_envs, 18, device=self.device)
+        processed_actions_with_arm[:, self._ids_only_arms_joints_order] = self._joints_arm_fixed_pos.clone()
         processed_actions_with_arm[:, self._ids_only_legs_joints_order] = self._processed_actions
         self._robot.set_joint_position_target(processed_actions_with_arm)
 
@@ -225,8 +228,8 @@ class LocomotionEnv(DirectRLEnv):
                     projected_gravity_b,
                     self._velocity_commands,
                     self._pose_commands,
-                    self._robot.data.joint_pos[:,self._ids_joints_order] - self._robot.data.default_joint_pos[:,self._ids_joints_order],
-                    self._robot.data.joint_vel[:,self._ids_joints_order],
+                    self._robot.data.joint_pos[:,self._ids_only_legs_joints_order] - self._robot.data.default_joint_pos[:,self._ids_only_legs_joints_order],
+                    self._robot.data.joint_vel[:,self._ids_only_legs_joints_order],
                     self._actions,
                     clock_data,
                 )
@@ -238,6 +241,10 @@ class LocomotionEnv(DirectRLEnv):
             #the bottom element is the newest observation!!
             self._observation_history = torch.cat((self._observation_history[:,1:,:], obs.unsqueeze(1)), dim=1)
             obs = torch.flatten(self._observation_history, start_dim=1)
+        
+        # Add joint arm info
+        joints_arm = self._robot.data.joint_pos[:,self._ids_only_arms_joints_order] - self._robot.data.default_joint_pos[:,self._ids_only_arms_joints_order]
+        obs = torch.cat((obs, joints_arm), dim=-1)
 
 
         # Add heightmap data to obs if needed
@@ -267,9 +274,6 @@ class LocomotionEnv(DirectRLEnv):
             observations["critic"] = torch.cat((obs, obs_critic), dim=-1)
         # ------------------------------------------------------------------------------------------
 
-
-
-
         return observations
 
 
@@ -281,7 +285,7 @@ class LocomotionEnv(DirectRLEnv):
         height_data_scanner = torch.clip(height_data_scanner, min=-5, max=5) # Handle inf values
         mean_height_ray = torch.mean(height_data_scanner, dim=1)
 
-        height_error = torch.square(self.cfg.desired_base_height + mean_height_ray - self._robot.data.root_state_w[:, 2])
+        height_error = torch.square(self.cfg.desired_base_height + mean_height_ray + self._pose_commands[:,1] - self._robot.data.root_state_w[:, 2])
         height_error_mapped = torch.exp(-height_error / 0.01)
 
 
@@ -323,7 +327,7 @@ class LocomotionEnv(DirectRLEnv):
         root_pitch_w = torch.atan2(torch.sin(root_pitch_w), torch.cos(root_pitch_w))
         
         #base_orientation =  torch.square(terrain_pitch - root_pitch_w)# + torch.square(0 - root_roll_w)
-        base_orientation =  torch.square(terrain_pitch + self._pose_commands[:,0] - root_pitch_w)# + torch.square(0 + self._pose_commands[:,1] - root_roll_w)
+        base_orientation =  torch.square(terrain_pitch + self._pose_commands[:,0] - root_pitch_w) + torch.square(0 + root_roll_w)
 
 
         # angular velocity x/y tracking
@@ -556,7 +560,8 @@ class LocomotionEnv(DirectRLEnv):
         self._velocity_commands[env_ids, 0] *= 0.5
         self._velocity_commands[env_ids, 1] *= 0.25 
         self._velocity_commands[env_ids, 2] *= 0.3 
-        self._pose_commands[env_ids] = torch.zeros_like(self._pose_commands[env_ids])
+        self._pose_commands[env_ids, 0] = torch.zeros_like(self._pose_commands[env_ids,0]).uniform_(-0.3, 0.3)
+        self._pose_commands[env_ids, 1] = torch.zeros_like(self._pose_commands[env_ids,1]).uniform_(-0.2, 0.0)
 
         # Reset swing peak
         self._swing_peak[env_ids] = torch.tensor([0.0, 0.0, 0.0, 0.0], device=self.device)
@@ -576,7 +581,17 @@ class LocomotionEnv(DirectRLEnv):
 
         # Reset robot state
         joint_pos = self._robot.data.default_joint_pos[env_ids]
+        joint_pos[:, self._ids_only_arms_joints_order] += torch.zeros_like(joint_pos[:, self._ids_only_arms_joints_order]).uniform_(-3.14, 3.14)
+        # we need to project them inside the robots limits!
+        joints_limits = self._robot.data.default_joint_pos_limits
+        joints_arm_limits = joints_limits[:,self._ids_only_arms_joints_order]
+        joint_pos[:, self._ids_only_arms_joints_order] = torch.clamp(joint_pos[:, self._ids_only_arms_joints_order], joints_arm_limits[0,:,0], joints_arm_limits[0,:,1])
+        
+        # we save the arm positions to keep them fixed during the episode via PD control
+        self._joints_arm_fixed_pos[env_ids] = joint_pos[:, self._ids_only_arms_joints_order].clone()
+        
         joint_vel = self._robot.data.default_joint_vel[env_ids]
+        
         default_root_state = self._robot.data.default_root_state[env_ids]
         default_root_state[:, :3] += self._terrain.env_origins[env_ids]
         default_root_state[:, 3:7] = math_utils.random_yaw_orientation(env_ids.shape[0], device=self.device)
@@ -613,8 +628,11 @@ class LocomotionEnv(DirectRLEnv):
 
         # Stop and small pose commands
         rest_time = self.episode_length_buf >= self.max_episode_length - 150
-        self._velocity_commands[:, :3] *= ~rest_time.unsqueeze(1).expand(-1, 3)       
-        self._pose_commands = torch.zeros_like(self._pose_commands).uniform_(-0.3, 0.3) * rest_time.unsqueeze(1).expand(-1, 2)     
+        specific_rest_time = self.episode_length_buf == self.max_episode_length - 100
+        self._velocity_commands[:, :3] *= ~rest_time.unsqueeze(1).expand(-1, 3)
+        self._pose_commands[:, 0] = self._pose_commands[:, 0] * ~specific_rest_time + torch.zeros_like(self._pose_commands[:,0]).uniform_(-0.3, 0.3) * specific_rest_time
+        self._pose_commands[:, 1] = self._pose_commands[:, 1] * ~specific_rest_time + torch.zeros_like(self._pose_commands[:,1]).uniform_(-0.2, 0.0) * specific_rest_time
+        
 
         # Took some envs, and put to zero the vel
         if self.num_envs > 100:

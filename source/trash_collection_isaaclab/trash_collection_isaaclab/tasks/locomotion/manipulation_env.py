@@ -90,6 +90,7 @@ class ManipulationEnv(DirectRLEnv):
             key: torch.zeros(self.num_envs, dtype=torch.float, device=self.device)
             for key in [
                 "track_ee_exp",
+                "track_ee_final_vel_exp",
 
                 "undesired_contacts",
                 "action_rate_l2",
@@ -178,11 +179,11 @@ class ManipulationEnv(DirectRLEnv):
 
     def _apply_action(self):
         # Reset robot state #TODO eliminate
-        env_ids = self._robot._ALL_INDICES
-        default_root_state = self._robot.data.default_root_state[env_ids]
-        default_root_state[:, :3] += self._terrain.env_origins[env_ids]
-        self._robot.write_root_pose_to_sim(default_root_state[:, :7], env_ids)
-        self._robot.write_root_velocity_to_sim(default_root_state[:, 7:], env_ids)
+        #env_ids = self._robot._ALL_INDICES
+        #default_root_state = self._robot.data.default_root_state[env_ids]
+        #default_root_state[:, :3] += self._terrain.env_origins[env_ids]
+        #self._robot.write_root_pose_to_sim(default_root_state[:, :7], env_ids)
+        #self._robot.write_root_velocity_to_sim(default_root_state[:, 7:], env_ids)
 
         self._robot.set_joint_position_target(self._processed_actions_with_arm)
 
@@ -271,11 +272,19 @@ class ManipulationEnv(DirectRLEnv):
         ROT_W2H = math_utils.matrix_from_quat(math_utils.yaw_quat(self._initial_root_quat))
         ee_position_commands_local_w = torch.matmul(ROT_W2H, self._ee_commands[:, :3].unsqueeze(2))
         ee_position_commands_w = ee_position_commands_local_w[:,:,0] + self._robot.data.default_root_state[:,0:3] + self.scene.env_origins
-        next_ee_position_w = self._robot.data.body_pos_w[:, self._ee_id_robot, :3] + self._robot.data.body_lin_vel_w[:, self._ee_id_robot, :] * self.step_dt
+        next_ee_position_w = self._imu.data.pos_w[:,:3].reshape((self._imu.data.pos_w.shape[0],1,3)) + self._robot.data.body_lin_vel_w[:, self._ee_id_robot, :] * self.step_dt
+        #next_ee_position_w = self._robot.data.body_pos_w[:, self._ee_id_robot, :3] + self._robot.data.body_lin_vel_w[:, self._ee_id_robot, :] * self.step_dt
         #ee_position_error = torch.sum(torch.square(ee_position_commands_w - (self._robot.data.body_pos_w[:, self._ee_id_robot, :3]).reshape((self._robot.data.body_pos_w.shape[0],3))), dim=1)
         ee_position_error = torch.sum(torch.square(ee_position_commands_w - next_ee_position_w.reshape((self._robot.data.body_pos_w.shape[0],3))), dim=1)
         ee_position_error_mapped = torch.exp(-ee_position_error / 0.10)
-        ee_pose_error_mapped = ee_position_error_mapped #+ ee_orientation_error_mapped
+
+        #ee_orientation_error = torch.sum(self._robot.data.body_quat_w[:, self._ee_id_robot] - self._ee_commands[:, 3:7], dim=1)
+        ee_pose_error_mapped = ee_position_error_mapped #+ ee_orientation_error
+
+        # end effector final velocity reward #TODO reduce even rot vel and acc?
+        should_freeze = ee_position_error < 0.0009 #ee position error in a radius of 3cm
+        ee_final_velocity_error = torch.sum(torch.square(self._imu.data.lin_vel_b), dim=1)
+        ee_final_velocity_error_mapped = torch.exp(-ee_final_velocity_error / 0.10)*should_freeze
 
         # action rate
         action_rate = torch.sum(torch.square(self._actions - self._previous_actions), dim=1)
@@ -344,6 +353,7 @@ class ManipulationEnv(DirectRLEnv):
 
         rewards = {
             "track_ee_exp": ee_pose_error_mapped * self.cfg.ee_pose_reward_scale * self.step_dt,
+            "track_ee_final_vel_exp": ee_final_velocity_error_mapped * self.cfg.ee_final_velocity_reward_scale * self.step_dt,
 
             "undesired_contacts": contacts * self.cfg.undersired_contact_reward_scale * self.step_dt,
             "action_rate_l2": action_rate * self.cfg.action_rate_reward_scale * self.step_dt,
@@ -460,6 +470,7 @@ class ManipulationEnv(DirectRLEnv):
         ee_position_commands_local_w = torch.matmul(ROT_W2H, self._ee_commands[:, :3].unsqueeze(2))
         goal_pos = ee_position_commands_local_w[:,:,0] + self._robot.data.default_root_state[:,0:3] + self.scene.env_origins
         self.goal_markers.visualize(goal_pos)
+        #self.goal_markers.visualize(self._imu.data.pos_w[:,:3])
 
 
     def _get_locomotion_policy_action(self, pose_commands):
@@ -499,8 +510,8 @@ class ManipulationEnv(DirectRLEnv):
                     projected_gravity_b,
                     velocity_commands,
                     pose_commands,
-                    self._robot.data.joint_pos[:,self._ids_joints_order] - self._robot.data.default_joint_pos[:,self._ids_joints_order],
-                    self._robot.data.joint_vel[:,self._ids_joints_order],
+                    self._robot.data.joint_pos[:,self._ids_only_legs_joints_order] - self._robot.data.default_joint_pos[:,self._ids_only_legs_joints_order],
+                    self._robot.data.joint_vel[:,self._ids_only_legs_joints_order],
                     self._actions_locomotion,
                     clock_data,
                 )
@@ -512,6 +523,10 @@ class ManipulationEnv(DirectRLEnv):
             #the bottom element is the newest observation!!
             self._observation_history_locomotion = torch.cat((self._observation_history_locomotion[:,1:,:], obs.unsqueeze(1)), dim=1)
             obs = torch.flatten(self._observation_history_locomotion, start_dim=1)
+
+        # Add joint arm info
+        joints_arm = self._robot.data.joint_pos[:,self._ids_only_arms_joints_order] - self._robot.data.default_joint_pos[:,self._ids_only_arms_joints_order]
+        obs = torch.cat((obs, joints_arm), dim=-1)
 
 
         with torch.no_grad():

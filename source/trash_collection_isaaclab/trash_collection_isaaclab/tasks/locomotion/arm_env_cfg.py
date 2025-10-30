@@ -209,19 +209,24 @@ class ArmFlatEnvCfg(DirectRLEnvCfg):
         mesh_prim_paths=["/World/ground"],
     )
 
-    # an imu sensor in case we don't want any state estimator
-    imu = ImuCfg(prim_path="/World/envs/env_.*/Robot/base", debug_vis=True)
-
+    # HACK to have gripper position
+    imu = ImuCfg(
+        prim_path="/World/envs/env_.*/Robot/link05", 
+        offset=ImuCfg.OffsetCfg(
+            pos=(0.18, 0, 0)
+        ), 
+        debug_vis=False)
+    
     # some marker for visualization
     goal_object_cfg = VisualizationMarkersCfg(
         prim_path="/Visuals/myMarkers",
         markers={
             "sphere": sim_utils.SphereCfg(
-                radius=0.1,
+                radius=0.03,
                 visual_material=sim_utils.PreviewSurfaceCfg(diffuse_color=(0.0, 1.0, 0.0)),
             ),
         },
-)
+    )
 
     # scene
     scene: InteractiveSceneCfg = InteractiveSceneCfg(num_envs=4096, env_spacing=4.0, replicate_physics=True)
@@ -258,6 +263,7 @@ class ArmFlatEnvCfg(DirectRLEnvCfg):
     
     # Tracking reward scale
     ee_pose_reward_scale = 1.5
+    ee_final_velocity_reward_scale = 1.5
     
     # Joint reward scale
     joints_torque_reward_scale = -2.5e-6
@@ -276,7 +282,7 @@ class ArmFlatEnvCfg(DirectRLEnvCfg):
     # Loading the locomotion policy --------------------------------------------------------------------------------
     #try:
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    locomotion_policy_folder_path = dir_path + "/../../../../../tested_policies/aliengo_with_z1"
+    locomotion_policy_folder_path = dir_path + "/../../../../../tested_policies/aliengo_with_z1_last"
 
     cuncurrent_state_est_network_path = locomotion_policy_folder_path + "/exported/cuncurrent_state_estimator.pth"
     rma_network_path = locomotion_policy_folder_path + "/exported/rma.pth"

@@ -134,7 +134,6 @@ class AliengoFlatEnvCfg(DirectRLEnvCfg):
     action_scale = 0.5
     action_space = 12
     observation_space = 48
-    observation_space += 12 #12 are the arm joints pos and vel
     observation_space += 2 # 2 are for pose commands
     state_space = 0
 
@@ -148,6 +147,8 @@ class AliengoFlatEnvCfg(DirectRLEnvCfg):
     if(use_observation_history):
         single_observation_space = observation_space # Placeholder. Later we may add map, but only from the latest obs
         observation_space *= history_length
+
+    observation_space += 6 # we add arm joints info now
 
     use_imu = False
 
