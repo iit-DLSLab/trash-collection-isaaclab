@@ -10,19 +10,6 @@ from isaaclab_rl.rsl_rl import RslRlOnPolicyRunnerCfg, RslRlPpoActorCriticCfg, R
 from pathlib import Path
 from dataclasses import MISSING
 
-@configclass
-class DiscriminatorCfg:
-    """Configuration for the discriminator network."""
-
-    class_name: str = "Discriminator"
-    """The discriminator class name. Default is Discriminator."""
-
-    hidden_dims: list[int] = MISSING
-    """The hidden dimensions of the discriminator network."""
-
-    reward_scale: float = MISSING
-    """The reward coefficient."""
-
 
 @configclass
 class MorphologycalSymmetriesCfg:
@@ -50,7 +37,7 @@ class MorphologycalSymmetriesCfg:
 @configclass
 class FlatPPORunnerCfg(RslRlOnPolicyRunnerCfg):
     num_steps_per_env = 24
-    max_iterations = 1000
+    max_iterations = 2000
     save_interval = 50
     experiment_name = "flat_direct"
     empirical_normalization = False
@@ -77,15 +64,6 @@ class FlatPPORunnerCfg(RslRlOnPolicyRunnerCfg):
         max_grad_norm=1.0,
     )
 
-    #AMP Related Stuff
-    amp_data_path = "./../../../amp_dataset/"
-    dataset_names = ["flat"]
-    dataset_weights = [1.0, 1.0]
-    slow_down_factor = 1.0
-    discriminator = DiscriminatorCfg(
-        hidden_dims=[128, 128],
-        reward_scale=0.1,
-    )
 
     # Symmetry Related Stuff - Actor Critic
     history_length = 5
@@ -154,15 +132,6 @@ class RoughPPORunnerCfg(RslRlOnPolicyRunnerCfg):
         max_grad_norm=1.0,
     )
 
-    #AMP Related Stuff
-    amp_data_path = "./../../../amp_dataset/"
-    dataset_names = ["flat", "boxes", "stairs"]
-    dataset_weights = [1.0, 1.0, 1.0, 1.0]
-    slow_down_factor = 1.0
-    discriminator = DiscriminatorCfg(
-        hidden_dims=[1024, 512],
-        reward_scale=1.0,
-    )
 
     # Symmetry Related Stuff - Actor Critic
     history_length = 5
