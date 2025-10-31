@@ -2,8 +2,6 @@ import readline
 import readchar
 import time
 
-from gym_quadruped.utils.quadruped_utils import LegsAttr
-
 import numpy as np
 import copy
 import mujoco
@@ -14,8 +12,6 @@ class Console():
 
         self.isDown = True
         self.isRLActivated = False
-        #self.controller_node.Kp = 0.
-        #self.controller_node.Kd = 0.
 
         # Autocomplete setup
         self.commands = [
@@ -50,7 +46,7 @@ class Console():
                     time_motion = 5.
 
                     temp = copy.deepcopy(self.controller_node.joint_positions)
-                    initial_joint_positions = LegsAttr(*[np.zeros((1, int(self.controller_node.env.mjModel.nu/4))) for _ in range(4)])
+                    initial_joint_positions = np.zeros(12)
                     initial_joint_positions.FL = temp[0:3]
                     initial_joint_positions.FR = temp[3:6]
                     initial_joint_positions.RL = temp[6:9]
@@ -172,27 +168,27 @@ class Console():
                     while True:
                         command = readchar.readkey()
                         if(command == "w"):
-                            self.controller_node.env._ref_base_lin_vel_H[0] += 0.1
+                            self.controller_node.ref_base_lin_vel_H[0] += 0.1
                             print("w")
                         elif(command == "s"):
-                            self.controller_node.env._ref_base_lin_vel_H[0] -= 0.1
+                            self.controller_node.ref_base_lin_vel_H[0] -= 0.1
                             print("s")
                         elif(command == "a"):
-                            self.controller_node.env._ref_base_lin_vel_H[1] += 0.1
+                            self.controller_node.ref_base_lin_vel_H[1] += 0.1
                             print("a")
                         elif(command == "d"):
-                            self.controller_node.env._ref_base_lin_vel_H[1] -= 0.1
+                            self.controller_node.ref_base_lin_vel_H[1] -= 0.1
                             print("d")
                         elif(command == "q"):
-                            self.controller_node.env._ref_base_ang_yaw_dot += 0.1
+                            self.controller_node.ref_base_ang_yaw_dot += 0.1
                             print("q")
                         elif(command == "e"):
-                            self.controller_node.env._ref_base_ang_yaw_dot -= 0.1
+                            self.controller_node.ref_base_ang_yaw_dot -= 0.1
                             print("e")
                         elif(command == "0"):
-                            self.controller_node.env._ref_base_lin_vel_H[0] = 0
-                            self.controller_node.env._ref_base_lin_vel_H[1] = 0
-                            self.controller_node.env._ref_base_ang_yaw_dot = 0 
+                            self.controller_node.ref_base_lin_vel_H[0] = 0
+                            self.controller_node.ref_base_lin_vel_H[1] = 0
+                            self.controller_node.ref_base_ang_yaw_dot = 0 
                             print("0")
                         elif(command == "1"):
                             self.pitch_delta -= 0.1
@@ -204,9 +200,9 @@ class Console():
                             self.pitch_delta += 0.1
                             print("3")
                         else:
-                            self.controller_node.env._ref_base_lin_vel_H[0] = 0
-                            self.controller_node.env._ref_base_lin_vel_H[1] = 0
-                            self.controller_node.env._ref_base_ang_yaw_dot = 0 
+                            self.controller_node.ref_base_lin_vel_H[0] = 0
+                            self.controller_node.ref_base_lin_vel_H[1] = 0
+                            self.controller_node.ref_base_ang_yaw_dot = 0 
                             break
             
             
