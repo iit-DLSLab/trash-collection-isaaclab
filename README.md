@@ -4,7 +4,7 @@ This repository is about trash collection using RL on quadruped robots, with sim
 
 Features:
 - Locomotion policy able to adjust pose and carry a manipulator
-- Manipulation policy able to reach desired end effector goal while coordinating the pose of the quadrupe
+- Manipulation policy able to reach desired end effector goal while coordinating the pose of the quadruped
 - Sim-to-Sim in [Mujoco](https://github.com/google-deepmind/mujoco)
 - Sim-to-Real in ROS1 and ROS2
 
