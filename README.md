@@ -1,12 +1,10 @@
 # Overview
 
-This repository is about trash collection using RL on quadruped robots, with sim-to-sim and sim-to-real scripts. 
+This repository is about trash collection using RL on quadruped robots, with sim-to-sim and sim-to-real scripts. It trains in sequence two different policies, one for locomotion and a second one for manipulation, able to reach desired end effector poses.
 
 Features:
-- [Cuncurrent State Estimator](https://arxiv.org/pdf/2202.05481)
-- [Rapid Motor Adaptation](https://arxiv.org/pdf/2107.04034)
-- [Morphologycal Symmetries](https://arxiv.org/pdf/2403.17320) 
-- [Adversarial Motion Priors](https://arxiv.org/pdf/2104.02180)
+- Locomotion policy able to adjust pose and carry a manipulator
+- Manipulation policy able to reach desired end effector goal while coordinating the pose of the quadrupe
 - Sim-to-Sim in [Mujoco](https://github.com/google-deepmind/mujoco)
 - Sim-to-Real in ROS1 and ROS2
 
@@ -14,7 +12,8 @@ A list of robots available and envs are described below:
 
 | Robot Model         | Environment Name (ID)                                      |
 |---------------------|------------------------------------------------------------|
-| [Aliengo](https://github.com/iit-DLSLab/gym-quadruped/tree/master/gym_quadruped/robot_model/aliengo) | Collection-Aliengo-Flat, Collection-Aliengo-Rough-Blind, Collection-Aliengo-Rough-Vision |
+| [Aliengo](https://github.com/iit-DLSLab/gym-quadruped/tree/master/gym_quadruped/robot_model/aliengo) | Locomotion-Aliengo-Flat, Locomotion-Aliengo-Rough-Blind, Locomotion-Aliengo-Rough-Vision |
+| [Arm with Z1](https://github.com/iit-DLSLab/gym-quadruped/tree/master/gym_quadruped/robot_model/aliengo) | Manipulation-Aliengo-Flat, Manipulation-Aliengo-Rough-Blind, Manipulation-Aliengo-Rough-Vision |
 
 
 
@@ -39,7 +38,6 @@ sudo apt install git-lfs
 python -m pip install -e source/trash_collection_isaaclab
 ```
 
-5. If you want to play with [Morphologycal Symmetries](https://arxiv.org/pdf/2403.17320), install the repo [morphosymm-rl](https://github.com/iit-DLSLab/morphosymm-rl)
 
 
 ### Run a train/play in IsaacLab
@@ -49,26 +47,7 @@ python -m pip install -e source/trash_collection_isaaclab
 ```bash
 python scripts/rsl_rl/train.py --task=Locomotion-Aliengo-Flat --num_envs=4096 --headless
 python scripts/rsl_rl/train.py --task=Locomotion-Aliengo-Rough-Blind --num_envs=4096 --headless
-```
-
-- To train with Symmetries, modify the related [rsl_rl_ppo_cfg.py](https://github.com/iit-DLSLab/basic-locomotion-dls-isaaclab/blob/devel/source/basic_locomotion_dls_isaaclab/basic_locomotion_dls_isaaclab/tasks/locomotion/agents/rsl_rl_ppo_cfg.py) setting *class_name = PPOSymmDataAugmented*
-```bash
-python scripts/rsl_rl/train_symm.py --task=Locomotion-Aliengo-Flat --num_envs=4096 --headless
-python scripts/rsl_rl/train_symm.py --task=Locomotion-Aliengo-Rough-Blind --num_envs=4096 --headless
-```
-
-
-- To test the policy, you can press:
-```bash
-python scripts/rsl_rl/play.py --task=Locomotion-Aliengo-Flat --num_envs=16
-python scripts/rsl_rl/play.py --task=Locomotion-Aliengo-Rough-Blind --num_envs=16
-```
-
-
-- If you have speed problem in training, may be due to cylinder collision. Then add
-
-```bash
---kit_args="--/physics/collisionApproximateCylinders=true"
+python scripts/rsl_rl/train.py --task=Manipulation-Aliengo-Rough-Blind --num_envs=4096 --headless
 ```
 
 ### Run Hyperparameter Search
@@ -83,7 +62,7 @@ python3 ../basic_locomotion_dls_isaaclab/exts/basic_locomotion_dls_isaaclab/basi
 
 
 ### Convert XML to USD
-We use model from [gym-quadruped](https://github.com/iit-DLSLab/gym-quadruped).
+We use models saved [here](https://github.com/iit-DLSLab/trash-collection-isaaclab/tree/main/deploy/mujoco/models).
 
 ```bash
 ./isaaclab.sh -p scripts/tools/convert_mjcf.py   ../basic_locomotion_dls_isaaclab/scripts/sim_to_sim_mujoco/gym-quadruped/gym_quadruped/robot_model/aliengo/aliengo.xml   ../aliengo.usd   --import-sites   --make-instanceable
@@ -103,15 +82,12 @@ Remember to set in the application above, "set as default prim" to the root of t
 
 1. install [miniforge](https://github.com/conda-forge/miniforge/releases) (x86_64 or arm64 depending on your platform)
 
-2. create an environment using the file in the folder [installation](https://github.com/iit-DLSLab/basic-locomotion-dls-isaaclab/tree/main/installation):
+2. create an environment using the file in the folder [installation](https://github.com/iit-DLSLab/trash-collection-isaaclab/tree/main/deploy/installation):
 
 
 ```bash
 conda env create -f mamba_environment_ros1.yaml
-conda activate basic_locomotion_dls_isaaclab_ros1_env
-
-conda env create -f mamba_environment_ros2.yaml
-conda activate basic_locomotion_dls_isaaclab_ros2_env
+conda activate trash_collection_isaaclab_ros2_env
 ```
 
 3. Then you can 
@@ -119,11 +95,6 @@ conda activate basic_locomotion_dls_isaaclab_ros2_env
 ```bash
 ## Sim-to-Sim
 python3 deploy/play_mujoco.py
-
-## Sim-to-Real with ROS1
-cd deploy/ros1_ws
-catkin_make install -j4
-python3 deploy/play_ros1.py
 
 ## Sim-to-Real with ROS2
 cd deploy/ros2_ws
