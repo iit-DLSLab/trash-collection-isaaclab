@@ -26,8 +26,6 @@ from isaaclab.markers import VisualizationMarkers
 
 from .arm_env_cfg import ArmFlatEnvCfg, ArmRoughBlindEnvCfg, ArmRoughVisionEnvCfg
 
-from trash_collection_isaaclab.tasks.supervised_learning_networks import SimpleNN
-
 class ManipulationEnv(DirectRLEnv):
     cfg: ArmFlatEnvCfg | ArmRoughBlindEnvCfg | ArmRoughVisionEnvCfg
 
@@ -95,12 +93,17 @@ class ManipulationEnv(DirectRLEnv):
                 "undesired_contacts",
                 "action_rate_l2",
                 "action_smoothness_l2",
-                
+                "action_pose_near_zero_l2",
+
                 #"joints_pos_l2",
                 "joints_acc_l2",
                 "joints_torques_l2",
                 "joints_energy_l1",
                 #"joints_vel_smoothness_l2",
+                "joints_vel_final_l2",
+
+                "track_lin_vel_z_l2",
+                "track_ang_vel_l2",
                 
             ]
         }
@@ -171,6 +174,10 @@ class ManipulationEnv(DirectRLEnv):
         
         arm_commands = self._processed_actions[:, 0:6]
         pose_commands = self._processed_actions[:, 6:8]
+        
+        # Clamp ee commands
+        pose_commands[:,0] = torch.clamp(pose_commands[:,0], -0.3, 0.3)
+        pose_commands[:,1] = torch.clamp(pose_commands[:,1], -0.2, 0.0)
         # Get locomotion policy action
         locomotion_actions = self._get_locomotion_policy_action(pose_commands)
         self._processed_actions_with_arm[:, self._ids_only_arms_joints_order] = arm_commands
@@ -203,12 +210,7 @@ class ManipulationEnv(DirectRLEnv):
             
 
         # Choosing the main source of observation
-        if(self.cfg.use_cuncurrent_state_est):
-            # If Cuncurrent SE/Learned State Estimator, we predict linear and angular vel from IMU
-            velocity_b = self._get_cuncurrent_state_estimation(clock_data)
-            angular_velocity_b = self._imu.data.ang_vel_b
-            projected_gravity_b = self._imu.data.projected_gravity_b
-        elif(self.cfg.use_imu):
+        if(self.cfg.use_imu):
             # Using directly the IMU
             velocity_b = self._imu.data.lin_acc_b
             angular_velocity_b = self._imu.data.ang_vel_b
@@ -289,8 +291,11 @@ class ManipulationEnv(DirectRLEnv):
         # action rate
         action_rate = torch.sum(torch.square(self._actions - self._previous_actions), dim=1)
         action_smoothness = torch.sum(torch.square(self._actions - 2*self._previous_actions + self._previous_previous_actions), dim=1)
-        
-        
+
+        # action pose near zero
+        action_pose_near_zero = torch.sum(torch.square(self._actions[:, 6:8]), dim=1)
+        action_pose_near_zero_mapped = torch.exp(-action_pose_near_zero / 0.10)
+
         # undersired contacts
         net_contact_forces = self._contact_sensor.data.net_forces_w_history
         is_contact = (
@@ -309,17 +314,26 @@ class ManipulationEnv(DirectRLEnv):
 
         # energy = torque * velocity
         joints_energy = torch.sum(torch.abs(self._robot.data.applied_torque[:,self._ids_only_arms_joints_order] * self._robot.data.joint_vel[:,self._ids_only_arms_joints_order]), dim=1)
-
         
         # joints position
         joints_arm_position = self._robot.data.joint_pos[:,self._ids_only_arms_joints_order[0:4]]
         joints_arm_position_error = torch.square(joints_arm_position - self._robot.data.default_joint_pos[:,self._ids_only_arms_joints_order[0:4]])
         joints_arm_position_reward = torch.sum(joints_arm_position_error,dim=1)
 
+        # final joints velocity
+        joints_arm_final_velocity_error = torch.sum(torch.square(self._robot.data.joint_vel[:,self._ids_only_arms_joints_order]), dim=1)
+        joints_arm_final_velocity_reward = torch.exp(-joints_arm_final_velocity_error / 2.0)*should_freeze
+
+
         # joints vel smoothness 
         #joints_vel_smoothness = torch.sum(torch.square(self._robot.data.joint_vel[:,self._ids_only_arms_joints_order] - 2*self._previous_joints_vel + self._previous_previous_joints_vel), dim=1)
         #self._previous_previous_joints_vel = self._previous_joints_vel.clone()
         #self._previous_joints_vel = self._robot.data.joint_vel[:,self._ids_only_arms_joints_order].clone()
+
+        # angular velocity x/y tracking
+        ang_vel_error = torch.sum(torch.square(self._robot.data.root_ang_vel_b[:, :3]), dim=1)
+        # z velocity tracking
+        z_vel_error = torch.square(self._robot.data.root_lin_vel_b[:, 2])
 
 
         # Nan and Inf check
@@ -358,12 +372,17 @@ class ManipulationEnv(DirectRLEnv):
             "undesired_contacts": contacts * self.cfg.undersired_contact_reward_scale * self.step_dt,
             "action_rate_l2": action_rate * self.cfg.action_rate_reward_scale * self.step_dt,
             "action_smoothness_l2": action_smoothness * self.cfg.action_smoothness_reward_scale * self.step_dt,
+            "action_pose_near_zero_l2": action_pose_near_zero_mapped * self.cfg.action_pose_near_zero_reward_scale * self.step_dt,
 
             #"joints_pos_l2": joints_arm_position_reward * self.cfg.joints_arm_position_reward_scale * self.step_dt,
             "joints_acc_l2": joints_accel * self.cfg.joints_accel_reward_scale * self.step_dt,
             "joints_torques_l2": joints_torques * self.cfg.joints_torque_reward_scale * self.step_dt,
             "joints_energy_l1": joints_energy * self.cfg.joints_energy_reward_scale * self.step_dt,
             #"joints_vel_smoothness_l2": joints_vel_smoothness * self.cfg.joints_vel_smoothness_reward_scale * self.step_dt,
+            "joints_vel_final_l2": joints_arm_final_velocity_reward * self.cfg.joints_vel_final_reward_scale * self.step_dt,
+
+            "track_ang_vel_l2": ang_vel_error * self.cfg.ang_vel_reward_scale * self.step_dt,
+            "track_lin_vel_z_l2": z_vel_error * self.cfg.z_vel_reward_scale * self.step_dt,
         }
         reward = torch.sum(torch.stack(list(rewards.values())), dim=0)
         
@@ -481,12 +500,7 @@ class ManipulationEnv(DirectRLEnv):
             clock_data[:, :] = -1.0
 
         # Choosing the main source of observation
-        if(self.cfg.use_cuncurrent_state_est):
-            # If Cuncurrent SE/Learned State Estimator, we predict linear and angular vel from IMU
-            velocity_b = self._get_cuncurrent_state_estimation(clock_data)
-            angular_velocity_b = self._imu.data.ang_vel_b
-            projected_gravity_b = self._imu.data.projected_gravity_b
-        elif(self.cfg.use_imu):
+        if(self.cfg.use_imu):
             # Using directly the IMU
             velocity_b = self._imu.data.lin_acc_b
             angular_velocity_b = self._imu.data.ang_vel_b
@@ -547,9 +561,5 @@ class ManipulationEnv(DirectRLEnv):
             self._processed_actions_locomotion = self.cfg.action_scale_locomotion * self._actions_locomotion + self._robot.data.default_joint_pos[:,self._ids_only_legs_joints_order]
 
         return self._processed_actions_locomotion
-
-
-    def _get_cuncurrent_state_estimation(self, clock_data):
-        return torch.zeros(self.num_envs, 3, device=self.device)
 
 

@@ -24,8 +24,6 @@ from isaaclab.utils import configclass
 
 from .aliengo_env_cfg import AliengoFlatEnvCfg, AliengoRoughBlindEnvCfg, AliengoRoughVisionEnvCfg
 
-from trash_collection_isaaclab.tasks.supervised_learning_networks import SimpleNN
-
 class LocomotionEnv(DirectRLEnv):
     cfg: AliengoFlatEnvCfg | AliengoRoughBlindEnvCfg | AliengoRoughVisionEnvCfg 
 
@@ -65,25 +63,6 @@ class LocomotionEnv(DirectRLEnv):
         # Observation history
         self._observation_history = torch.zeros(self.num_envs, cfg.history_length, cfg.single_observation_space, device=self.device)
 
-        # RMA
-        if(cfg.use_rma == True):
-            self._rma_network = SimpleNN(cfg.rma_observation_space, cfg.rma_output_space)
-            self._rma_network.to(self.device)
-            self._observation_history_rma = torch.zeros(self.num_envs, cfg.history_length, cfg.single_rma_observation_space, device=self.device)
-            if self.cfg.observation_noise_model:
-                self._observation_noise_model_rma: NoiseModel = self.cfg.observation_noise_model.class_type(
-                    self.cfg.observation_noise_model, num_envs=self.num_envs, device=self.device
-                )
-
-        # Learned State Estimator
-        if(cfg.use_cuncurrent_state_est == True):
-            self._cuncurrent_state_est_network = SimpleNN(cfg.cuncurrent_state_est_observation_space, cfg.cuncurrent_state_est_output_space)
-            self._cuncurrent_state_est_network.to(self.device)
-            self._observation_history_cuncurrent_state_est = torch.zeros(self.num_envs, cfg.history_length, cfg.single_cuncurrent_state_est_observation_space, device=self.device)
-            if self.cfg.observation_noise_model:
-                self._observation_noise_model_cuncurrent_state_est: NoiseModel = self.cfg.observation_noise_model.class_type(
-                    self.cfg.observation_noise_model, num_envs=self.num_envs, device=self.device
-                )
 
         # Logging
         self._episode_sums = {
@@ -200,13 +179,7 @@ class LocomotionEnv(DirectRLEnv):
             clock_data[:, :] = clock_data[:, :]*should_move.unsqueeze(1).expand(-1, 4) + -1.0* ~should_move.unsqueeze(1).expand(-1, 4)
             
 
-        # Choosing the main source of observation
-        if(self.cfg.use_cuncurrent_state_est):
-            # If Cuncurrent SE/Learned State Estimator, we predict linear and angular vel from IMU
-            velocity_b = self._get_cuncurrent_state_estimation(clock_data)
-            angular_velocity_b = self._imu.data.ang_vel_b
-            projected_gravity_b = self._imu.data.projected_gravity_b
-        elif(self.cfg.use_imu):
+        if(self.cfg.use_imu):
             # Using directly the IMU
             velocity_b = self._imu.data.lin_acc_b
             angular_velocity_b = self._imu.data.ang_vel_b
@@ -255,13 +228,6 @@ class LocomotionEnv(DirectRLEnv):
             height_data = torch.nan_to_num(height_data, nan=0.0, posinf=1.0, neginf=-1.0)
             height_data = height_data.clip(-1.0, 1.0)
             obs = torch.cat((obs, height_data), dim=-1)      
-
-
-        # If RMA, we add some other predicted obs
-        if(self.cfg.use_rma):
-            # Predict the RMA observation
-            obs_rma = self._get_rma(clock_data)
-            obs = torch.cat((obs, obs_rma), dim=-1)
 
 
         # Final observations dictionary
@@ -570,14 +536,6 @@ class LocomotionEnv(DirectRLEnv):
         self._phase_signal[env_ids] = self._phase_offset[env_ids].clone()# + self.step_dt * self._step_freq * torch.rand(env_ids.shape[0], 1, device=self.device)*10.
         self._phase_signal[env_ids] = self._phase_signal[env_ids]  % 1.0
 
-        # Reset noise
-        if(self.cfg.use_cuncurrent_state_est):
-            if self.cfg.observation_noise_model:
-                self._observation_noise_model_cuncurrent_state_est.reset(env_ids)
-        
-        if(self.cfg.use_rma):
-            if self.cfg.observation_noise_model:
-                self._observation_noise_model_rma.reset(env_ids)
 
         # Reset robot state
         joint_pos = self._robot.data.default_joint_pos[env_ids]
@@ -641,115 +599,6 @@ class LocomotionEnv(DirectRLEnv):
             self._velocity_commands[fixed_env_ids, :3] *= 0.0
 
 
-    def _get_cuncurrent_state_estimation(self, clock_data):
-        # Using a supervised learning state estimation
-        obs_cuncurrent_state_est = torch.cat(
-            [
-                tensor
-                for tensor in (
-                    self._imu.data.lin_acc_b,
-                    self._imu.data.ang_vel_b,
-                    self._robot.data.projected_gravity_b,
-                    self._velocity_commands,
-                    self._pose_commands,
-                    self._robot.data.joint_pos[:,self._ids_joints_order] - self._robot.data.default_joint_pos[:,self._ids_joints_order],
-                    self._robot.data.joint_vel[:,self._ids_joints_order],
-                    self._actions,
-                    clock_data,
-                )
-                if tensor is not None
-            ],
-            dim=-1,
-        )
-        #the bottom element is the newest observation!!
-        self._observation_history_cuncurrent_state_est = torch.cat((self._observation_history_cuncurrent_state_est[:,1:,:], obs_cuncurrent_state_est.unsqueeze(1)), dim=1)
-        obs_cuncurrent_state_est = torch.flatten(self._observation_history_cuncurrent_state_est, start_dim=1)     
-
-        # Add noise to the observation - this is usually done in direct_rl.py in IsaacLab, but 
-        # the obs of cuncurrent SE does not pass from there - its prediciton yes instead!
-        if self.cfg.observation_noise_model:          
-            obs_cuncurrent_state_est = self._observation_noise_model_cuncurrent_state_est(obs_cuncurrent_state_est)   
-
-        # Saving data
-        output_cuncurrent_state_est = self._robot.data.root_lin_vel_b
-        self._cuncurrent_state_est_network.dataset.add_sample(obs_cuncurrent_state_est, output_cuncurrent_state_est)
-
-        # Prediction
-        num_episode_from_start = self.common_step_counter / 24. #self.max_episode_length #HACK this should be taken from rsl rl
-        num_final_episode_from_start = 8000.
-        if num_episode_from_start > self.cfg.cuncurrent_state_est_ep_saving_interval:
-            prediction_cuncurrent_state_est = self._cuncurrent_state_est_network(obs_cuncurrent_state_est)
-            linear_velocity_b = prediction_cuncurrent_state_est[:, :3]
-        else:
-            linear_velocity_b = self._robot.data.root_lin_vel_b
-
-        # Train at some interval
-        if num_episode_from_start % self.cfg.cuncurrent_state_est_ep_saving_interval == 0 and num_episode_from_start > self.cfg.cuncurrent_state_est_ep_saving_interval - 1:  # Adjust the interval as needed
-            self._cuncurrent_state_est_network.train_network(batch_size=self.cfg.cuncurrent_state_est_batch_size, 
-                                                            epochs=self.cfg.cuncurrent_state_est_train_epochs, 
-                                                            learning_rate=self.cfg.cuncurrent_state_est_lr, device=self.device)
-        if num_episode_from_start == num_final_episode_from_start - 10:
-            # Save the network
-            self._cuncurrent_state_est_network.save_network("cuncurrent_state_estimator.pth", self.device)    
-
-        return linear_velocity_b  
-
-
-    def _get_rma(self, clock_data):
-        # Learning privileged information via supervised learning
-        obs_rma = torch.cat(
-            [
-                tensor
-                for tensor in (
-                    self._imu.data.lin_acc_b,
-                    self._imu.data.ang_vel_b,
-                    self._robot.data.projected_gravity_b,
-                    self._velocity_commands,
-                    self._pose_commands,
-                    self._robot.data.joint_pos[:,self._ids_joints_order] - self._robot.data.default_joint_pos[:,self._ids_joints_order],
-                    self._robot.data.joint_vel[:,self._ids_joints_order],
-                    self._actions,
-                    clock_data,
-                )
-                if tensor is not None
-            ],
-            dim=-1,
-        )
-        #the bottom element is the newest observation!!
-        self._observation_history_rma = torch.cat((self._observation_history_rma[:,1:,:], obs_rma.unsqueeze(1)), dim=1)
-        obs = torch.flatten(self._observation_history_rma, start_dim=1)
-
-        # Add noise to the observation - this is usually done in direct_rl.py in IsaacLab, but 
-        # the obs of cuncurrent SE does not pass from there - its prediciton yes instead!
-        if self.cfg.observation_noise_model:          
-            obs = self._observation_noise_model_rma(obs.clone())  
-        
-        outputs_rma = self._get_privileged_observation()
-
-        self._rma_network.dataset.add_sample(obs, outputs_rma)
-
-        # Prediction
-        num_episode_from_start = self.common_step_counter / 24. #self.max_episode_length #HACK this should be taken from rsl rl
-        num_final_episode_from_start = 8000.
-        if num_episode_from_start > self.cfg.rma_ep_saving_interval:
-            prediction_rma = self._rma_network(obs)
-            obs_rma = prediction_rma
-        else:
-            obs_rma = outputs_rma
-
-        # Train at some interval
-        if num_episode_from_start % self.cfg.rma_ep_saving_interval == 0 and num_episode_from_start > self.cfg.rma_ep_saving_interval - 1:  # Adjust the interval as needed
-            self._rma_network.train_network(batch_size=self.cfg.rma_batch_size, 
-                                            epochs=self.cfg.rma_train_epochs, 
-                                            learning_rate=self.cfg.rma_lr, 
-                                            device=self.device)
-        if num_episode_from_start == num_final_episode_from_start - 10:
-            # Save the network
-            self._rma_network.save_network("rma.pth", self.device)
-        
-        return obs_rma
-
-
     def _get_privileged_observation(self):
         asset_cfg = SceneEntityCfg("robot", joint_names=[".*"])
         asset: Articulation = self.scene[asset_cfg.name]
@@ -782,9 +631,43 @@ class LocomotionEnv(DirectRLEnv):
         default_damping = asset.data.default_joint_damping[0][0]
 
 
+        # height error
+        height_data_scanner = self._height_scanner.data.ray_hits_w[..., 2]
+        height_data_scanner = torch.nan_to_num(height_data_scanner, nan=0.0, posinf=1.0, neginf=-1.0)
+        height_data_scanner = torch.clip(height_data_scanner, min=-5, max=5) # Handle inf values
+        mean_height_ray = torch.mean(height_data_scanner, dim=1)
+        height_error = torch.abs(self.cfg.desired_base_height + mean_height_ray - self._robot.data.root_state_w[:, 2])
+
+
+        # terrain orientation
+        height_map_resolution = self._height_scanner.cfg.pattern_cfg.resolution
+        height_map_x_points = int(round(self._height_scanner.cfg.pattern_cfg.size[0] / height_map_resolution)) + 1
+        height_map_y_points = int(round(self._height_scanner.cfg.pattern_cfg.size[1] / height_map_resolution))
+        distance_between_front_and_back = (height_map_x_points/2)* height_map_resolution
+
+        cols_back = torch.arange(0, height_data_scanner.shape[1], height_map_x_points).unsqueeze(1) + torch.arange(int(height_map_x_points/2))
+        cols_back = cols_back.flatten().to(height_data_scanner.device)
+        selected_height_data_back = height_data_scanner[:, cols_back]
+
+        cols_front = torch.arange(int(height_map_x_points/2), height_data_scanner.shape[1], height_map_x_points).unsqueeze(1) + torch.arange(int(height_map_x_points/2))
+        cols_front = cols_front.flatten().to(height_data_scanner.device)
+        selected_height_data_front = height_data_scanner[:, cols_front]
+
+        mean_height_ray_front = torch.mean(selected_height_data_front, dim=1)
+        mean_height_ray_back = torch.mean(selected_height_data_back, dim=1)
+        delta_z = mean_height_ray_front - mean_height_ray_back
+        delta_s = torch.tensor(distance_between_front_and_back).to(self.device)
+        terrain_pitch = -torch.atan2(delta_z, delta_s)
+
+        contacts_foot = self._contact_sensor.data.net_forces_w_history[:, :, self._feet_ids, :].norm(dim=-1).max(dim=1)[0] > 1.0
+
         obs_privileged = torch.cat(( 
-                            hip_stiffness/default_stiffness, thigh_stiffness/default_stiffness, calf_stiffness/default_stiffness, #P gain
-                            hip_damping/default_damping, thigh_damping/default_damping, calf_damping/default_damping, #D gain
+                            #hip_stiffness/default_stiffness, thigh_stiffness/default_stiffness, calf_stiffness/default_stiffness, #P gain
+                            #hip_damping/default_damping, thigh_damping/default_damping, calf_damping/default_damping, #D gain
+                            self._robot.data.root_lin_vel_b,
+                            height_error.unsqueeze(1),
+                            terrain_pitch.unsqueeze(1),
+                            contacts_foot,
                             #masses, inertias,
                             #hip_static_friction, thigh_static_friction, calf_static_friction,  
                             #hip_dynamic_friction, thigh_dynamic_friction, calf_dynamic_friction, 

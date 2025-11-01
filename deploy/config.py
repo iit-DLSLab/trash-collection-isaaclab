@@ -5,12 +5,12 @@ sys.path.append(dir_path+"/../")
 sys.path.append(dir_path+"/../scripts/rsl_rl")
 
 
-locomotion_policy_folder_path = dir_path + "/../tested_policies/locomotion/aliengo_with_z1_last"
+locomotion_policy_folder_path = dir_path + "/../tested_policies/locomotion/aliengo_with_z1"
 arm_policy_folder_path = dir_path + "/../tested_policies/arm/2025-10-30_21-44-02"
 # ----------------------------------------------------------------------------------------------------------------
 
-Kp_walking = 25.
-Kd_walking = 2.
+Kp_walking = 21.5
+Kd_walking = 3.5
 
 Kp_stand_up_and_down = 25.
 Kd_stand_up_and_down = 2.

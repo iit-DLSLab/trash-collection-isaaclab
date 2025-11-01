@@ -91,15 +91,15 @@ class EventCfg:
 
 
     actuator_gains = EventTerm(
-    func=mdp.randomize_actuator_gains,
-    mode="reset",
-    params={
-        "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
-        "stiffness_distribution_params": (-5.0, 5.0),
-        "damping_distribution_params": (-1.0, 1.0),
-        "operation": "add",
-        "distribution": "uniform",
-    },
+        func=mdp.randomize_actuator_gains,
+        mode="reset",
+        params={
+            "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
+            "stiffness_distribution_params": (-5.0, 5.0),
+            "damping_distribution_params": (-1.0, 1.0),
+            "operation": "add",
+            "distribution": "uniform",
+        },
     )
 
 
@@ -271,21 +271,25 @@ class ArmFlatEnvCfg(DirectRLEnvCfg):
     joints_energy_reward_scale = -1e-4
     #joints_arm_position_reward_scale = -0.001
     joints_vel_smoothness_reward_scale = -1e-4
+    joints_vel_final_reward_scale = 0.2
    
     
     # Undesired contacts reward scale
     undersired_contact_reward_scale = -1.0
     action_rate_reward_scale = -0.01
     action_smoothness_reward_scale = -0.001
+    action_pose_near_zero_reward_scale = 0.1
+
+    # Robot base velocity tracking reward scale, to avoid
+    # brutal motions during manipulation
+    z_vel_reward_scale = -0.25
+    ang_vel_reward_scale = -0.25
 
 
     # Loading the locomotion policy --------------------------------------------------------------------------------
     #try:
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    locomotion_policy_folder_path = dir_path + "/../../../../../tested_policies/aliengo_with_z1_last"
-
-    cuncurrent_state_est_network_path = locomotion_policy_folder_path + "/exported/cuncurrent_state_estimator.pth"
-    rma_network_path = locomotion_policy_folder_path + "/exported/rma.pth"
+    locomotion_policy_folder_path = dir_path + "/../../../../../tested_policies/locomotion/aliengo_with_z1"
 
     # Load specific training parameters
     locomotion_policy_env_cfg = yaml.unsafe_load(open(locomotion_policy_folder_path + "/params/env.yaml", "r"))
@@ -293,12 +297,6 @@ class ArmFlatEnvCfg(DirectRLEnvCfg):
     # state estimator locomotion
     use_imu = locomotion_policy_env_cfg["use_imu"]
 
-    use_cuncurrent_state_est = locomotion_policy_env_cfg["use_cuncurrent_state_est"]
-    if(use_cuncurrent_state_est):
-        cuncurrent_state_est_output_space = locomotion_policy_env_cfg["cuncurrent_state_est_output_space"]
-        single_cuncurrent_state_est_observation_space = locomotion_policy_env_cfg["single_observation_space"]
-        cuncurrent_state_est_observation_space = locomotion_policy_env_cfg["observation_space"]
-    
     # action locomotion
     use_filter_actions_locomotion = locomotion_policy_env_cfg["use_filter_actions"]
     desired_clip_actions_locomotion = locomotion_policy_env_cfg["desired_clip_actions"]

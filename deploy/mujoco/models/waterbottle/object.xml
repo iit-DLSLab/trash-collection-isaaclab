@@ -1,0 +1,12 @@
+<mujoco model="bottle">
+
+  <asset>
+      <mesh name="waterbottle" file="waterbottle.stl"/>
+  </asset>
+
+  <worldbody>
+    <body name="object" pos="0.3 0 0.5">
+      <geom name="waterbottle_visual" type="mesh" mesh="waterbottle" rgba=".6 .3 .3 .5"/>
+    </body>
+  </worldbody>
+</mujoco>
