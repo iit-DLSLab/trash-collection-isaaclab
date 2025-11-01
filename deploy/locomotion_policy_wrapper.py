@@ -102,6 +102,7 @@ class LocomotionPolicyWrapper:
             joints_vel_leg,
             ref_base_lin_vel, 
             ref_base_ang_vel,
+            ref_pose_command,
             joints_pos_arm,
             heightmap_data=None):
 
@@ -128,7 +129,6 @@ class LocomotionPolicyWrapper:
         joints_vel_RL = joints_vel_leg[6:9]
         joints_vel_RR = joints_vel_leg[9:12]
 
-        pose_commands = np.zeros(2)
         
         obs = np.concatenate([
             base_vel, # this could be imu linear acc if use_imu or linear vel from state est
@@ -136,7 +136,7 @@ class LocomotionPolicyWrapper:
             base_projected_gravity,
             ref_base_lin_vel_h[0:2],
             [ref_base_ang_vel[2]],
-            pose_commands,
+            ref_pose_command,
             [joints_pos_delta_FL[0]], [joints_pos_delta_FR[0]], [joints_pos_delta_RL[0]], [joints_pos_delta_RR[0]],
             [joints_pos_delta_FL[1]], [joints_pos_delta_FR[1]], [joints_pos_delta_RL[1]], [joints_pos_delta_RR[1]],
             [joints_pos_delta_FL[2]], [joints_pos_delta_FR[2]], [joints_pos_delta_RL[2]], [joints_pos_delta_RR[2]],

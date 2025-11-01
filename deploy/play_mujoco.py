@@ -133,6 +133,7 @@ class PlayMujoco:
                                     heightmap_data=self.heightmap.data if self.locomotion_policy.use_vision else None)
                     else:
                         self.desired_joint_pos_arm = self.state_machine.desired_position
+                        self.desired_pose_command = np.zeros(2)
 
                     self.desired_joint_pos_leg = self.locomotion_policy.compute_control(
                                 base_pos=base_pos, 
@@ -146,6 +147,7 @@ class PlayMujoco:
                                 joints_pos_arm=joints_pos_arm,
                                 ref_base_lin_vel=ref_base_lin_vel, 
                                 ref_base_ang_vel=ref_base_ang_vel,
+                                ref_pose_command=self.desired_pose_command,
                                 heightmap_data=self.heightmap.data if self.locomotion_policy.use_vision else None)
 
                 # PD controller --------------------------------------------------------------
