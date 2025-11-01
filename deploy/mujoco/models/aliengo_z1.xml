@@ -332,14 +332,14 @@
         <motor name="RR_thigh" class="thigh"  gear="1" joint="RR_thigh_joint"/>
         <motor name="RR_calf"  class="calf"   gear="1" joint="RR_calf_joint" />
 
-        <general name="motor1" joint="joint1" ctrlrange="-2.61799 2.61799"/>
-        <general name="motor2" joint="joint2" ctrlrange="0 2.96706" forcerange="-60 60" gainprm="1500"
-        biasprm="0 -1500 -150"/>
-        <general name="motor3" joint="joint3" ctrlrange="-2.87979 0"/>
-        <general name="motor4" joint="joint4" ctrlrange="-1.51844 1.51844"/>
-        <general name="motor5" joint="joint5" ctrlrange="-1.3439 1.3439"/>
-        <general name="motor6" joint="joint6" ctrlrange="-2.79253 2.79253"/>
-        <general name="motorGripper" joint="jointGripper" ctrlrange="-1.51844 0"/>
+        <motor name="motor1"   joint="joint1"/>
+        <motor name="motor2"   joint="joint2"/>
+        <motor name="motor3"   joint="joint3"/>
+        <motor name="motor4"   joint="joint4"/>
+        <motor name="motor5"   joint="joint5"/>
+        <motor name="motor6"   joint="joint6"/>
+
+        <motor name="motorGripper" joint="jointGripper" ctrlrange="-1.51844 1.51844"/>
     </actuator>
 
     <sensor>

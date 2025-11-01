@@ -284,7 +284,7 @@ class ManipulationEnv(DirectRLEnv):
         ee_pose_error_mapped = ee_position_error_mapped #+ ee_orientation_error
 
         # end effector final velocity reward #TODO reduce even rot vel and acc?
-        should_freeze = ee_position_error < 0.0009 #ee position error in a radius of 3cm
+        should_freeze = ee_position_error < 0.0025 #ee position error in a radius of 5cm
         ee_final_velocity_error = torch.sum(torch.square(self._imu.data.lin_vel_b), dim=1)
         ee_final_velocity_error_mapped = torch.exp(-ee_final_velocity_error / 0.10)*should_freeze
 

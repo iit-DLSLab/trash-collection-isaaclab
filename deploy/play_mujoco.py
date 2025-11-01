@@ -23,6 +23,9 @@ from heightmap import HeightMap
 # Trash Policy imports
 from manipulation_policy_wrapper import ManipulationPolicyWrapper
 from locomotion_policy_wrapper import LocomotionPolicyWrapper
+from state_machine import StateMachine
+from state_machine import ArmStateType, GripperStateType
+
 
 import config
 import threading
@@ -38,17 +41,25 @@ class PlayMujoco:
         # Load the model and data.
         self.mjModel = mujoco.MjModel.from_xml_path("mujoco/models/scene_rough.xml")
         self.mjData = mujoco.MjData(self.mjModel)
+        keyframe_id = mujoco.mj_name2id(self.mjModel, mujoco.mjtObj.mjOBJ_KEY, "home")
+        self.mjData.qpos = self.mjModel.key_qpos[keyframe_id]
 
 
         # Initialization of variables used in the main control loop --------------------------------
         self.manipulation_policy = ManipulationPolicyWrapper(mjModel=self.mjModel)
         self.locomotion_policy = LocomotionPolicyWrapper(mjModel=self.mjModel)
+        self.state_machine = StateMachine()
 
         if(self.locomotion_policy.use_vision):
             resolution_heightmap = config.resolution_heightmap
             num_rows_heightmap = round(config.size_x_heightmap/resolution_heightmap) + 1
             num_cols_heightmap = round(config.size_y_heightmap/resolution_heightmap) + 1
-            self.heightmap = HeightMap(num_rows=num_rows_heightmap, num_cols=num_cols_heightmap, dist_x=resolution_heightmap, dist_y=resolution_heightmap, mj_model=mjModel, mj_data=mjData)    
+            self.heightmap = HeightMap(num_rows=num_rows_heightmap, num_cols=num_cols_heightmap, dist_x=resolution_heightmap, dist_y=resolution_heightmap, mj_model=mjModel, mj_data=mjData) 
+
+        self.arm_joints_position = np.zeros(6)  # 6 arm joints  
+        self.desired_joint_pos_arm = self.mjData.qpos[19:25] 
+        self.desired_joint_pos_leg = self.mjData.qpos[7:19]
+        self.desired_pose_command = np.zeros(2)
         
 
         # --------------------------------------------------------------
@@ -85,6 +96,7 @@ class PlayMujoco:
                 heading_orientation_SO3 = mujoco_utils.heading_orientation_SO3(self.mjData)
                 base_quat_wxyz = qpos[3:7]
                 base_pos = mujoco_utils.base_pos(self.mjData)
+                self.arm_joints_position = qpos[19:25]
 
                 joints_pos_leg = qpos[7:19]
                 joints_pos_arm = qpos[19:25]
@@ -104,22 +116,25 @@ class PlayMujoco:
                 # RL controller --------------------------------------------------------------
                 if step_num % round(1 / (self.locomotion_policy.RL_FREQ * self.simulation_dt)) == 0:            
                     
-                    desired_joint_pos_arm, pose_commands = self.manipulation_policy.compute_control(
-                                base_pos=base_pos, 
-                                base_ori_euler_xyz=base_ori_euler_xyz, 
-                                base_quat_wxyz=base_quat_wxyz,
-                                base_lin_vel=base_lin_vel, 
-                                base_ang_vel=base_ang_vel,
-                                heading_orientation_SO3=heading_orientation_SO3,
-                                joints_pos_leg=joints_pos_leg, 
-                                joints_vel_leg=joints_vel_leg,
-                                joints_pos_arm=joints_pos_arm,
-                                joints_vel_arm=joints_vel_arm,
-                                ref_base_lin_vel=ref_base_lin_vel, 
-                                ref_base_ang_vel=ref_base_ang_vel,
-                                heightmap_data=self.heightmap.data if self.locomotion_policy.use_vision else None)
+                    if self.state_machine.state_type == ArmStateType.REACH:
+                        self.desired_joint_pos_arm, self.desired_pose_command = self.manipulation_policy.compute_control(
+                                    base_pos=base_pos, 
+                                    base_ori_euler_xyz=base_ori_euler_xyz, 
+                                    base_quat_wxyz=base_quat_wxyz,
+                                    base_lin_vel=base_lin_vel, 
+                                    base_ang_vel=base_ang_vel,
+                                    heading_orientation_SO3=heading_orientation_SO3,
+                                    joints_pos_leg=joints_pos_leg, 
+                                    joints_vel_leg=joints_vel_leg,
+                                    joints_pos_arm=joints_pos_arm,
+                                    joints_vel_arm=joints_vel_arm,
+                                    ref_base_lin_vel=ref_base_lin_vel, 
+                                    ref_base_ang_vel=ref_base_ang_vel,
+                                    heightmap_data=self.heightmap.data if self.locomotion_policy.use_vision else None)
+                    else:
+                        self.desired_joint_pos_arm = self.state_machine.desired_position
 
-                    desired_joint_pos_leg = self.locomotion_policy.compute_control(
+                    self.desired_joint_pos_leg = self.locomotion_policy.compute_control(
                                 base_pos=base_pos, 
                                 base_ori_euler_xyz=base_ori_euler_xyz, 
                                 base_quat_wxyz=base_quat_wxyz,
@@ -134,9 +149,9 @@ class PlayMujoco:
                                 heightmap_data=self.heightmap.data if self.locomotion_policy.use_vision else None)
 
                 # PD controller --------------------------------------------------------------
-                else:
-                    desired_joint_pos_leg = self.locomotion_policy.desired_joint_pos
-                    desired_joint_pos_arm = self.manipulation_policy.desired_joint_pos
+                desired_joint_pos_leg = self.desired_joint_pos_leg
+                desired_joint_pos_arm = self.desired_joint_pos_arm
+                desired_gripper_pos = self.state_machine.desired_gripper_position
 
 
                 error_joints_pos_leg = desired_joint_pos_leg - joints_pos_leg
@@ -145,10 +160,13 @@ class PlayMujoco:
                 error_joints_pos_arm = desired_joint_pos_arm - joints_pos_arm
                 tau_arm = self.manipulation_policy.Kp_arm*error_joints_pos_arm - self.manipulation_policy.Kd_arm*joints_vel_arm
 
+                error_gripper_pos = desired_gripper_pos - joints_pos_gripper
+                tau_gripper = config.Kp_gripper*error_gripper_pos - config.Kd_gripper*joints_vel_gripper
 
                 # Set control and mujoco step ----------------------------------------------------------------------
                 self.mjData.ctrl[0:12] = tau_leg
                 self.mjData.ctrl[12:18] = tau_arm
+                self.mjData.ctrl[18] = tau_gripper
                 mujoco.mj_step(self.mjModel, self.mjData)
                 step_num = step_num +1
 

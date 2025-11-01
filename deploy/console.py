@@ -6,6 +6,8 @@ import numpy as np
 import copy
 import mujoco
 
+from state_machine import ArmStateType, GripperStateType
+
 class Console():
     def __init__(self, controller_node):
         self.controller_node = controller_node
@@ -204,8 +206,101 @@ class Console():
                             self.controller_node.ref_base_lin_vel_H[1] = 0
                             self.controller_node.ref_base_ang_yaw_dot = 0 
                             break
-            
-            
+                        
+
+                elif input_string =="arm-home":
+                    start_time = time.time()
+                    time_motion = 5.
+                    initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
+                    reference_joints_position = self.controller_node.state_machine.home_position
+                    
+                    self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
+
+                    print("Arm in home")
+                    self.controller_node.state_machine.change_state(state=ArmStateType.HOME) # REST
+                
+                elif input_string == "arm-pre-reach-object":
+                   
+                    start_time = time.time()
+                    time_motion = 5.
+                    initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
+                    reference_joints_position = np.array([0, 1.5, -1.5, 0.54, 0, 0]) - self.controller_node.state_machine.offset_home_position
+
+                    self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
+                    
+                    print("Reached pre-reach")
+                    self.controller_node.state_machine.change_state(state=ArmStateType.PREREACH) # Ready for policy handover
+                
+                elif input_string == "arm-reach-object":
+
+                    if(self.controller_node.state_machine.state_type != ArmStateType.PREREACH and self.controller_node.state_machine.state_type != ArmStateType.REACH):
+                        print("Error: first move to pre-reach position")
+                        continue
+
+                    if(self.controller_node.state_machine.state_type == ArmStateType.PREREACH):
+                        self.controller_node.state_machine.change_state(state=ArmStateType.REACH) # Ready for policy handover
+                    else:
+                        self.controller_node.state_machine.change_state(state=ArmStateType.PREREACH) # Go back in pre-reach
+                        start_time = time.time()
+                        time_motion = 5.
+                        initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
+                        reference_joints_position = np.array([0, 1.5, -1.5, 0.54, 0, 0]) - self.controller_node.state_machine.offset_home_position
+
+                        self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
+                        print("Reached pre-reach")
+
+                elif input_string == "arm-reach-basket":
+
+                    start_time = time.time()
+                    initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
+                    reference_joints_position = np.array([1.61, 1.84, -1.18, 0.01, 0.02, -0.02]) - self.controller_node.state_machine.offset_home_position
+                    time_motion = 5.
+
+                    self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
+                    print("First keypoint reached with joint position: ", self.controller_node.arm_joints_position)
+
+                    start_time = time.time()
+                    initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
+                    reference_joints_position = np.array([2.17, 1.02, -0.84, -0.71, 1.44, -1.13]) - self.controller_node.state_machine.offset_home_position
+
+                    self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
+
+
+                elif input_string == "arm-open-basket":
+
+                    self.controller_node.state_machine.change_state(gripper_state=GripperStateType.OPEN) # OPEN
+
+                    start_time = time.time()
+                    time_motion = 5.
+                    initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
+                    reference_joints_position = np.array([ 2.74,  0.88, -0.85,  0.2 ,  1.23, -1.85]) - self.controller_node.state_machine.offset_home_position
+
+                    self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
+                    print("First keypoint reached with joint position: ", self.controller_node.arm_joints_position)
+
+                    start_time = time.time()
+                    initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
+                    reference_joints_position = np.array([ 2.74,  0.98, -1.18,  0.06,  1.22, -1.48]) - self.controller_node.state_machine.offset_home_position
+                    
+                    self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
+
+
+
+                elif input_string == "arm-close-gripper":
+                    #if self.controller_node.arm_interface.gripper_state_type == GripperStateType.CLOSE:
+                    #    print("Gripper already gripping")
+                    #    continue
+                    print("Closing gripper")
+                    self.controller_node.state_machine.change_state(gripper_state=GripperStateType.CLOSE) # CLOSE
+
+
+                elif input_string == "arm-open-gripper":
+                    #if self.controller_node.arm_interface.gripper_state_type != GripperStateType.CLOSE:
+                    #    print("Gripper not gripping")
+                    #    continue
+                    print("Opening gripper")
+                    self.controller_node.state_machine.change_state(gripper_state=GripperStateType.OPEN) # OPEN
+
             except Exception as e:
                 print("Error: ", e)
                 print("Invalid Command")
@@ -216,3 +311,21 @@ class Console():
         print("\nAvailable Commands")
         print("help: Display all available messages")
         print("ictp: Interactive Keyboard Control\n")
+
+
+    def run_arm_smoother(self , initial_joints_position, reference_joints_position, time_motion):
+        start_time = time.time()
+        past_joint_positions = copy.deepcopy(initial_joints_position)
+        while(time.time() - start_time < time_motion):
+            time_diff = time.time() - start_time
+            alpha = time_diff / time_motion
+            interpolated_positions = [
+                (1 - alpha) * initial + alpha * reference
+                for initial, reference in zip(initial_joints_position, reference_joints_position)
+            ]
+            interpolated_positions = np.array(interpolated_positions)
+            #interpolated_velocities = (interpolated_positions - past_joint_positions) / 0.01
+            past_joint_positions = copy.deepcopy(interpolated_positions)
+            self.controller_node.state_machine.desired_position = interpolated_positions
+            time.sleep(0.01)
+        print("end of control loop")
