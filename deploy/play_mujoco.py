@@ -74,6 +74,9 @@ class PlayMujoco:
         thread_console.daemon = True
         thread_console.start()
 
+        self.console.isDown = False  # Only in this play_mujoco script
+        self.console.isRLActivated = True  # Only in this play_mujoco script
+
 
     def run(self):
         # Run the simulation
@@ -113,6 +116,7 @@ class PlayMujoco:
 
                 if(self.locomotion_policy.use_vision):
                     self.heightmap.update_height_map(self.mjData.qpos[0:3], yaw=base_ori_euler_xyz[2])
+
             
                 # RL controller --------------------------------------------------------------
                 if step_num % round(1 / (self.locomotion_policy.RL_FREQ * self.simulation_dt)) == 0:            
@@ -136,21 +140,26 @@ class PlayMujoco:
                         self.desired_joint_pos_arm = self.state_machine.desired_position
                         self.desired_pose_command = np.zeros(2)
 
-                    self.desired_joint_pos_leg = self.locomotion_policy.compute_control(
-                                base_pos=base_pos, 
-                                base_ori_euler_xyz=base_ori_euler_xyz, 
-                                base_quat_wxyz=base_quat_wxyz,
-                                base_lin_vel=base_lin_vel, 
-                                base_ang_vel=base_ang_vel,
-                                heading_orientation_SO3=heading_orientation_SO3,
-                                joints_pos_leg=joints_pos_leg, 
-                                joints_vel_leg=joints_vel_leg,
-                                joints_pos_arm=joints_pos_arm,
-                                ref_base_lin_vel=ref_base_lin_vel, 
-                                ref_base_ang_vel=ref_base_ang_vel,
-                                ref_pose_command=self.desired_pose_command + self.desired_pose_command_overwrite,
-                                heightmap_data=self.heightmap.data if self.locomotion_policy.use_vision else None)
+                    if(self.console.isDown):
+                        print("TODO")
 
+                    elif(self.console.isRLActivated):
+                        self.desired_joint_pos_leg = self.locomotion_policy.compute_control(
+                                    base_pos=base_pos, 
+                                    base_ori_euler_xyz=base_ori_euler_xyz, 
+                                    base_quat_wxyz=base_quat_wxyz,
+                                    base_lin_vel=base_lin_vel, 
+                                    base_ang_vel=base_ang_vel,
+                                    heading_orientation_SO3=heading_orientation_SO3,
+                                    joints_pos_leg=joints_pos_leg, 
+                                    joints_vel_leg=joints_vel_leg,
+                                    joints_pos_arm=joints_pos_arm,
+                                    ref_base_lin_vel=ref_base_lin_vel, 
+                                    ref_base_ang_vel=ref_base_ang_vel,
+                                    ref_pose_command=self.desired_pose_command + self.desired_pose_command_overwrite,
+                                    heightmap_data=self.heightmap.data if self.locomotion_policy.use_vision else None)
+
+                
                 # PD controller --------------------------------------------------------------
                 desired_joint_pos_leg = self.desired_joint_pos_leg
                 desired_joint_pos_arm = self.desired_joint_pos_arm
@@ -166,6 +175,7 @@ class PlayMujoco:
                 error_gripper_pos = desired_gripper_pos - joints_pos_gripper
                 tau_gripper = config.Kp_gripper*error_gripper_pos - config.Kd_gripper*joints_vel_gripper
 
+                
                 # Set control and mujoco step ----------------------------------------------------------------------
                 self.mjData.ctrl[0:12] = tau_leg
                 self.mjData.ctrl[12:18] = tau_arm
