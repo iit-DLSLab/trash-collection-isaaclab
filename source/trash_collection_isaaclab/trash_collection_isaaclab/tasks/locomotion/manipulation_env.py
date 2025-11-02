@@ -22,6 +22,8 @@ from isaaclab.sim import SimulationCfg
 from isaaclab.terrains import TerrainImporterCfg
 from isaaclab.utils import configclass
 
+from isaaclab.utils.math import combine_frame_transforms, quat_error_magnitude, quat_mul
+
 from isaaclab.markers import VisualizationMarkers
 
 from .arm_env_cfg import ArmFlatEnvCfg, ArmRoughBlindEnvCfg, ArmRoughVisionEnvCfg
@@ -223,12 +225,12 @@ class ManipulationEnv(DirectRLEnv):
 
         
         # Standard Obs for the Actor/Critic
-        ROT_W2H_env = math_utils.matrix_from_quat(math_utils.yaw_quat(self._initial_root_quat))
-        ee_position_commands_local_env_w = torch.matmul(ROT_W2H_env, self._ee_commands[:, :3].unsqueeze(2))
+        ROT_H2W_env = math_utils.matrix_from_quat(math_utils.yaw_quat(self._initial_root_quat))
+        ee_position_commands_local_env_w = torch.matmul(ROT_H2W_env, self._ee_commands[:, :3].unsqueeze(2))
         ee_position_commands_env_w = ee_position_commands_local_env_w[:,:,0] + self._robot.data.default_root_state[:,0:3] + self.scene.env_origins
-        ROT_W2H_robot = math_utils.matrix_from_quat(math_utils.yaw_quat(self._robot.data.root_quat_w))
+        ROT_H2W_robot = math_utils.matrix_from_quat(math_utils.yaw_quat(self._robot.data.root_quat_w))
         ee_position_commands_local_robot_w = ee_position_commands_env_w - self._robot.data.root_state_w[:, :3]
-        ee_position_commands_local_robot_h = torch.matmul(ROT_W2H_robot.transpose(1,2), ee_position_commands_local_robot_w.unsqueeze(2)).squeeze(2)
+        ee_position_commands_local_robot_h = torch.matmul(ROT_H2W_robot.transpose(1,2), ee_position_commands_local_robot_w.unsqueeze(2)).squeeze(2)
         obs = torch.cat(
             [
                 tensor
@@ -271,17 +273,25 @@ class ManipulationEnv(DirectRLEnv):
     def _get_rewards(self) -> torch.Tensor:
 
         # tracking ee in horizontal frame
-        ROT_W2H = math_utils.matrix_from_quat(math_utils.yaw_quat(self._initial_root_quat))
-        ee_position_commands_local_w = torch.matmul(ROT_W2H, self._ee_commands[:, :3].unsqueeze(2))
+        ROT_H2W = math_utils.matrix_from_quat(math_utils.yaw_quat(self._initial_root_quat))
+        ee_position_commands_local_w = torch.matmul(ROT_H2W, self._ee_commands[:, :3].unsqueeze(2))
         ee_position_commands_w = ee_position_commands_local_w[:,:,0] + self._robot.data.default_root_state[:,0:3] + self.scene.env_origins
         next_ee_position_w = self._imu.data.pos_w[:,:3].reshape((self._imu.data.pos_w.shape[0],1,3)) + self._robot.data.body_lin_vel_w[:, self._ee_id_robot, :] * self.step_dt
         #next_ee_position_w = self._robot.data.body_pos_w[:, self._ee_id_robot, :3] + self._robot.data.body_lin_vel_w[:, self._ee_id_robot, :] * self.step_dt
         #ee_position_error = torch.sum(torch.square(ee_position_commands_w - (self._robot.data.body_pos_w[:, self._ee_id_robot, :3]).reshape((self._robot.data.body_pos_w.shape[0],3))), dim=1)
         ee_position_error = torch.sum(torch.square(ee_position_commands_w - next_ee_position_w.reshape((self._robot.data.body_pos_w.shape[0],3))), dim=1)
         ee_position_error_mapped = torch.exp(-ee_position_error / 0.10)
+        
+        ee_orientation_error = torch.sum(torch.square(self._imu.data.projected_gravity_b[:, :2]), dim=1)
+        ee_orientation_error_mapped = torch.exp(-ee_orientation_error / 0.10)
 
+        curr_quat_w = self._imu.data.quat_w
+        des_quat_b = self._ee_commands[:, 3:7]
+        des_quat_w = quat_mul(self._robot.data.root_quat_w, des_quat_b)
+        ee_orientation_error = quat_error_magnitude(curr_quat_w, des_quat_w)
+        ee_orientation_error_mapped = torch.exp(-ee_orientation_error / 0.10)
         #ee_orientation_error = torch.sum(self._robot.data.body_quat_w[:, self._ee_id_robot] - self._ee_commands[:, 3:7], dim=1)
-        ee_pose_error_mapped = ee_position_error_mapped #+ ee_orientation_error
+        ee_pose_error_mapped = ee_position_error_mapped #+ ee_orientation_error_mapped
 
         # end effector final velocity reward #TODO reduce even rot vel and acc?
         should_freeze = ee_position_error < 0.0025 #ee position error in a radius of 5cm
@@ -417,9 +427,14 @@ class ManipulationEnv(DirectRLEnv):
         self._previous_previous_actions[env_ids] = 0.0
 
         # Sample new commands
-        self._ee_commands[env_ids, 0] = torch.zeros_like(self._ee_commands[env_ids,0]).uniform_(0.3, 0.6)
+        self._ee_commands[env_ids, 0] = torch.zeros_like(self._ee_commands[env_ids,0]).uniform_(0.5, 0.8)
         self._ee_commands[env_ids, 1] = torch.zeros_like(self._ee_commands[env_ids,1]).uniform_(-0.3, 0.3)
-        self._ee_commands[env_ids, 2] = torch.zeros_like(self._ee_commands[env_ids,2]).uniform_(-0.3, 0.3)
+        self._ee_commands[env_ids, 2] = torch.zeros_like(self._ee_commands[env_ids,2]).uniform_(-0.3, 0.0)
+
+        desired_roll = torch.zeros_like(self._ee_commands[env_ids,3]).uniform_(-0.1, 0.1)
+        desired_pitch = torch.zeros_like(self._ee_commands[env_ids,4]).uniform_(-0.1, 0.1)
+        desired_yaw = torch.zeros_like(self._ee_commands[env_ids,5]).uniform_(-1., 1.)
+        self._ee_commands[env_ids,3:] = math_utils.quat_from_euler_xyz(desired_roll, desired_pitch, desired_yaw)
 
         # Reset contact periodic
         self._phase_signal[env_ids] = self._phase_offset[env_ids].clone()# + self.step_dt * self._step_freq * torch.rand(env_ids.shape[0], 1, device=self.device)*10.
@@ -471,9 +486,13 @@ class ManipulationEnv(DirectRLEnv):
     def _get_new_random_commands(self):
         # Sample new commands
         commands_resample = torch.zeros_like(self._ee_commands)
-        commands_resample[:, 0] = torch.zeros_like(self._ee_commands[:, 0]).uniform_(0.3, 0.6)
+        commands_resample[:, 0] = torch.zeros_like(self._ee_commands[:, 0]).uniform_(0.5, 0.8)
         commands_resample[:, 1] = torch.zeros_like(self._ee_commands[:, 1]).uniform_(-0.3, 0.3)
-        commands_resample[:, 2] = torch.zeros_like(self._ee_commands[:, 2]).uniform_(-0.3, 0.3)
+        commands_resample[:, 2] = torch.zeros_like(self._ee_commands[:, 2]).uniform_(-0.3, 0.0)
+        desired_roll = torch.zeros_like(self._ee_commands[:,3]).uniform_(-0.1, 0.1)
+        desired_pitch = torch.zeros_like(self._ee_commands[:,4]).uniform_(-0.1, 0.1)
+        desired_yaw = torch.zeros_like(self._ee_commands[:,5]).uniform_(-1., 1.)
+        commands_resample[:, 3:] = math_utils.quat_from_euler_xyz(desired_roll, desired_pitch, desired_yaw)
 
         resample_time = self.episode_length_buf == self.max_episode_length - 250
         self._ee_commands = self._ee_commands * ~resample_time.unsqueeze(1).expand(-1, 7) + commands_resample * resample_time.unsqueeze(1).expand(-1, 7)
@@ -485,8 +504,8 @@ class ManipulationEnv(DirectRLEnv):
         self._ee_commands = self._ee_commands * ~resample_time_3.unsqueeze(1).expand(-1, 7) + commands_resample * resample_time_3.unsqueeze(1).expand(-1, 7)
 
         # visualize goal
-        ROT_W2H = math_utils.matrix_from_quat(math_utils.yaw_quat(self._initial_root_quat))  
-        ee_position_commands_local_w = torch.matmul(ROT_W2H, self._ee_commands[:, :3].unsqueeze(2))
+        ROT_H2W = math_utils.matrix_from_quat(math_utils.yaw_quat(self._initial_root_quat))  
+        ee_position_commands_local_w = torch.matmul(ROT_H2W, self._ee_commands[:, :3].unsqueeze(2))
         goal_pos = ee_position_commands_local_w[:,:,0] + self._robot.data.default_root_state[:,0:3] + self.scene.env_origins
         self.goal_markers.visualize(goal_pos)
         #self.goal_markers.visualize(self._imu.data.pos_w[:,:3])
