@@ -115,9 +115,9 @@ class ManipulationPolicyWrapper:
 
 
         ee_pose_commands = np.zeros(7)
-        ee_pose_commands[0] = 0.2
-        ee_pose_commands[1] = -0.2
-        ee_pose_commands[2] = 0.3
+        ee_pose_commands[0] = 0.0
+        ee_pose_commands[1] = -0.0
+        ee_pose_commands[2] = 0.0
         
         obs = np.concatenate([
             base_vel, # this could be imu linear acc if use_imu or linear vel from state est

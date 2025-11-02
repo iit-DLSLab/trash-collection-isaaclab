@@ -60,6 +60,7 @@ class PlayMujoco:
         self.desired_joint_pos_arm = self.mjData.qpos[19:25] 
         self.desired_joint_pos_leg = self.mjData.qpos[7:19]
         self.desired_pose_command = np.zeros(2)
+        self.desired_pose_command_overwrite = np.zeros(2)
         
 
         # --------------------------------------------------------------
@@ -147,7 +148,7 @@ class PlayMujoco:
                                 joints_pos_arm=joints_pos_arm,
                                 ref_base_lin_vel=ref_base_lin_vel, 
                                 ref_base_ang_vel=ref_base_ang_vel,
-                                ref_pose_command=self.desired_pose_command,
+                                ref_pose_command=self.desired_pose_command + self.desired_pose_command_overwrite,
                                 heightmap_data=self.heightmap.data if self.locomotion_policy.use_vision else None)
 
                 # PD controller --------------------------------------------------------------

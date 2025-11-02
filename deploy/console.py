@@ -17,7 +17,9 @@ class Console():
 
         # Autocomplete setup
         self.commands = [
-            "help", "ictp", "goUp", "goDown", "activate", "ictp", "setKp", "setKd"
+            "help", "ictp", "goUp", "goDown", "activate", "ictp", "setKp", "setKd",
+            "setBasePose", "armHome", "armPreReachObject", "armReachObject", "armReachBasket",
+            "armOpenBasket", "armCloseGripper", "armOpenGripper"
         ]
         readline.set_completer(self.complete)
         readline.parse_and_bind("tab: complete")
@@ -152,7 +154,7 @@ class Console():
                     print("Kd walking: ", self.controller_node.locomotion_policy.Kd_walking)
                     temp = input("Enter Kd: ")
                     if(temp != ""):
-                        self.controller_node.locomotion_policy.Kd = float(temp)
+                        self.controller_node.locomotion_policy.Kd_walking = float(temp)
                 
                 elif(input_string == "ictp"):
                     print("Interactive Keyboard Control")
@@ -206,9 +208,17 @@ class Console():
                             self.controller_node.ref_base_lin_vel_H[1] = 0
                             self.controller_node.ref_base_ang_yaw_dot = 0 
                             break
-                        
 
-                elif input_string =="arm-home":
+                elif input_string == "setBasePose":
+                    print("Current Base Position: ", self.controller_node.desired_pose_command)
+                    temp = input("Enter Pitch (rad): ")
+                    if(temp != ""):
+                        self.controller_node.desired_pose_command_overwrite[0] = float(temp)
+                    temp = input("Enter Height (m): ")
+                    if(temp != ""):
+                        self.controller_node.desired_pose_command_overwrite[1] = float(temp)  
+
+                elif input_string =="armHome":
                     start_time = time.time()
                     time_motion = 5.
                     initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
@@ -219,7 +229,7 @@ class Console():
                     print("Arm in home")
                     self.controller_node.state_machine.change_state(state=ArmStateType.HOME) # REST
                 
-                elif input_string == "arm-pre-reach-object":
+                elif input_string == "armPreReachObject":
                    
                     start_time = time.time()
                     time_motion = 5.
@@ -230,8 +240,8 @@ class Console():
                     
                     print("Reached pre-reach")
                     self.controller_node.state_machine.change_state(state=ArmStateType.PREREACH) # Ready for policy handover
-                
-                elif input_string == "arm-reach-object":
+
+                elif input_string == "armReachObject":
 
                     if(self.controller_node.state_machine.state_type != ArmStateType.PREREACH and self.controller_node.state_machine.state_type != ArmStateType.REACH):
                         print("Error: first move to pre-reach position")
@@ -249,7 +259,7 @@ class Console():
                         self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
                         print("Reached pre-reach")
 
-                elif input_string == "arm-reach-basket":
+                elif input_string == "armReachBasket":
 
                     start_time = time.time()
                     initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
@@ -266,7 +276,7 @@ class Console():
                     self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
 
 
-                elif input_string == "arm-open-basket":
+                elif input_string == "armOpenBasket":
 
                     self.controller_node.state_machine.change_state(gripper_state=GripperStateType.OPEN) # OPEN
 
@@ -286,18 +296,12 @@ class Console():
 
 
 
-                elif input_string == "arm-close-gripper":
-                    #if self.controller_node.arm_interface.gripper_state_type == GripperStateType.CLOSE:
-                    #    print("Gripper already gripping")
-                    #    continue
+                elif input_string == "armCloseGripper":
                     print("Closing gripper")
                     self.controller_node.state_machine.change_state(gripper_state=GripperStateType.CLOSE) # CLOSE
 
 
-                elif input_string == "arm-open-gripper":
-                    #if self.controller_node.arm_interface.gripper_state_type != GripperStateType.CLOSE:
-                    #    print("Gripper not gripping")
-                    #    continue
+                elif input_string == "armOpenGripper":
                     print("Opening gripper")
                     self.controller_node.state_machine.change_state(gripper_state=GripperStateType.OPEN) # OPEN
 
