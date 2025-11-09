@@ -56,12 +56,18 @@ class PlayMujoco:
             num_cols_heightmap = round(config.size_y_heightmap/resolution_heightmap) + 1
             self.heightmap = HeightMap(num_rows=num_rows_heightmap, num_cols=num_cols_heightmap, dist_x=resolution_heightmap, dist_y=resolution_heightmap, mj_model=mjModel, mj_data=mjData) 
 
-        self.arm_joints_position = np.zeros(6)  # 6 arm joints  
+        self.arm_joints_position = np.zeros(6)  # 6 arm joints 
+        self.arm_joints_velocity = np.zeros(6)  # 6 arm joints
+        self.legs_joints_position = np.zeros(12)  # 12 leg joints
+        self.legs_joints_velocity = np.zeros(12)  # 12 leg joints 
         self.desired_joint_pos_arm = self.mjData.qpos[19:25] 
         self.desired_joint_pos_leg = self.mjData.qpos[7:19]
         self.desired_pose_command = np.zeros(2)
         self.desired_pose_command_overwrite = np.zeros(2)
-        
+        self.Kp_legs = 0
+        self.Kd_legs = 0
+        self.Kp_arm = 0
+        self.Kd_arm = 0
 
         # --------------------------------------------------------------
         self.ref_base_lin_vel_H = np.array([0.0, 0.0, 0.0])  # Desired base linear velocity in the horizontal plane (x, y, z)
@@ -80,6 +86,8 @@ class PlayMujoco:
 
     def run(self):
         # Run the simulation
+        Kp_legs = 0
+        Kd_legs = 0
         step_num = 0
         RENDER_FREQ = 30  # Hz
         last_render_time = time.time()
@@ -117,9 +125,14 @@ class PlayMujoco:
                 if(self.locomotion_policy.use_vision):
                     self.heightmap.update_height_map(self.mjData.qpos[0:3], yaw=base_ori_euler_xyz[2])
 
-            
+
+                if(self.console.isDown):
+                    # Impedence Loop
+                    self.Kp_legs = self.locomotion_policy.Kp_stand_up_and_down
+                    self.Kd_legs = self.locomotion_policy.Kd_stand_up_and_down
+
                 # RL controller --------------------------------------------------------------
-                if step_num % round(1 / (self.locomotion_policy.RL_FREQ * self.simulation_dt)) == 0:            
+                if self.console.isRLActivated and step_num % round(1 / (self.locomotion_policy.RL_FREQ * self.simulation_dt)) == 0:            
                     
                     if self.state_machine.state_type == ArmStateType.REACH:
                         self.desired_joint_pos_arm, self.desired_pose_command = self.manipulation_policy.compute_control(
@@ -140,39 +153,37 @@ class PlayMujoco:
                         self.desired_joint_pos_arm = self.state_machine.desired_position
                         self.desired_pose_command = np.zeros(2)
 
-                    if(self.console.isDown):
-                        print("TODO")
+                    self.Kp_arm = self.manipulation_policy.Kp_arm
+                    self.Kd_arm = self.manipulation_policy.Kd_arm
 
-                    elif(self.console.isRLActivated):
-                        self.desired_joint_pos_leg = self.locomotion_policy.compute_control(
-                                    base_pos=base_pos, 
-                                    base_ori_euler_xyz=base_ori_euler_xyz, 
-                                    base_quat_wxyz=base_quat_wxyz,
-                                    base_lin_vel=base_lin_vel, 
-                                    base_ang_vel=base_ang_vel,
-                                    heading_orientation_SO3=heading_orientation_SO3,
-                                    joints_pos_leg=joints_pos_leg, 
-                                    joints_vel_leg=joints_vel_leg,
-                                    joints_pos_arm=joints_pos_arm,
-                                    ref_base_lin_vel=ref_base_lin_vel, 
-                                    ref_base_ang_vel=ref_base_ang_vel,
-                                    ref_pose_command=self.desired_pose_command + self.desired_pose_command_overwrite,
-                                    heightmap_data=self.heightmap.data if self.locomotion_policy.use_vision else None)
+ 
+                    self.desired_joint_pos_leg = self.locomotion_policy.compute_control(
+                                base_pos=base_pos, 
+                                base_ori_euler_xyz=base_ori_euler_xyz, 
+                                base_quat_wxyz=base_quat_wxyz,
+                                base_lin_vel=base_lin_vel, 
+                                base_ang_vel=base_ang_vel,
+                                heading_orientation_SO3=heading_orientation_SO3,
+                                joints_pos_leg=joints_pos_leg, 
+                                joints_vel_leg=joints_vel_leg,
+                                joints_pos_arm=joints_pos_arm,
+                                ref_base_lin_vel=ref_base_lin_vel, 
+                                ref_base_ang_vel=ref_base_ang_vel,
+                                ref_pose_command=self.desired_pose_command + self.desired_pose_command_overwrite,
+                                heightmap_data=self.heightmap.data if self.locomotion_policy.use_vision else None)
+
+                    self.Kp_legs = self.locomotion_policy.Kp_walking
+                    self.Kd_legs = self.locomotion_policy.Kd_walking
 
                 
                 # PD controller --------------------------------------------------------------
-                desired_joint_pos_leg = self.desired_joint_pos_leg
-                desired_joint_pos_arm = self.desired_joint_pos_arm
-                desired_gripper_pos = self.state_machine.desired_gripper_position
+                error_joints_pos_leg = self.desired_joint_pos_leg - joints_pos_leg
+                tau_leg = self.Kp_legs*error_joints_pos_leg - self.Kd_legs*joints_vel_leg
 
+                error_joints_pos_arm = self.desired_joint_pos_arm - joints_pos_arm
+                tau_arm = self.Kp_arm*error_joints_pos_arm - self.Kd_arm*joints_vel_arm
 
-                error_joints_pos_leg = desired_joint_pos_leg - joints_pos_leg
-                tau_leg = self.locomotion_policy.Kp_walking*error_joints_pos_leg - self.locomotion_policy.Kd_walking*joints_vel_leg
-
-                error_joints_pos_arm = desired_joint_pos_arm - joints_pos_arm
-                tau_arm = self.manipulation_policy.Kp_arm*error_joints_pos_arm - self.manipulation_policy.Kd_arm*joints_vel_arm
-
-                error_gripper_pos = desired_gripper_pos - joints_pos_gripper
+                error_gripper_pos = self.state_machine.desired_gripper_position - joints_pos_gripper
                 tau_gripper = config.Kp_gripper*error_gripper_pos - config.Kd_gripper*joints_vel_gripper
 
                 

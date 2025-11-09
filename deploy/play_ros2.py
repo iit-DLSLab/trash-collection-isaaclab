@@ -8,28 +8,33 @@ from rclpy.node import Node
 from sensor_msgs.msg import Joy
 from dls2_msgs.msg import BaseStateMsg, BlindStateMsg, ImuMsg, ControlSignalMsg, TrajectoryGeneratorMsg
 
+import copy
 import time
 import numpy as np
-np.set_printoptions(precision=3, suppress=True)
-
-import threading
-
-import copy
-
-# Gym and Simulation related imports
-import mujoco
-from gym_quadruped.quadruped_env import QuadrupedEnv
-from gym_quadruped.utils.quadruped_utils import LegsAttr
-
+from tqdm import tqdm
 import sys
 import os 
 dir_path = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(dir_path+"/mujoco/")
 sys.path.append(dir_path+"/../")
+sys.path.append(dir_path+"/../scripts/rsl_rl")
 
-# Locomotion Policy imports
+# Gym and Simulation related imports
+import mujoco
+import mujoco.viewer
+import mujoco_utils
+from heightmap import HeightMap
+
+
+# Trash Policy imports
+from manipulation_policy_wrapper import ManipulationPolicyWrapper
 from locomotion_policy_wrapper import LocomotionPolicyWrapper
+from state_machine import StateMachine
+from state_machine import ArmStateType, GripperStateType
+
 
 import config
+import threading
 
 # Set the priority of the process
 pid = os.getpid()
@@ -46,24 +51,54 @@ class Basic_Locomotion_DLS_Isaaclab_Node(Node):
     def __init__(self):
         super().__init__('Basic_Locomotion_DLS_IsaacLab_Node')
 
-        # Mujoco env
-        robot_name = config.robot
-        scene_name = config.scene
-        simulation_dt = 0.002
+        self.simulation_dt = 0.002
 
 
-        # Create the quadruped robot environment -----------------------------------------------------------
-        self.env = QuadrupedEnv(
-            robot=robot_name,
-            scene=scene_name,
-            sim_dt=simulation_dt,
-            base_vel_command_type="human",  # "forward", "random", "forward+rotate", "human"
-        )
-        self.env.reset(random=False)
+        # Load the model and data.
+        self.mjModel = mujoco.MjModel.from_xml_path("mujoco/models/scene_rough.xml")
+        self.mjData = mujoco.MjData(self.mjModel)
+        keyframe_id = mujoco.mj_name2id(self.mjModel, mujoco.mjtObj.mjOBJ_KEY, "home")
+        self.mjData.qpos = self.mjModel.key_qpos[keyframe_id]
+
+
+        # Initialization of variables used in the main control loop --------------------------------
+        self.manipulation_policy = ManipulationPolicyWrapper(mjModel=self.mjModel)
+        self.locomotion_policy = LocomotionPolicyWrapper(mjModel=self.mjModel)
+        self.state_machine = StateMachine()
+
+        if(self.locomotion_policy.use_vision):
+            resolution_heightmap = config.resolution_heightmap
+            num_rows_heightmap = round(config.size_x_heightmap/resolution_heightmap) + 1
+            num_cols_heightmap = round(config.size_y_heightmap/resolution_heightmap) + 1
+            self.heightmap = HeightMap(num_rows=num_rows_heightmap, num_cols=num_cols_heightmap, dist_x=resolution_heightmap, dist_y=resolution_heightmap, mj_model=mjModel, mj_data=mjData) 
+
+        self.arm_joints_position = np.zeros(6)  # 6 arm joints 
+        self.arm_joints_velocity = np.zeros(6)  # 6 arm joints
+        self.legs_joints_position = np.zeros(12)  # 12 leg joints
+        self.legs_joints_velocity = np.zeros(12)  # 12 leg joints 
+        self.desired_joint_pos_arm = self.mjData.qpos[19:25] 
+        self.desired_joint_pos_leg = self.mjData.qpos[7:19]
+        self.desired_pose_command = np.zeros(2)
+        self.desired_pose_command_overwrite = np.zeros(2)
+        self.Kp_legs = 0
+        self.Kd_legs = 0
+        self.Kp_arm = 0
+        self.Kd_arm = 0
         
-        self.last_render_time = time.time()
-        if USE_MUJOCO_RENDER:
-            self.env.render()   
+
+        # --------------------------------------------------------------
+        self.ref_base_lin_vel_H = np.array([0.0, 0.0, 0.0])  # Desired base linear velocity in the horizontal plane (x, y, z)
+        self.ref_base_ang_yaw_dot = 0.0  # Desired base angular velocity around the vertical axis
+
+        # Interactive Command Line
+        from console import Console
+        self.console = Console(controller_node=self)
+        thread_console = threading.Thread(target=self.console.interactive_command_line)
+        thread_console.daemon = True
+        thread_console.start()
+
+        self.console.isDown = False  # Only in this play_mujoco script
+        self.console.isRLActivated = True  # Only in this play_mujoco script
                  
 
         # Subscribers and Publishers
@@ -78,7 +113,6 @@ class Basic_Locomotion_DLS_Isaaclab_Node(Node):
         # Safety check to not do anything until a first base and blind state are received
         self.first_message_base_arrived = False
         self.first_message_joints_arrived = False 
-        self.first_message_imu_arrived = False
 
         # Timing stuff
         self.loop_time = 0.002
@@ -99,37 +133,22 @@ class Basic_Locomotion_DLS_Isaaclab_Node(Node):
         self.imu_angular_velocity = np.zeros(3)
         self.imu_orientation = np.zeros(4)
 
-        
-        # Initialization of variables used in the main control loop --------------------------------
-        self.locomotion_policy = LocomotionPolicyWrapper(env=self.env)
-
-
-        self.stand_up_and_down_actions = LegsAttr(*[np.zeros((1, int(self.env.mjModel.nu/4))) for _ in range(4)])
-        keyframe_id = mujoco.mj_name2id(self.env.mjModel, mujoco.mjtObj.mjOBJ_KEY, "down")
-        goDown_qpos = self.env.mjModel.key_qpos[keyframe_id]
-        self.stand_up_and_down_actions.FL = goDown_qpos[7:10]
-        self.stand_up_and_down_actions.FR = goDown_qpos[10:13]
-        self.stand_up_and_down_actions.RL = goDown_qpos[13:16]
-        self.stand_up_and_down_actions.RR = goDown_qpos[16:19]
-        self.joint_positions = goDown_qpos[7:19]
-
-
-        # Interactive Command Line ----------------------------
-        from console import Console
-        self.console = Console(controller_node=self)
-        thread_console = threading.Thread(target=self.console.interactive_command_line)
-        thread_console.daemon = True
-        thread_console.start()
-
     
     def get_joy_callback(self, msg):
         """
         Callback function to handle joystick input. Joystick used is a 
         8Bitdi Ultimate 2C Wireless Controller.
         """
-        self.env._ref_base_lin_vel_H[0] = msg.axes[1]/3.5  # Forward/Backward
-        self.env._ref_base_lin_vel_H[1] = msg.axes[0]/3.5  # Left/Right
-        self.env._ref_base_ang_yaw_dot = msg.axes[3]/2.  # Yaw
+        #self.env._ref_base_lin_vel_H[0] = msg.axes[1]/3.5  # Forward/Backward
+        #self.env._ref_base_lin_vel_H[1] = msg.axes[0]/3.5  # Left/Right
+        #self.env._ref_base_ang_yaw_dot = msg.axes[3]/2.  # Yaw
+
+        filter_joystick = 0.7
+        self.ref_base_lin_vel_H[0] = self.ref_base_lin_vel_H[0]*filter_joystick + (msg.axes[1]/3.5)*(1-filter_joystick)  # Forward/Backward
+        self.ref_base_lin_vel_H[1] = self.ref_base_lin_vel_H[1]*filter_joystick + (msg.axes[0]/3.5)*(1-filter_joystick)  # Left/Right
+        self.ref_base_ang_yaw_dot = self.ref_base_ang_yaw_dot*filter_joystick + (msg.axes[3]/2.)*(1-filter_joystick)  # Yaw
+
+        self.last_joy_time = time.time()
 
 
         #kill the node if the button is pressed
@@ -157,26 +176,19 @@ class Basic_Locomotion_DLS_Isaaclab_Node(Node):
 
     def get_blind_state_callback(self, msg):
         
-        self.joint_positions = np.array(msg.joints_position)
-        self.joint_velocities = np.array(msg.joints_velocity)
+        self.legs_joints_position = np.array(msg.joints_position)
+        self.legs_joints_velocity = np.array(msg.joints_velocity)
 
         if(config.robot == "aliengo"):
             # Fix convention DLS2
-            self.joint_positions[0] = -self.joint_positions[0]
-            self.joint_positions[6] = -self.joint_positions[6]
-            self.joint_velocities[0] = -self.joint_velocities[0]
-            self.joint_velocities[6] = -self.joint_velocities[6]
+            self.legs_joints_position[0] = -self.legs_joints_position[0]
+            self.legs_joints_position[6] = -self.legs_joints_position[6]
+            self.legs_joints_velocity[0] = -self.legs_joints_velocity[0]
+            self.legs_joints_velocity[6] = -self.legs_joints_velocity[6]
 
         self.first_message_joints_arrived = True
      
-        
-    def get_imu_callback(self, msg):
-        # TODO check the frame
-        self.imu_linear_acceleration = np.array(msg.linear_acceleration) 
-        self.imu_angular_velocity = np.array(msg.angular_velocity) 
-        self.imu_orientation = np.array(msg.orientation) 
-
-        self.first_message_imu_arrived = True
+    
 
 
     def compute_rl_control(self):
@@ -189,168 +201,119 @@ class Basic_Locomotion_DLS_Isaaclab_Node(Node):
         
 
         # Safety check to not do anything until a first base and blind state are received
-        if(not USE_MUJOCO_SIMULATION):
-            if(config.use_imu or config.use_cuncurrent_state_est):
-                if(self.first_message_imu_arrived==False or self.first_message_joints_arrived==False):
-                    return
-            else:
-                if(self.first_message_base_arrived==False or self.first_message_joints_arrived==False):
-                    return
+            if(self.first_message_base_arrived==False or self.first_message_joints_arrived==False):
+                return
             
-            # Update the mujoco model
-            # Note that in case of IMU or concurrent state estimator, these info below are not used,
-            # In the case we have a state estimator, this is usefull only for debugging visually
-            self.env.mjData.qpos[0:3] = copy.deepcopy(self.position)
-            self.env.mjData.qvel[0:3] = copy.deepcopy(self.linear_velocity)
+        # Update the mujoco model
+        # Note that in case of IMU or concurrent state estimator, these info below are not used,
+        # In the case we have a state estimator, this is usefull only for debugging visually
+        self.mjData.qpos[0:3] = copy.deepcopy(self.position)
+        self.mjData.qvel[0:3] = copy.deepcopy(self.linear_velocity)
 
-            if(config.use_imu or config.use_cuncurrent_state_est):
-                self.env.mjData.qpos[3:7] = copy.deepcopy(self.imu_orientation)
-                self.env.mjData.qvel[3:6] = copy.deepcopy(self.imu_angular_velocity)
-            else:
-                self.env.mjData.qpos[3:7] = copy.deepcopy(self.orientation)
-                self.env.mjData.qvel[3:6] = copy.deepcopy(self.angular_velocity)
-            
-            # These info instead are used for sure in all the cases
-            self.env.mjData.qpos[7:] = copy.deepcopy(self.joint_positions)
-            self.env.mjData.qvel[6:] = copy.deepcopy(self.joint_velocities)
-            self.env.mjModel.opt.timestep = simulation_dt
-            mujoco.mj_forward(self.env.mjModel, self.env.mjData) 
-            
-
-        env = self.env
-        locomotion_policy = self.locomotion_policy
+        self.mjData.qpos[3:7] = copy.deepcopy(self.orientation)
+        self.mjData.qvel[3:6] = copy.deepcopy(self.angular_velocity)
         
-        qpos, qvel = env.mjData.qpos, env.mjData.qvel
-        base_lin_vel = env.base_lin_vel(frame='base')
-        base_ang_vel = env.base_ang_vel(frame='base')
-        base_ori_euler_xyz = env.base_ori_euler_xyz
-        heading_orientation_SO3 = env.heading_orientation_SO3
+        # These info instead are used for sure in all the cases
+        self.mjData.qpos[7:19] = copy.deepcopy(self.legs_joints_position)
+        self.mjData.qvel[6:18] = copy.deepcopy(self.legs_joints_velocity)
+        #self.mjModel.opt.timestep = simulation_dt
+        #mujoco.mj_forward(self.env.mjModel, self.env.mjData) 
+        
+        # Safety check for joystick timeout
+        if(self.last_joy_time is not None and time.time() - self.last_joy_time > 1.0):
+            self.ref_base_lin_vel_H[0] = 0.0
+            self.ref_base_lin_vel_H[1] = 0.0
+            self.ref_base_ang_yaw_dot = 0.0
+            print("Joystick timeout, stopping the robot")
+            self.last_joy_time = None
+            
+
+        qpos, qvel = self.mjData.qpos, self.mjData.qvel
+        base_lin_vel = mujoco_utils.base_lin_vel(self.mjData, frame='base')
+        base_ang_vel = mujoco_utils.base_ang_vel(self.mjData, frame='base')
+        base_ori_euler_xyz = mujoco_utils.base_ori_euler_xyz(self.mjData)
+        heading_orientation_SO3 = mujoco_utils.heading_orientation_SO3(self.mjData)
         base_quat_wxyz = qpos[3:7]
-        base_pos = env.base_pos
+        base_pos = mujoco_utils.base_pos(self.mjData)
+        self.arm_joints_position = qpos[19:25]
+
+        joints_pos_leg = qpos[7:19]
+        joints_pos_arm = qpos[19:25]
+        joints_pos_gripper = qpos[25]
+
+        joints_vel_leg = qvel[6:18]
+        joints_vel_arm = qvel[18:24]
+        joints_vel_gripper = qvel[24]
 
 
-        joints_pos = LegsAttr(*[np.zeros((1, int(env.mjModel.nu/4))) for _ in range(4)])
-        joints_pos.FL = qpos[env.legs_qpos_idx.FL]
-        joints_pos.FR = qpos[env.legs_qpos_idx.FR]
-        joints_pos.RL = qpos[env.legs_qpos_idx.RL]
-        joints_pos.RR = qpos[env.legs_qpos_idx.RR]
-
-        # variable saved for goDown and goUp motion
-        self.joint_positions = np.concatenate([joints_pos.FL, joints_pos.FR, joints_pos.RL, joints_pos.RR], axis=0).flatten()
-    
-        joints_vel = LegsAttr(*[np.zeros((1, int(env.mjModel.nu/4))) for _ in range(4)])
-        joints_vel.FL = qvel[env.legs_qvel_idx.FL]
-        joints_vel.FR = qvel[env.legs_qvel_idx.FR]
-        joints_vel.RL = qvel[env.legs_qvel_idx.RL]
-        joints_vel.RR = qvel[env.legs_qvel_idx.RR]
-        ref_base_lin_vel, ref_base_ang_vel = env.target_base_vel()
+        ref_base_lin_vel, ref_base_ang_vel = mujoco_utils.target_base_vel(self.mjData, self.ref_base_lin_vel_H, self.ref_base_ang_yaw_dot, frame='world')
 
 
         if(self.console.isDown):
-            desired_joint_pos = LegsAttr(*[np.zeros((1, int(env.mjModel.nu/4))) for _ in range(4)])
-            desired_joint_pos.FL = self.stand_up_and_down_actions.FL
-            desired_joint_pos.FR = self.stand_up_and_down_actions.FR
-            desired_joint_pos.RL = self.stand_up_and_down_actions.RL
-            desired_joint_pos.RR = self.stand_up_and_down_actions.RR
-
             # Impedence Loop
-            Kp = locomotion_policy.Kp_stand_up_and_down
-            Kd = locomotion_policy.Kd_stand_up_and_down
-            
+            self.Kp_legs = self.locomotion_policy.Kp_stand_up_and_down
+            self.Kd_legs = self.locomotion_policy.Kd_stand_up_and_down   
 
-        elif(self.console.isRLActivated):
+        if(self.console.isRLActivated):
 
-            desired_joint_pos = locomotion_policy.compute_control(
+            if self.state_machine.state_type == ArmStateType.REACH:
+                self.desired_joint_pos_arm, self.desired_pose_command = self.manipulation_policy.compute_control(
+                            base_pos=base_pos, 
+                            base_ori_euler_xyz=base_ori_euler_xyz, 
+                            base_quat_wxyz=base_quat_wxyz,
+                            base_lin_vel=base_lin_vel, 
+                            base_ang_vel=base_ang_vel,
+                            heading_orientation_SO3=heading_orientation_SO3,
+                            joints_pos_leg=joints_pos_leg, 
+                            joints_vel_leg=joints_vel_leg,
+                            joints_pos_arm=joints_pos_arm,
+                            joints_vel_arm=joints_vel_arm,
+                            ref_base_lin_vel=ref_base_lin_vel, 
+                            ref_base_ang_vel=ref_base_ang_vel,
+                            heightmap_data=self.heightmap.data if self.locomotion_policy.use_vision else None)
+            else:
+                self.desired_joint_pos_arm = self.state_machine.desired_position
+                self.desired_pose_command = np.zeros(2)
+
+                self.Kp_arm = self.manipulation_policy.Kp_arm
+                self.Kd_arm = self.manipulation_policy.Kd_arm
+
+
+            self.desired_joint_pos_leg = self.locomotion_policy.compute_control(
                         base_pos=base_pos, 
                         base_ori_euler_xyz=base_ori_euler_xyz, 
                         base_quat_wxyz=base_quat_wxyz,
                         base_lin_vel=base_lin_vel, 
                         base_ang_vel=base_ang_vel,
                         heading_orientation_SO3=heading_orientation_SO3,
-                        joints_pos=joints_pos, 
-                        joints_vel=joints_vel,
+                        joints_pos_leg=joints_pos_leg, 
+                        joints_vel_leg=joints_vel_leg,
+                        joints_pos_arm=joints_pos_arm,
                         ref_base_lin_vel=ref_base_lin_vel, 
                         ref_base_ang_vel=ref_base_ang_vel,
-                        imu_linear_acceleration=self.imu_linear_acceleration,
-                        imu_angular_velocity=self.imu_angular_velocity,
-                        imu_orientation=self.imu_orientation)
+                        ref_pose_command=self.desired_pose_command + self.desired_pose_command_overwrite,
+                        heightmap_data=self.heightmap.data if self.locomotion_policy.use_vision else None)
             
             # Impedence Loop
-            Kp = locomotion_policy.Kp_walking
-            Kd = locomotion_policy.Kd_walking
+            self.Kp_legs = self.locomotion_policy.Kp_walking
+            self.Kd_legs = self.locomotion_policy.Kd_walking
 
-
-        else:
-            #TODO uncomment
-            desired_joint_pos = LegsAttr(*[np.zeros((1, int(env.mjModel.nu/4))) for _ in range(4)])
-            desired_joint_pos.FL = self.stand_up_and_down_actions.FL
-            desired_joint_pos.FR = self.stand_up_and_down_actions.FR
-            desired_joint_pos.RL = self.stand_up_and_down_actions.RL
-            desired_joint_pos.RR = self.stand_up_and_down_actions.RR
-
-            # Impedence Loop
-            Kp = locomotion_policy.Kp_stand_up_and_down
-            Kd = locomotion_policy.Kd_stand_up_and_down
-            #return
-
-        
-        if USE_MUJOCO_SIMULATION:
-            for j in range(10): #Hardcoded for now, if RL is 50Hz, this runs the simulation at 500Hz
-                joints_pos.FL = qpos[env.legs_qpos_idx.FL]
-                joints_pos.FR = qpos[env.legs_qpos_idx.FR]
-                joints_pos.RL = qpos[env.legs_qpos_idx.RL]
-                joints_pos.RR = qpos[env.legs_qpos_idx.RR]
-            
-                joints_vel.FL = qvel[env.legs_qvel_idx.FL]
-                joints_vel.FR = qvel[env.legs_qvel_idx.FR]
-                joints_vel.RL = qvel[env.legs_qvel_idx.RL]
-                joints_vel.RR = qvel[env.legs_qvel_idx.RR]
-
-                error_joints_pos = LegsAttr(*[np.zeros((1, int(env.mjModel.nu/4))) for _ in range(4)])
-                error_joints_pos.FL = desired_joint_pos.FL - joints_pos.FL
-                error_joints_pos.FR = desired_joint_pos.FR - joints_pos.FR
-                error_joints_pos.RL = desired_joint_pos.RL - joints_pos.RL
-                error_joints_pos.RR = desired_joint_pos.RR - joints_pos.RR
-                
-                tau = LegsAttr(*[np.zeros((1, int(env.mjModel.nu/4))) for _ in range(4)])
-                tau.FL = Kp * (error_joints_pos.FL) - Kd * joints_vel.FL
-                tau.FR = Kp * (error_joints_pos.FR) - Kd * joints_vel.FR
-                tau.RL = Kp * (error_joints_pos.RL) - Kd * joints_vel.RL
-                tau.RR = Kp * (error_joints_pos.RR) - Kd * joints_vel.RR
-
-                action = np.zeros(self.env.mjModel.nu)
-                action[self.env.legs_tau_idx.FL] = tau.FL.reshape((3,))
-                action[self.env.legs_tau_idx.FR] = tau.FR.reshape((3,))
-                action[self.env.legs_tau_idx.RL] = tau.RL.reshape((3,))
-                action[self.env.legs_tau_idx.RR] = tau.RR.reshape((3,))
-                self.env.step(action=action)
 
         
         if(config.robot == "aliengo"):
             # Fix convention DLS2 and send PD target
-            desired_joint_pos.FL[0] = -desired_joint_pos.FL[0]
-            desired_joint_pos.RL[0] = -desired_joint_pos.RL[0] 
+            self.desired_joint_pos_leg[0] = -self.desired_joint_pos_leg[0]
+            self.desired_joint_pos_leg[6] = -self.desired_joint_pos_leg[6]
 
+            
         trajectory_generator_msg = TrajectoryGeneratorMsg()
-        trajectory_generator_msg.joints_position = np.concatenate([desired_joint_pos.FL, desired_joint_pos.FR, desired_joint_pos.RL, desired_joint_pos.RR], axis=0).flatten()
-
-        desired_joint_vel = LegsAttr(*[np.zeros((1, int(env.mjModel.nu/4))) for _ in range(4)])
-        trajectory_generator_msg.joints_velocity = np.concatenate([desired_joint_vel.FL, desired_joint_vel.FR, desired_joint_vel.RL, desired_joint_vel.RR], axis=0).flatten()
-
-        trajectory_generator_msg.kp = np.ones(12)*Kp
-        trajectory_generator_msg.kd = np.ones(12)*Kd
+        trajectory_generator_msg.timestamp = float(self.get_clock().now().nanoseconds)
+        trajectory_generator_msg.joints_position = self.desired_joint_pos_leg
+        trajectory_generator_msg.joints_velocity = np.zeros(12)
+        trajectory_generator_msg.kp = np.ones(12)*self.Kp_legs
+        trajectory_generator_msg.kd = np.ones(12)*self.Kd_legs
         self.publisher_trajectory_generator.publish(trajectory_generator_msg)
         
-        
-        
-        # Render the simulation -----------------------------------------------------------------------------------
-        if USE_MUJOCO_RENDER:
-            RENDER_FREQ = 30
-            # Render only at a certain frequency -----------------------------------------------------------------
-            if time.time() - self.last_render_time > 1.0 / RENDER_FREQ or self.env.step_num == 1:
-                self.env.render()
-                self.last_render_time = time.time()
-
 
 
 
