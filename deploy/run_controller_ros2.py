@@ -6,7 +6,7 @@
 import rclpy 
 from rclpy.node import Node 
 from sensor_msgs.msg import Joy
-from dls2_msgs.msg import BaseStateMsg, BlindStateMsg, ImuMsg, ControlSignalMsg, TrajectoryGeneratorMsg
+from dls2_interfaces.msg import BaseStateMsg, BlindStateMsg, ArmBlindState, TrajectoryGeneratorMsg, ArmTrajectoryGeneratorMsg
 
 import copy
 import time
@@ -43,13 +43,10 @@ os.system("renice -n -21 -p " + str(pid))
 os.system("echo -20 > /proc/" + str(pid) + "/autogroup")
 #for real time, launch it with chrt -r 99 python3 run_controller.py
 
-USE_MUJOCO_RENDER = False
-USE_MUJOCO_SIMULATION = False
 
-
-class Basic_Locomotion_DLS_Isaaclab_Node(Node):
+class TrashControlNode(Node):
     def __init__(self):
-        super().__init__('Basic_Locomotion_DLS_IsaacLab_Node')
+        super().__init__('Trash_Control_Node')
 
         self.simulation_dt = 0.002
 
@@ -104,19 +101,19 @@ class Basic_Locomotion_DLS_Isaaclab_Node(Node):
         # Subscribers and Publishers
         self.subscription_base_state = self.create_subscription(BaseStateMsg,"/dls2/base_state", self.get_base_state_callback, 1)
         self.subscription_blind_state = self.create_subscription(BlindStateMsg,"/dls2/blind_state", self.get_blind_state_callback, 1)
-        self.subscription_imu = self.create_subscription(ImuMsg,"/dls2/imu", self.get_imu_callback, 1)
+        self.subscription_arm_blind_state = self.create_subscription(ArmBlindState,"/dls2/arm_blind_state", self.get_arm_blind_state_callback, 1)
         self.subscription_joy = self.create_subscription(Joy,"joy", self.get_joy_callback, 1)
         self.publisher_trajectory_generator = self.create_publisher(TrajectoryGeneratorMsg,"dls2/trajectory_generator", 1)
-        self.timer = self.create_timer(1.0/config.RL_FREQ, self.compute_rl_control)
+        self.publisher_arm_trajectory_generator = self.create_publisher(ArmTrajectoryGeneratorMsg,"dls2/arm_trajectory_generator", 1)
+        RL_FREQ = 1./(config.training_locomotion_env["sim"]["dt"]*config.training_locomotion_env["decimation"])  # Hz, frequency of the RL controller
+        self.timer = self.create_timer(1.0/RL_FREQ, self.compute_rl_control)
 
 
         # Safety check to not do anything until a first base and blind state are received
         self.first_message_base_arrived = False
-        self.first_message_joints_arrived = False 
+        self.first_message_legs_joints_arrived = False
+        self.first_message_arm_joints_arrived = False
 
-        # Timing stuff
-        self.loop_time = 0.002
-        self.last_start_time = None
 
         # Base State
         self.position = np.zeros(3)
@@ -139,10 +136,7 @@ class Basic_Locomotion_DLS_Isaaclab_Node(Node):
         Callback function to handle joystick input. Joystick used is a 
         8Bitdi Ultimate 2C Wireless Controller.
         """
-        #self.env._ref_base_lin_vel_H[0] = msg.axes[1]/3.5  # Forward/Backward
-        #self.env._ref_base_lin_vel_H[1] = msg.axes[0]/3.5  # Left/Right
-        #self.env._ref_base_ang_yaw_dot = msg.axes[3]/2.  # Yaw
-
+        
         filter_joystick = 0.7
         self.ref_base_lin_vel_H[0] = self.ref_base_lin_vel_H[0]*filter_joystick + (msg.axes[1]/3.5)*(1-filter_joystick)  # Forward/Backward
         self.ref_base_lin_vel_H[1] = self.ref_base_lin_vel_H[1]*filter_joystick + (msg.axes[0]/3.5)*(1-filter_joystick)  # Left/Right
@@ -179,45 +173,28 @@ class Basic_Locomotion_DLS_Isaaclab_Node(Node):
         self.legs_joints_position = np.array(msg.joints_position)
         self.legs_joints_velocity = np.array(msg.joints_velocity)
 
-        if(config.robot == "aliengo"):
-            # Fix convention DLS2
-            self.legs_joints_position[0] = -self.legs_joints_position[0]
-            self.legs_joints_position[6] = -self.legs_joints_position[6]
-            self.legs_joints_velocity[0] = -self.legs_joints_velocity[0]
-            self.legs_joints_velocity[6] = -self.legs_joints_velocity[6]
+        #if(config.robot == "aliengo"):
+        #    # Fix convention DLS2
+        #    self.legs_joints_position[0] = -self.legs_joints_position[0]
+        #    self.legs_joints_position[6] = -self.legs_joints_position[6]
+        #    self.legs_joints_velocity[0] = -self.legs_joints_velocity[0]
+        #    self.legs_joints_velocity[6] = -self.legs_joints_velocity[6]
 
-        self.first_message_joints_arrived = True
+        self.first_message_legs_joints_arrived = True
      
-    
-
-
-    def compute_rl_control(self):
-        # Update the loop time
-        start_time = time.perf_counter()
-        if(self.last_start_time is not None):
-            self.loop_time = (start_time - self.last_start_time)
-        self.last_start_time = start_time
-        simulation_dt = self.loop_time
+    def get_arm_blind_state_callback(self, msg):
         
+        self.arm_joints_position = np.array(msg.joints_position)
+        self.arm_joints_velocity = np.array(msg.joints_velocity)
+
+        self.first_message_arm_joints_arrived = True
+
+
+    def compute_rl_control(self):        
 
         # Safety check to not do anything until a first base and blind state are received
-            if(self.first_message_base_arrived==False or self.first_message_joints_arrived==False):
-                return
-            
-        # Update the mujoco model
-        # Note that in case of IMU or concurrent state estimator, these info below are not used,
-        # In the case we have a state estimator, this is usefull only for debugging visually
-        self.mjData.qpos[0:3] = copy.deepcopy(self.position)
-        self.mjData.qvel[0:3] = copy.deepcopy(self.linear_velocity)
-
-        self.mjData.qpos[3:7] = copy.deepcopy(self.orientation)
-        self.mjData.qvel[3:6] = copy.deepcopy(self.angular_velocity)
-        
-        # These info instead are used for sure in all the cases
-        self.mjData.qpos[7:19] = copy.deepcopy(self.legs_joints_position)
-        self.mjData.qvel[6:18] = copy.deepcopy(self.legs_joints_velocity)
-        #self.mjModel.opt.timestep = simulation_dt
-        #mujoco.mj_forward(self.env.mjModel, self.env.mjData) 
+        if(self.first_message_base_arrived==False or self.first_message_legs_joints_arrived==False or self.first_message_arm_joints_arrived==False):
+            return
         
         # Safety check for joystick timeout
         if(self.last_joy_time is not None and time.time() - self.last_joy_time > 1.0):
@@ -226,8 +203,20 @@ class Basic_Locomotion_DLS_Isaaclab_Node(Node):
             self.ref_base_ang_yaw_dot = 0.0
             print("Joystick timeout, stopping the robot")
             self.last_joy_time = None
-            
+    
 
+        # Update the mujoco model
+        self.mjData.qpos[0:3] = copy.deepcopy(self.position)
+        self.mjData.qvel[0:3] = copy.deepcopy(self.linear_velocity)
+
+        self.mjData.qpos[3:7] = copy.deepcopy(self.orientation)
+        self.mjData.qvel[3:6] = copy.deepcopy(self.angular_velocity)
+        
+        self.mjData.qpos[7:19] = copy.deepcopy(self.legs_joints_position)
+        self.mjData.qvel[6:18] = copy.deepcopy(self.legs_joints_velocity)
+        
+
+        # Get the current state of the robot -----------------------------------------------------
         qpos, qvel = self.mjData.qpos, self.mjData.qvel
         base_lin_vel = mujoco_utils.base_lin_vel(self.mjData, frame='base')
         base_ang_vel = mujoco_utils.base_ang_vel(self.mjData, frame='base')
@@ -245,17 +234,24 @@ class Basic_Locomotion_DLS_Isaaclab_Node(Node):
         joints_vel_arm = qvel[18:24]
         joints_vel_gripper = qvel[24]
 
-
+    
         ref_base_lin_vel, ref_base_ang_vel = mujoco_utils.target_base_vel(self.mjData, self.ref_base_lin_vel_H, self.ref_base_ang_yaw_dot, frame='world')
+
+
+        if(self.locomotion_policy.use_vision):
+            self.heightmap.update_height_map(self.mjData.qpos[0:3], yaw=base_ori_euler_xyz[2])
 
 
         if(self.console.isDown):
             # Impedence Loop
             self.Kp_legs = self.locomotion_policy.Kp_stand_up_and_down
-            self.Kd_legs = self.locomotion_policy.Kd_stand_up_and_down   
+            self.Kd_legs = self.locomotion_policy.Kd_stand_up_and_down
+            self.Kp_arm = self.manipulation_policy.Kp_arm
+            self.Kd_arm = self.manipulation_policy.Kd_arm
 
-        if(self.console.isRLActivated):
-
+        # RL controller --------------------------------------------------------------
+        if self.console.isRLActivated:            
+            
             if self.state_machine.state_type == ArmStateType.REACH:
                 self.desired_joint_pos_arm, self.desired_pose_command = self.manipulation_policy.compute_control(
                             base_pos=base_pos, 
@@ -275,9 +271,6 @@ class Basic_Locomotion_DLS_Isaaclab_Node(Node):
                 self.desired_joint_pos_arm = self.state_machine.desired_position
                 self.desired_pose_command = np.zeros(2)
 
-                self.Kp_arm = self.manipulation_policy.Kp_arm
-                self.Kd_arm = self.manipulation_policy.Kd_arm
-
 
             self.desired_joint_pos_leg = self.locomotion_policy.compute_control(
                         base_pos=base_pos, 
@@ -293,17 +286,17 @@ class Basic_Locomotion_DLS_Isaaclab_Node(Node):
                         ref_base_ang_vel=ref_base_ang_vel,
                         ref_pose_command=self.desired_pose_command + self.desired_pose_command_overwrite,
                         heightmap_data=self.heightmap.data if self.locomotion_policy.use_vision else None)
-            
-            # Impedence Loop
+
             self.Kp_legs = self.locomotion_policy.Kp_walking
             self.Kd_legs = self.locomotion_policy.Kd_walking
-
+            self.Kp_arm = self.manipulation_policy.Kp_arm
+            self.Kd_arm = self.manipulation_policy.Kd_arm
 
         
-        if(config.robot == "aliengo"):
-            # Fix convention DLS2 and send PD target
-            self.desired_joint_pos_leg[0] = -self.desired_joint_pos_leg[0]
-            self.desired_joint_pos_leg[6] = -self.desired_joint_pos_leg[6]
+        #if(config.robot == "aliengo"):
+        #    # Fix convention DLS2 and send PD target
+        #    self.desired_joint_pos_leg[0] = -self.desired_joint_pos_leg[0]
+        #    self.desired_joint_pos_leg[6] = -self.desired_joint_pos_leg[6]
 
             
         trajectory_generator_msg = TrajectoryGeneratorMsg()
@@ -313,6 +306,14 @@ class Basic_Locomotion_DLS_Isaaclab_Node(Node):
         trajectory_generator_msg.kp = np.ones(12)*self.Kp_legs
         trajectory_generator_msg.kd = np.ones(12)*self.Kd_legs
         self.publisher_trajectory_generator.publish(trajectory_generator_msg)
+
+        arm_trajectory_generator_msg = ArmTrajectoryGeneratorMsg()
+        arm_trajectory_generator_msg.timestamp = float(self.get_clock().now().nanoseconds)
+        arm_trajectory_generator_msg.joints_position = self.desired_joint_pos_arm
+        arm_trajectory_generator_msg.joints_velocity = np.zeros(6)
+        arm_trajectory_generator_msg.kp = np.ones(6)*self.Kp_arm
+        arm_trajectory_generator_msg.kd = np.ones(6)*self.Kd_arm
+        self.publisher_arm_trajectory_generator.publish(arm_trajectory_generator_msg)
         
 
 
@@ -320,14 +321,13 @@ class Basic_Locomotion_DLS_Isaaclab_Node(Node):
 #---------------------------
 if __name__ == '__main__':
     
-    print('Hello from basic-locomotion-dls-isaaclab ros node.')
+    print('Hello from the trash control ros node.')
     
     rclpy.init()
-    basic_locomotion_dls_isaaclab_node = Basic_Locomotion_DLS_Isaaclab_Node()
-    rclpy.spin(basic_locomotion_dls_isaaclab_node)
-    
-    basic_locomotion_dls_isaaclab_node.destroy_node()
+    trash_control_node = TrashControlNode()
+    rclpy.spin(trash_control_node)
+    trash_control_node.destroy_node()
     rclpy.shutdown()
 
-    print("basic-locomotion-dls-isaaclab ros node is stopped")
+    print("trash control ros node is stopped")
     exit(0)

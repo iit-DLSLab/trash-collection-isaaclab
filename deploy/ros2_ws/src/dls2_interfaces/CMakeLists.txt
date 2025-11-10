@@ -12,9 +12,11 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/ArmBlindState.idl"
   "msg/ArmTrajectoryGenerator.idl"
-  "msg/BaseStateMsg.idl"
-  "msg/BlindStateMsg.idl"
-  "msg/TrajectoryGeneratorMsg.idl"
+  "msg/Pose.idl"
+  "msg/Screw.idl"
+  "msg/BaseState.idl"
+  "msg/BlindState.idl"
+  "msg/TrajectoryGenerator.idl"
 )
  
 ament_export_dependencies(rosidl_default_runtime)

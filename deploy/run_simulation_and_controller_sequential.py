@@ -129,6 +129,8 @@ class PlayMujoco:
                 # Impedence Loop
                 self.Kp_legs = self.locomotion_policy.Kp_stand_up_and_down
                 self.Kd_legs = self.locomotion_policy.Kd_stand_up_and_down
+                self.Kp_arm = self.manipulation_policy.Kp_arm
+                self.Kd_arm = self.manipulation_policy.Kd_arm
 
             # RL controller --------------------------------------------------------------
             if self.console.isRLActivated and step_num % round(1 / (self.locomotion_policy.RL_FREQ * self.simulation_dt)) == 0:            
@@ -152,10 +154,6 @@ class PlayMujoco:
                     self.desired_joint_pos_arm = self.state_machine.desired_position
                     self.desired_pose_command = np.zeros(2)
 
-                self.Kp_arm = self.manipulation_policy.Kp_arm
-                self.Kd_arm = self.manipulation_policy.Kd_arm
-
-
                 self.desired_joint_pos_leg = self.locomotion_policy.compute_control(
                             base_pos=base_pos, 
                             base_ori_euler_xyz=base_ori_euler_xyz, 
@@ -173,6 +171,8 @@ class PlayMujoco:
 
                 self.Kp_legs = self.locomotion_policy.Kp_walking
                 self.Kd_legs = self.locomotion_policy.Kd_walking
+                self.Kp_arm = self.manipulation_policy.Kp_arm
+                self.Kd_arm = self.manipulation_policy.Kd_arm
 
             
             # PD controller --------------------------------------------------------------

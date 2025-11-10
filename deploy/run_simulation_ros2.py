@@ -22,7 +22,7 @@ if not os.path.exists(ros2_ws_path+"/install"):
     os.system(" \
     cd ros2_ws && \
     colcon build")
-source_ros_install("ros2_ws/install")
+source_ros_install(ros2_ws_path+"/install")
 
 
 import rclpy 
