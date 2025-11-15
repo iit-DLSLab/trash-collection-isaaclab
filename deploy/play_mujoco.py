@@ -50,6 +50,7 @@ class PlayMujoco:
                         show_right_ui=False,
                         #key_callback=lambda x: self._key_callback(x),
                     )
+        mujoco.mjv_defaultFreeCamera(self.mjModel, self.viewer.cam)
         self.last_render_time = time.time()
         self.RENDER_FREQ = 30.0  # Hz 
 
