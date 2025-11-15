@@ -6,8 +6,7 @@
 import rclpy 
 from rclpy.node import Node 
 from sensor_msgs.msg import Joy
-from dls2_interfaces.msg import BaseStateMsg, BlindStateMsg, ArmBlindState, TrajectoryGeneratorMsg, ArmTrajectoryGeneratorMsg
-
+from dls2_interfaces.msg import BaseState, BlindState, Imu, TrajectoryGenerator, ArmBlindState, ArmTrajectoryGenerator
 import copy
 import time
 import numpy as np
@@ -99,12 +98,12 @@ class TrashControlNode(Node):
                  
 
         # Subscribers and Publishers
-        self.subscription_base_state = self.create_subscription(BaseStateMsg,"/dls2/base_state", self.get_base_state_callback, 1)
-        self.subscription_blind_state = self.create_subscription(BlindStateMsg,"/dls2/blind_state", self.get_blind_state_callback, 1)
-        self.subscription_arm_blind_state = self.create_subscription(ArmBlindState,"/dls2/arm_blind_state", self.get_arm_blind_state_callback, 1)
-        self.subscription_joy = self.create_subscription(Joy,"joy", self.get_joy_callback, 1)
-        self.publisher_trajectory_generator = self.create_publisher(TrajectoryGeneratorMsg,"dls2/trajectory_generator", 1)
-        self.publisher_arm_trajectory_generator = self.create_publisher(ArmTrajectoryGeneratorMsg,"dls2/arm_trajectory_generator", 1)
+        self.subscription_base_state = self.create_subscription(BaseState,"/base_state", self.get_base_state_callback, 1)
+        self.subscription_blind_state = self.create_subscription(BlindState,"/blind_state", self.get_blind_state_callback, 1)
+        self.subscription_arm_blind_state = self.create_subscription(ArmBlindState,"/arm_blind_state", self.get_arm_blind_state_callback, 1)
+        self.subscription_joy = self.create_subscription(Joy,"/joy", self.get_joy_callback, 1)
+        self.publisher_trajectory_generator = self.create_publisher(TrajectoryGenerator,"/trajectory_generator", 1)
+        self.publisher_arm_trajectory_generator = self.create_publisher(ArmTrajectoryGenerator,"/arm_trajectory_generator", 1)
         RL_FREQ = 1./(config.training_locomotion_env["sim"]["dt"]*config.training_locomotion_env["decimation"])  # Hz, frequency of the RL controller
         self.timer = self.create_timer(1.0/RL_FREQ, self.compute_rl_control)
 

@@ -2,32 +2,9 @@
 
 # Authors:
 # Giulio Turrisi
-
-import os
-import subprocess
-
-def source_ros_install(install_path):
-    # Get environment variables from a sourced shell
-    command = ['bash', '-c', f'source {install_path}/setup.bash && env']
-    proc = subprocess.Popen(command, stdout=subprocess.PIPE, text=True)
-    for line in proc.stdout:
-        key, _, value = line.partition("=")
-        os.environ[key] = value.strip()
-    proc.communicate()
-
-# Build and source the ROS2 workspace if not already built:
-ros2_ws_path = os.path.dirname(os.path.realpath(__file__)) + "/ros2_ws"
-if not os.path.exists(ros2_ws_path+"/install"):
-    print("Building the ROS2 workspace...")
-    os.system(" \
-    cd ros2_ws && \
-    colcon build")
-source_ros_install(ros2_ws_path+"/install")
-
-
 import rclpy 
 from rclpy.node import Node 
-from dls2_interfaces.msg import BaseStateMsg, BlindStateMsg, ArmBlindState, TrajectoryGeneratorMsg
+from dls2_interfaces.msg import BaseState, BlindState, Imu, TrajectoryGenerator, ArmBlindState, ArmTrajectoryGenerator
 
 import time
 import numpy as np
@@ -66,11 +43,11 @@ class MujocoSimulationNode(Node):
         self.RENDER_FREQ = 30.0  # Hz 
 
         # Subscribers and Publishers
-        self.publisher_base_state = self.create_publisher(BaseStateMsg,"/dls2/base_state", 1)
-        self.publisher_blind_state = self.create_publisher(BlindStateMsg,"/dls2/blind_state", 1)
-        self.publisher_arm_blind_state = self.create_publisher(ArmBlindState,"/dls2/arm_blind_state", 1)
-        self.subscriber_trajectory_generator_arm = self.create_subscription(TrajectoryGeneratorMsg,"dls2/arm_trajectory_generator", self.get_arm_trajectory_generator_callback, 1)
-        self.subscriber_trajectory_generator_legs = self.create_subscription(TrajectoryGeneratorMsg,"dls2/trajectory_generator", self.get_legs_trajectory_generator_callback, 1)
+        self.publisher_base_state = self.create_publisher(BaseState,"/base_state", 1)
+        self.publisher_blind_state = self.create_publisher(BlindState,"/blind_state", 1)
+        self.publisher_arm_blind_state = self.create_publisher(ArmBlindState,"/arm_blind_state", 1)
+        self.subscriber_trajectory_generator_arm = self.create_subscription(ArmTrajectoryGenerator,"/arm_trajectory_generator", self.get_arm_trajectory_generator_callback, 1)
+        self.subscriber_trajectory_generator_legs = self.create_subscription(TrajectoryGenerator,"/trajectory_generator", self.get_legs_trajectory_generator_callback, 1)
         
         self.timer = self.create_timer(self.simulation_dt, self.compute_simulator_step_callback)
 
@@ -92,8 +69,8 @@ class MujocoSimulationNode(Node):
         joints_position = np.array(msg.joints_position)
 
         self.desired_arm_joints_position = joints_position
-        self.Kp_arm = np.array(msg.kp_gains)
-        self.Kd_arm = np.array(msg.kd_gains)
+        self.Kp_arm = np.array(msg.kp)[0]
+        self.Kd_arm = np.array(msg.kd)[0]
 
     def get_legs_trajectory_generator_callback(self, msg):
         
