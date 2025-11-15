@@ -73,6 +73,8 @@
         <mesh file="z1/assets/z1_GripperMover_col_3.stl"/>
         <mesh file="z1/assets/z1_GripperMover_col_4.stl"/>
         <mesh file="z1/assets/z1_GripperMover_col_5.stl"/>
+
+        <mesh name="trash_box" file="trash_box.stl" scale="0.001 0.001 0.001"/>
     </asset>
 
 
@@ -91,6 +93,7 @@
             <!--body name="payload" pos="0 0 0">
                 <geom type="box" mass="0.01" pos="0 0 0.1" size="0.05 0.05 0.05" rgba="1 0 0 0.3"/>
             </body-->
+            <geom pos="-0.2 0.0 -0.05" quat="0.7071 0 0 0.7071" type="mesh" class="visual" rgba="1. 1. 1. 1" mesh="trash_box"/>
 
             <!-- imu and camera -->
             <site name="imu" pos="0 0 0"/>
