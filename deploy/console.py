@@ -291,7 +291,20 @@ class Console():
     def print_all_commands(self):
         print("\nAvailable Commands")
         print("help: Display all available messages")
-        print("ictp: Interactive Keyboard Control\n")
+        print("ictp: Interactive Keyboard Control")
+        print("goUp: Move the robot to standing position")
+        print("goDown: Move the robot to crouch position")
+        print("activate: Activate/Deactivate RL policy for locomotion\n")
+        print("setKp: Set the Kp values for the legs")
+        print("setKd: Set the Kd values for the legs")
+        print("setBasePose: Set desired base pitch and height")
+        print("armHome: Move arm to home position")
+        print("armPreReachObject: Move arm to pre-reach object position")
+        print("armReachObject: Move arm to reach object position")
+        print("armReachBasket: Move arm to reach basket position")
+        print("armOpenBasket: Open the basket")
+        print("armCloseGripper: Close the gripper")
+        print("armOpenGripper: Open the gripper\n")
 
 
     def run_arm_smoother(self , initial_joints_position, reference_joints_position, time_motion):
