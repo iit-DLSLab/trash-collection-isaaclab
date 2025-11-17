@@ -1,12 +1,26 @@
 seed: 42
 device: cuda:0
 num_steps_per_env: 24
-max_iterations: 2000
+max_iterations: 8000
 empirical_normalization: false
+obs_groups: {}
+clip_actions: null
+save_interval: 50
+experiment_name: rough_direct
+run_name: ''
+logger: wandb
+neptune_project: trash-locomotion
+wandb_project: trash-locomotion
+resume: false
+load_run: .*
+load_checkpoint: model_.*.pt
+class_name: OnPolicyRunner
 policy:
   class_name: ActorCritic
   init_noise_std: 1.0
   noise_std_type: scalar
+  actor_obs_normalization: {}
+  critic_obs_normalization: {}
   actor_hidden_dims:
   - 128
   - 128
@@ -31,31 +45,8 @@ algorithm:
   use_clipped_value_loss: true
   clip_param: 0.2
   normalize_advantage_per_mini_batch: false
-  symmetry_cfg: null
   rnd_cfg: null
-clip_actions: null
-save_interval: 50
-experiment_name: flat_direct
-run_name: ''
-logger: wandb
-neptune_project: trash-locomotion
-wandb_project: trash-locomotion
-resume: false
-load_run: .*
-load_checkpoint: model_.*.pt
-amp_data_path: ./../../../amp_dataset/
-dataset_names:
-- flat
-dataset_weights:
-- 1.0
-- 1.0
-slow_down_factor: 1.0
-discriminator:
-  class_name: Discriminator
-  hidden_dims:
-  - 128
-  - 128
-  reward_scale: 0.1
+  symmetry_cfg: null
 history_length: 5
 obs_space_names_actor:
 - base_lin_vel:base
@@ -98,6 +89,8 @@ obs_space_names_actor:
 - qvel_js
 - actions
 - clock_data
+- position_gains
+- velocity_gains
 obs_space_names_critic:
 - base_lin_vel:base
 - base_ang_vel:base
@@ -139,6 +132,8 @@ obs_space_names_critic:
 - qvel_js
 - actions
 - clock_data
+- position_gains
+- velocity_gains
 morphologycal_symmetries_cfg:
   class_name: MorphologycalSymmetries
   obs_space_names_actor:
@@ -182,6 +177,8 @@ morphologycal_symmetries_cfg:
   - qvel_js
   - actions
   - clock_data
+  - position_gains
+  - velocity_gains
   obs_space_names_critic:
   - base_lin_vel:base
   - base_ang_vel:base
@@ -223,6 +220,8 @@ morphologycal_symmetries_cfg:
   - qvel_js
   - actions
   - clock_data
+  - position_gains
+  - velocity_gains
   action_space_names:
   - actions
   joints_order:
