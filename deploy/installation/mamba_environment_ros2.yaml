@@ -7,6 +7,7 @@ dependencies:
 - pip
 - python
 - numpy
+- scipy
 - cuda-nvcc 
 - ros-humble-desktop
 - ros-humble-rmw-cyclonedds-cpp
@@ -26,4 +27,4 @@ dependencies:
   - readchar
   - onnxruntime
   - torch
-  - gym-quadruped
+  - mujoco
