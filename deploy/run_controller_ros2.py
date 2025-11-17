@@ -112,6 +112,7 @@ class TrashControlNode(Node):
         self.first_message_base_arrived = False
         self.first_message_legs_joints_arrived = False
         self.first_message_arm_joints_arrived = False
+        self.last_joy_time = None
 
 
         # Base State
@@ -157,11 +158,11 @@ class TrashControlNode(Node):
 
     def get_base_state_callback(self, msg):
         
-        self.position = np.array(msg.position) #world frame
+        self.position = np.array(msg.pose.position) #world frame
         # For the quaternion, the order is [w, x, y, z] on mujoco, and [x, y, z, w] on DLS2
-        self.orientation = np.roll(np.array(msg.orientation), 1) #world frame
-        self.linear_velocity = np.array(msg.linear_velocity) #world frame
-        self.angular_velocity = np.array(msg.angular_velocity) #base frame
+        self.orientation = np.roll(np.array(msg.pose.orientation), 1) #world frame
+        self.linear_velocity = np.array(msg.velocity.linear) #world frame
+        self.angular_velocity = np.array(msg.velocity.angular) #base frame
 
         self.first_message_base_arrived = True
 
@@ -183,8 +184,8 @@ class TrashControlNode(Node):
      
     def get_arm_blind_state_callback(self, msg):
         
-        self.arm_joints_position = np.array(msg.joints_position)
-        self.arm_joints_velocity = np.array(msg.joints_velocity)
+        self.arm_joints_position = np.array(msg.arm_joints_position)
+        self.arm_joints_velocity = np.array(msg.arm_joints_velocity)
 
         self.first_message_arm_joints_arrived = True
 
@@ -298,20 +299,20 @@ class TrashControlNode(Node):
         #    self.desired_joint_pos_leg[6] = -self.desired_joint_pos_leg[6]
 
             
-        trajectory_generator_msg = TrajectoryGeneratorMsg()
+        trajectory_generator_msg = TrajectoryGenerator()
         trajectory_generator_msg.timestamp = float(self.get_clock().now().nanoseconds)
-        trajectory_generator_msg.joints_position = self.desired_joint_pos_leg
-        trajectory_generator_msg.joints_velocity = np.zeros(12)
-        trajectory_generator_msg.kp = np.ones(12)*self.Kp_legs
-        trajectory_generator_msg.kd = np.ones(12)*self.Kd_legs
+        trajectory_generator_msg.joints_position = self.desired_joint_pos_leg.tolist()
+        trajectory_generator_msg.joints_velocity = np.zeros(12).tolist()
+        trajectory_generator_msg.kp = (np.ones(12)*self.Kp_legs).tolist()
+        trajectory_generator_msg.kd = (np.ones(12)*self.Kd_legs).tolist()
         self.publisher_trajectory_generator.publish(trajectory_generator_msg)
 
-        arm_trajectory_generator_msg = ArmTrajectoryGeneratorMsg()
+        arm_trajectory_generator_msg = ArmTrajectoryGenerator()
         arm_trajectory_generator_msg.timestamp = float(self.get_clock().now().nanoseconds)
-        arm_trajectory_generator_msg.joints_position = self.desired_joint_pos_arm
-        arm_trajectory_generator_msg.joints_velocity = np.zeros(6)
-        arm_trajectory_generator_msg.kp = np.ones(6)*self.Kp_arm
-        arm_trajectory_generator_msg.kd = np.ones(6)*self.Kd_arm
+        arm_trajectory_generator_msg.desired_arm_joints_position = self.desired_joint_pos_arm
+        arm_trajectory_generator_msg.desired_arm_joints_velocity = np.zeros(6)
+        arm_trajectory_generator_msg.arm_kp = np.ones(6)*self.Kp_arm
+        arm_trajectory_generator_msg.arm_kd = np.ones(6)*self.Kd_arm
         self.publisher_arm_trajectory_generator.publish(arm_trajectory_generator_msg)
         
 

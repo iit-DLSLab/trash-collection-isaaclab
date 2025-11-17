@@ -66,19 +66,19 @@ class MujocoSimulationNode(Node):
 
     def get_arm_trajectory_generator_callback(self, msg):
 
-        joints_position = np.array(msg.joints_position)
+        joints_position = np.array(msg.desired_arm_joints_position)
 
         self.desired_arm_joints_position = joints_position
-        self.Kp_arm = np.array(msg.kp)[0]
-        self.Kd_arm = np.array(msg.kd)[0]
+        self.Kp_arm = np.array(msg.arm_kp)[0]
+        self.Kd_arm = np.array(msg.arm_kd)[0]
 
     def get_legs_trajectory_generator_callback(self, msg):
         
         # Desired leg joints position
         joints_position = np.array(msg.joints_position)
         self.desired_legs_joints_position = joints_position
-        self.Kp_legs = np.array(msg.kp_gains)
-        self.Kd_legs = np.array(msg.kd_gains)
+        self.Kp_legs = np.array(msg.kp)[0]
+        self.Kd_legs = np.array(msg.kd)[0]
 
 
     def compute_simulator_step_callback(self):
@@ -117,21 +117,21 @@ class MujocoSimulationNode(Node):
 
 
         # Publish the state of the robot ----------------------------------------------------------
-        base_state_msg = BaseStateMsg()
-        base_state_msg.position = base_pos
-        base_state_msg.orientation = np.roll(self.mjData.qpos[3:7],-1)
-        base_state_msg.linear_velocity = base_lin_vel
-        base_state_msg.angular_velocity = base_ang_vel
+        base_state_msg = BaseState()
+        base_state_msg.pose.position = base_pos
+        base_state_msg.pose.orientation = np.roll(self.mjData.qpos[3:7],-1)
+        base_state_msg.velocity.linear = base_lin_vel
+        base_state_msg.velocity.angular = base_ang_vel
         self.publisher_base_state.publish(base_state_msg)
 
-        blind_state_msg = BlindStateMsg()
-        blind_state_msg.joints_position = self.mjData.qpos[7:19]
-        blind_state_msg.joints_velocity = self.mjData.qvel[6:18]
+        blind_state_msg = BlindState()
+        blind_state_msg.joints_position = self.mjData.qpos[7:19].tolist()
+        blind_state_msg.joints_velocity = self.mjData.qvel[6:18].tolist()
         self.publisher_blind_state.publish(blind_state_msg)
 
         arm_blind_state_msg = ArmBlindState()
-        arm_blind_state_msg.joints_position = self.mjData.qpos[19:25]
-        arm_blind_state_msg.joints_velocity = self.mjData.qvel[18:24]
+        arm_blind_state_msg.arm_joints_position = self.mjData.qpos[19:25]
+        arm_blind_state_msg.arm_joints_velocity = self.mjData.qvel[18:24]
         self.publisher_arm_blind_state.publish(arm_blind_state_msg)
 
 
