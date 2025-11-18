@@ -8,10 +8,10 @@ import numpy as np
 from tqdm import tqdm
 import sys
 import os 
-dir_path = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(dir_path+"/mujoco/")
-sys.path.append(dir_path+"/../")
-sys.path.append(dir_path+"/../scripts/rsl_rl")
+file_path = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(file_path+"/mujoco/")
+sys.path.append(file_path+"/../")
+sys.path.append(file_path+"/../scripts/rsl_rl")
 
 # Gym and Simulation related imports
 import mujoco
@@ -39,7 +39,7 @@ class PlayMujoco:
 
 
         # Load the model and data.
-        self.mjModel = mujoco.MjModel.from_xml_path("mujoco/models/scene_rough.xml")
+        self.mjModel = mujoco.MjModel.from_xml_path(file_path + "/mujoco/models/scene_rough.xml")
         self.mjData = mujoco.MjData(self.mjModel)
         keyframe_id = mujoco.mj_name2id(self.mjModel, mujoco.mjtObj.mjOBJ_KEY, "home")
         self.mjData.qpos = self.mjModel.key_qpos[keyframe_id]
