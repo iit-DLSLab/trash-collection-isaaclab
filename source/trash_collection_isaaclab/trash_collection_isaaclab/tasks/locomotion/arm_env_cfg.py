@@ -124,6 +124,11 @@ class ArmFlatEnvCfg(DirectRLEnvCfg):
     observation_space += 2 # pose commands 
     state_space = 0
 
+    use_velocity_commands = True
+    if(use_velocity_commands):
+        action_space += 3 # robot vel commands
+        observation_space +=3 # robot vel feedback
+
 
     # observation history
     use_observation_history = True
@@ -303,7 +308,7 @@ class ArmFlatEnvCfg(DirectRLEnvCfg):
     undersired_contact_reward_scale = -1.0
     action_rate_reward_scale = -0.01
     action_smoothness_reward_scale = -0.001
-    action_pose_near_zero_reward_scale = 0.1
+    action_pose_and_vel_near_zero_reward_scale = -0.1
 
     # Robot base velocity tracking reward scale, to avoid
     # brutal motions during manipulation
