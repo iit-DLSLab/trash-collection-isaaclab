@@ -173,12 +173,11 @@ class TrashControlNode(Node):
         self.legs_joints_position = np.array(msg.joints_position)
         self.legs_joints_velocity = np.array(msg.joints_velocity)
 
-        #if(config.robot == "aliengo"):
-        #    # Fix convention DLS2
-        #    self.legs_joints_position[0] = -self.legs_joints_position[0]
-        #    self.legs_joints_position[6] = -self.legs_joints_position[6]
-        #    self.legs_joints_velocity[0] = -self.legs_joints_velocity[0]
-        #    self.legs_joints_velocity[6] = -self.legs_joints_velocity[6]
+        # Fix convention DLS2
+        self.legs_joints_position[0] = -self.legs_joints_position[0]
+        self.legs_joints_position[6] = -self.legs_joints_position[6]
+        self.legs_joints_velocity[0] = -self.legs_joints_velocity[0]
+        self.legs_joints_velocity[6] = -self.legs_joints_velocity[6]
 
         self.first_message_legs_joints_arrived = True
      
@@ -252,7 +251,7 @@ class TrashControlNode(Node):
         # RL controller --------------------------------------------------------------
         if self.console.isRLActivated:            
             
-            if self.state_machine.state_type == ArmStateType.REACH:
+            """if self.state_machine.state_type == ArmStateType.REACH:
                 self.desired_joint_pos_arm, self.desired_pose_command = self.manipulation_policy.compute_control(
                             base_pos=base_pos, 
                             base_ori_euler_xyz=base_ori_euler_xyz, 
@@ -269,7 +268,7 @@ class TrashControlNode(Node):
                             heightmap_data=self.heightmap.data if self.locomotion_policy.use_vision else None)
             else:
                 self.desired_joint_pos_arm = self.state_machine.desired_position
-                self.desired_pose_command = np.zeros(2)
+                self.desired_pose_command = np.zeros(2)"""
 
 
             self.desired_joint_pos_leg = self.locomotion_policy.compute_control(
@@ -293,10 +292,9 @@ class TrashControlNode(Node):
             self.Kd_arm = self.manipulation_policy.Kd_arm
 
         
-        #if(config.robot == "aliengo"):
-        #    # Fix convention DLS2 and send PD target
-        #    self.desired_joint_pos_leg[0] = -self.desired_joint_pos_leg[0]
-        #    self.desired_joint_pos_leg[6] = -self.desired_joint_pos_leg[6]
+        # Fix convention DLS2 and send PD target
+        self.desired_joint_pos_leg[0] = -self.desired_joint_pos_leg[0]
+        self.desired_joint_pos_leg[6] = -self.desired_joint_pos_leg[6]
 
             
         trajectory_generator_msg = TrajectoryGenerator()
@@ -307,13 +305,13 @@ class TrashControlNode(Node):
         trajectory_generator_msg.kd = (np.ones(12)*self.Kd_legs).tolist()
         self.publisher_trajectory_generator.publish(trajectory_generator_msg)
 
-        arm_trajectory_generator_msg = ArmTrajectoryGenerator()
-        arm_trajectory_generator_msg.timestamp = float(self.get_clock().now().nanoseconds)
-        arm_trajectory_generator_msg.desired_arm_joints_position = self.desired_joint_pos_arm
-        arm_trajectory_generator_msg.desired_arm_joints_velocity = np.zeros(6)
-        arm_trajectory_generator_msg.arm_kp = np.ones(6)*self.Kp_arm
-        arm_trajectory_generator_msg.arm_kd = np.ones(6)*self.Kd_arm
-        self.publisher_arm_trajectory_generator.publish(arm_trajectory_generator_msg)
+        #arm_trajectory_generator_msg = ArmTrajectoryGenerator()
+        #arm_trajectory_generator_msg.timestamp = float(self.get_clock().now().nanoseconds)
+        #arm_trajectory_generator_msg.desired_arm_joints_position = self.desired_joint_pos_arm
+        #arm_trajectory_generator_msg.desired_arm_joints_velocity = np.zeros(6)
+        #arm_trajectory_generator_msg.arm_kp = np.ones(6)*self.Kp_arm
+        #arm_trajectory_generator_msg.arm_kd = np.ones(6)*self.Kd_arm
+        #self.publisher_arm_trajectory_generator.publish(arm_trajectory_generator_msg)
         
 
 
