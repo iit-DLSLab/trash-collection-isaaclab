@@ -526,7 +526,10 @@ class ManipulationEnv(DirectRLEnv):
         clock_data = None
         if(self.cfg.use_clock_signal):
             clock_data = torch.vstack([self._phase_signal[:,0], self._phase_signal[:,1], self._phase_signal[:,2], self._phase_signal[:,3]]).T
-            clock_data[:, :] = -1.0
+            # all the envs that are not moving, we put -1
+            should_move = torch.norm(velocity_commands[:, :3], dim=1) > 0.01
+            clock_data[:, :] = clock_data[:, :]*should_move.unsqueeze(1).expand(-1, 4) + -1.0* ~should_move.unsqueeze(1).expand(-1, 4)
+            
 
         # Choosing the main source of observation
         if(self.cfg.use_imu):
