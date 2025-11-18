@@ -13,6 +13,8 @@ from isaaclab.terrains import TerrainImporterCfg
 from isaaclab.sensors import ImuCfg
 from isaaclab.utils import configclass
 from isaaclab.utils.noise import GaussianNoiseCfg, NoiseModelWithAdditiveBiasCfg
+from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR, ISAACLAB_NUCLEUS_DIR
+from isaaclab.markers.config import FRAME_MARKER_CFG
 
 from isaaclab.markers import VisualizationMarkersCfg
 
@@ -218,15 +220,38 @@ class ArmFlatEnvCfg(DirectRLEnvCfg):
         debug_vis=False)
     
     # some marker for visualization
-    goal_object_cfg = VisualizationMarkersCfg(
+    """goal_object_marker_cfg = VisualizationMarkersCfg(
         prim_path="/Visuals/myMarkers",
         markers={
             "sphere": sim_utils.SphereCfg(
                 radius=0.03,
                 visual_material=sim_utils.PreviewSurfaceCfg(diffuse_color=(0.0, 1.0, 0.0)),
             ),
+            "frame": sim_utils.UsdFileCfg(
+                usd_path=f"{ISAAC_NUCLEUS_DIR}/Props/UIElements/frame_prim.usd",
+                scale=(0.5, 0.5, 0.5),
+            ),
         },
     )
+
+    ee_marker_cfg = VisualizationMarkersCfg(
+        prim_path="/Visuals/myMarkers",
+        markers={
+            "sphere": sim_utils.SphereCfg(
+                radius=0.03,
+                visual_material=sim_utils.PreviewSurfaceCfg(diffuse_color=(0.0, 1.0, 0.0)),
+            ),
+            "frame": sim_utils.UsdFileCfg(
+                usd_path=f"{ISAAC_NUCLEUS_DIR}/Props/UIElements/frame_prim.usd",
+                scale=(0.5, 0.5, 0.5),
+            ),
+        },
+    )"""
+    frame_marker_cfg = FRAME_MARKER_CFG.copy()
+    frame_marker_cfg.markers["frame"].scale = (0.1, 0.1, 0.1)
+    frame_marker_cfg.prim_path = "/Visuals/myMarkers"
+    #goal_object_marker_cfg = frame_marker_cfg
+    #ee_marker_cfg = frame_marker_cfg
 
     # scene
     scene: InteractiveSceneCfg = InteractiveSceneCfg(num_envs=4096, env_spacing=4.0, replicate_physics=True)
@@ -289,7 +314,7 @@ class ArmFlatEnvCfg(DirectRLEnvCfg):
     # Loading the locomotion policy --------------------------------------------------------------------------------
     #try:
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    locomotion_policy_folder_path = dir_path + "/../../../../../tested_policies/locomotion/aliengo_with_z1"
+    locomotion_policy_folder_path = dir_path + "/../../../../../tested_policies/locomotion/rough"
 
     # Load specific training parameters
     locomotion_policy_env_cfg = yaml.unsafe_load(open(locomotion_policy_folder_path + "/params/env.yaml", "r"))

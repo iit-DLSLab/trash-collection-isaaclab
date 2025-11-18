@@ -127,7 +127,8 @@ class ManipulationEnv(DirectRLEnv):
         self._ids_only_arms_joints_order = self._robot.find_joints(name_keys=self.cfg.desired_joints_order[12:18], preserve_order=True)[0]
 
         # initialize goal marker
-        self.goal_markers = VisualizationMarkers(self.cfg.goal_object_cfg)
+        self.goal_markers = VisualizationMarkers(self.cfg.frame_marker_cfg.replace(prim_path="/Visuals/ee_goal"))
+        self.ee_markers = VisualizationMarkers(self.cfg.frame_marker_cfg.replace(prim_path="/Visuals/ee_current"))
 
 
     def _setup_scene(self):
@@ -273,24 +274,20 @@ class ManipulationEnv(DirectRLEnv):
     def _get_rewards(self) -> torch.Tensor:
 
         # tracking ee in horizontal frame
+        # position
         ROT_H2W = math_utils.matrix_from_quat(math_utils.yaw_quat(self._initial_root_quat))
         ee_position_commands_local_w = torch.matmul(ROT_H2W, self._ee_commands[:, :3].unsqueeze(2))
         ee_position_commands_w = ee_position_commands_local_w[:,:,0] + self._robot.data.default_root_state[:,0:3] + self.scene.env_origins
         next_ee_position_w = self._imu.data.pos_w[:,:3].reshape((self._imu.data.pos_w.shape[0],1,3)) + self._robot.data.body_lin_vel_w[:, self._ee_id_robot, :] * self.step_dt
-        #next_ee_position_w = self._robot.data.body_pos_w[:, self._ee_id_robot, :3] + self._robot.data.body_lin_vel_w[:, self._ee_id_robot, :] * self.step_dt
-        #ee_position_error = torch.sum(torch.square(ee_position_commands_w - (self._robot.data.body_pos_w[:, self._ee_id_robot, :3]).reshape((self._robot.data.body_pos_w.shape[0],3))), dim=1)
         ee_position_error = torch.sum(torch.square(ee_position_commands_w - next_ee_position_w.reshape((self._robot.data.body_pos_w.shape[0],3))), dim=1)
         ee_position_error_mapped = torch.exp(-ee_position_error / 0.10)
         
-        ee_orientation_error = torch.sum(torch.square(self._imu.data.projected_gravity_b[:, :2]), dim=1)
-        ee_orientation_error_mapped = torch.exp(-ee_orientation_error / 0.10)
-
+        # orientation
         curr_quat_w = self._imu.data.quat_w
         des_quat_b = self._ee_commands[:, 3:7]
         des_quat_w = quat_mul(self._robot.data.root_quat_w, des_quat_b)
         ee_orientation_error = quat_error_magnitude(curr_quat_w, des_quat_w)
         ee_orientation_error_mapped = torch.exp(-ee_orientation_error / 0.10)
-        #ee_orientation_error = torch.sum(self._robot.data.body_quat_w[:, self._ee_id_robot] - self._ee_commands[:, 3:7], dim=1)
         ee_pose_error_mapped = ee_position_error_mapped #+ ee_orientation_error_mapped
 
         # end effector final velocity reward #TODO reduce even rot vel and acc?
@@ -491,6 +488,7 @@ class ManipulationEnv(DirectRLEnv):
         commands_resample[:, 2] = torch.zeros_like(self._ee_commands[:, 2]).uniform_(-0.3, 0.0)
         desired_roll = torch.zeros_like(self._ee_commands[:,3]).uniform_(-0.1, 0.1)
         desired_pitch = torch.zeros_like(self._ee_commands[:,4]).uniform_(-0.1, 0.1)
+        #desired_pitch = torch.zeros_like(self._ee_commands[:,4]).uniform_(1.4, 1.5)
         desired_yaw = torch.zeros_like(self._ee_commands[:,5]).uniform_(-1., 1.)
         commands_resample[:, 3:] = math_utils.quat_from_euler_xyz(desired_roll, desired_pitch, desired_yaw)
 
@@ -507,8 +505,11 @@ class ManipulationEnv(DirectRLEnv):
         ROT_H2W = math_utils.matrix_from_quat(math_utils.yaw_quat(self._initial_root_quat))  
         ee_position_commands_local_w = torch.matmul(ROT_H2W, self._ee_commands[:, :3].unsqueeze(2))
         goal_pos = ee_position_commands_local_w[:,:,0] + self._robot.data.default_root_state[:,0:3] + self.scene.env_origins
-        self.goal_markers.visualize(goal_pos)
-        #self.goal_markers.visualize(self._imu.data.pos_w[:,:3])
+        self.goal_markers.visualize(goal_pos, self._ee_commands[:, 3:7])
+        
+        # visualize current ee
+        self.ee_markers.visualize(self._imu.data.pos_w[:,0:3], self._imu.data.quat_w)
+
 
 
     def _get_locomotion_policy_action(self, pose_commands):
