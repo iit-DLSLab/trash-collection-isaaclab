@@ -1,4 +1,4 @@
-### Run Sim-to-Sim and Sim-to-Real
+### Installation Deploy
 
 1. install [miniforge](https://github.com/conda-forge/miniforge/releases) (x86_64 or arm64 depending on your platform)
 
@@ -25,7 +25,9 @@ else
 fi'
 ```
 
-3. Then you can 
+
+### Run Sim-to-Sim and Sim-to-Real
+
 
 ```bash
 ## Sim-to-Sim

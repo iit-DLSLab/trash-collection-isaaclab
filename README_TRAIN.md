@@ -1,3 +1,5 @@
+### Installation Train
+
 1. Install Isaac Lab by following the [installation guide](https://github.com/isaac-sim/IsaacLab). We recommend using the conda installation as it simplifies calling Python scripts from the terminal.
 
 2. Install git for very large file
