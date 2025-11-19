@@ -1,4 +1,4 @@
-### Installation Deploy
+## Installation Deploy unsing Conda
 
 1. install [miniforge](https://github.com/conda-forge/miniforge/releases) (x86_64 or arm64 depending on your platform)
 
@@ -10,12 +10,13 @@ conda env create -f mamba_environment_ros1.yaml
 conda activate trash_collection_isaaclab_ros2_env
 ```
 
-or using docker
+## Installation Deploy unsing Docker 
+1. install docker and run
 ```bash
 docker build -t trash_collection_isaaclab_image .
 ```
 
-putting in your .bashrc the following alias
+2. put in your .bashrc the following alias
 ```bash
 alias trash_collection_isaaclab_docker='
 if [ ! "$(docker ps -a -q -f name=trash_collection_isaaclab_container)" ]; then
@@ -26,13 +27,24 @@ fi'
 ```
 
 
-### Run Sim-to-Sim and Sim-to-Real
-
+## Run Sim-to-Sim 
 
 ```bash
-## Sim-to-Sim
+## Sim-to-Sim sequential
 python3 deploy/play_mujoco.py
 
+## Sim-to-Sim with ROS2
+cd deploy/ros2_ws
+colcon build
+source install/setup.bash
+python3 deploy/run_controller_ros2.py  
+ros2 launch teleop_twist_joy teleop-launch.py joy_config:='xbox' (if want joystick)
+python3 deploy/run_simulator_ros2.py
+```
+
+## Run Sim-to-Real
+
+```bash
 ## Sim-to-Real with ROS2
 cd deploy/ros2_ws
 colcon build

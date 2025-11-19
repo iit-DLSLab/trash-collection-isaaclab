@@ -1,4 +1,4 @@
-### Installation Train
+## Installation Train
 
 1. Install Isaac Lab by following the [installation guide](https://github.com/isaac-sim/IsaacLab). We recommend using the conda installation as it simplifies calling Python scripts from the terminal.
 
@@ -18,7 +18,7 @@ python -m pip install -e source/trash_collection_isaaclab
 
 
 
-### Run a train/play in IsaacLab
+## Run a train/play in IsaacLab
 
 - To train:
 
@@ -28,7 +28,7 @@ python scripts/rsl_rl/train.py --task=Locomotion-Aliengo-Rough-Blind --num_envs=
 python scripts/rsl_rl/train.py --task=Manipulation-Aliengo-Rough-Blind --num_envs=4096 --headless
 ```
 
-### Run Hyperparameter Search
+## Run Hyperparameter Search
 
 ```bash
 echo "import ray; ray.init(); import time; [time.sleep(10) for _ in iter(int, 1)]" | python3 (TERMINAL 1)
@@ -39,7 +39,7 @@ python3 ../trash_collection_isaaclab/exts/trash_collection_isaaclab/trash_collec
 ```
 
 
-### Convert XML to USD
+## Convert XML to USD
 We use models saved [here](https://github.com/iit-DLSLab/trash-collection-isaaclab/tree/main/deploy/mujoco/models).
 
 ```bash
