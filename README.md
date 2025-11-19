@@ -1,4 +1,4 @@
-# Overview
+## Overview
 
 This repository is about trash collection using RL on quadruped robots, with sim-to-sim and sim-to-real scripts. It trains in sequence two different policies, one for locomotion and a second one for manipulation, able to reach desired end effector poses.
 
@@ -20,5 +20,5 @@ A list of robots available and envs are described below:
 
 ## Installation and Runs
 
-If you want only to deploy a trained policy on your robot, continue on [README_DEPLOY](https://github.com/iit-DLSLab/trash-collection-isaaclab/blob/main/README_deploy.md) otherwise [README_TRAIN](https://github.com/iit-DLSLab/trash-collection-isaaclab/blob/main/README_train.md).
+If you want only to deploy a trained policy on your robot, continue on [README_DEPLOY](https://github.com/iit-DLSLab/trash-collection-isaaclab/blob/main/README_deploy.md) otherwise on [README_TRAIN](https://github.com/iit-DLSLab/trash-collection-isaaclab/blob/main/README_train.md).
 
