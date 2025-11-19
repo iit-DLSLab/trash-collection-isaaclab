@@ -52,8 +52,8 @@ class Console():
 
                     initial_joint_positions = copy.deepcopy(self.controller_node.joint_positions)
 
-                    keyframe_id = mujoco.mj_name2id(self.controller_node.env.mjModel, mujoco.mjtObj.mjOBJ_KEY, "home")
-                    standUp_qpos = self.controller_node.env.mjModel.key_qpos[keyframe_id]
+                    keyframe_id = mujoco.mj_name2id(self.controller_node.mjModel, mujoco.mjtObj.mjOBJ_KEY, "home")
+                    standUp_qpos = self.controller_node.mjModel.key_qpos[keyframe_id]
                     reference_joint_positions = standUp_qpos[7:19]
 
                     while(time.time() - start_time < time_motion):
@@ -64,7 +64,7 @@ class Console():
                             for initial, reference in zip(initial_joint_positions, reference_joint_positions)
                         ]
 
-                        self.controller_node.desired_joint_pos_leg = interpolated_positions
+                        self.controller_node.desired_joint_pos_leg = np.array(interpolated_positions)
 
                         time.sleep(0.01)
 
@@ -85,8 +85,8 @@ class Console():
                     temp = copy.deepcopy(self.controller_node.joint_positions)
                     initial_joint_positions = temp
                     
-                    keyframe_id = mujoco.mj_name2id(self.controller_node.env.mjModel, mujoco.mjtObj.mjOBJ_KEY, "down")
-                    goDown_qpos = self.controller_node.env.mjModel.key_qpos[keyframe_id]
+                    keyframe_id = mujoco.mj_name2id(self.controller_node.mjModel, mujoco.mjtObj.mjOBJ_KEY, "down")
+                    goDown_qpos = self.controller_node.mjModel.key_qpos[keyframe_id]
                     reference_joint_positions = goDown_qpos[7:19]
 
                     while(time.time() - start_time < time_motion):
@@ -97,7 +97,7 @@ class Console():
                             for initial, reference in zip(initial_joint_positions, reference_joint_positions)
                         ]
             
-                        self.controller_node.desired_joint_pos_leg = interpolated_positions
+                        self.controller_node.desired_joint_pos_leg = np.array(interpolated_positions)
 
                         time.sleep(0.01)
 

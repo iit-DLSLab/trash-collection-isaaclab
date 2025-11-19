@@ -93,8 +93,8 @@ class TrashControlNode(Node):
         thread_console.daemon = True
         thread_console.start()
 
-        self.console.isDown = False  # Only in this play_mujoco script
-        self.console.isRLActivated = True  # Only in this play_mujoco script
+        #self.console.isDown = True  # Only in this play_mujoco script
+        #self.console.isRLActivated = False  # Only in this play_mujoco script
                  
 
         # Subscribers and Publishers
