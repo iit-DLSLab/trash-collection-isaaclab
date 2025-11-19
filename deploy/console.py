@@ -50,7 +50,7 @@ class Console():
                     time_motion = 5.
 
 
-                    initial_joint_positions = copy.deepcopy(self.controller_node.joint_positions)
+                    initial_joint_positions = copy.deepcopy(self.controller_node.legs_joints_position)
 
                     keyframe_id = mujoco.mj_name2id(self.controller_node.mjModel, mujoco.mjtObj.mjOBJ_KEY, "home")
                     standUp_qpos = self.controller_node.mjModel.key_qpos[keyframe_id]
@@ -78,11 +78,12 @@ class Console():
                         continue
 
                     self.isDown = True
+                    self.isRLActivated = False
 
                     start_time = time.time()
                     time_motion = 5.
 
-                    temp = copy.deepcopy(self.controller_node.joint_positions)
+                    temp = copy.deepcopy(self.controller_node.legs_joints_position)
                     initial_joint_positions = temp
                     
                     keyframe_id = mujoco.mj_name2id(self.controller_node.mjModel, mujoco.mjtObj.mjOBJ_KEY, "down")
