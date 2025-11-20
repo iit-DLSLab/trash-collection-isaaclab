@@ -25,7 +25,7 @@ else
    docker exec -it trash_collection_isaaclab_container bash; \
 fi'
 ```
-
+Remember to update absolute_path_to_this_repo !!
 
 ## Run Sim-to-Sim 
 
