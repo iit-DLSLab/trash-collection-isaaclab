@@ -48,6 +48,7 @@ python3 deploy/run_simulator_ros2.py
 ## Sim-to-Real with ROS2
 cd deploy/ros2_ws
 colcon build
-python3 deploy/play_ros2.py 
+source install/setup.bash
+python3 deploy/run_controller_ros2.py 
 ros2 launch teleop_twist_joy teleop-launch.py joy_config:='xbox' (if want joystick)
 ```
