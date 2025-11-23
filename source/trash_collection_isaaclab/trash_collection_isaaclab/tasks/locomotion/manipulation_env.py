@@ -241,6 +241,18 @@ class ManipulationEnv(DirectRLEnv):
         ROT_H2W_robot = math_utils.matrix_from_quat(math_utils.yaw_quat(self._robot.data.root_quat_w))
         ee_position_commands_local_robot_w = ee_position_commands_env_w - self._robot.data.root_state_w[:, :3]
         ee_position_commands_local_robot_h = torch.matmul(ROT_H2W_robot.transpose(1,2), ee_position_commands_local_robot_w.unsqueeze(2)).squeeze(2)
+
+        # trasform ee target orientation w in horizontal frame TODO
+        # 1. Get yaw-only quaternion of the robot base
+        yaw_quat = math_utils.yaw_quat(self._robot.data.root_quat_w)  # shape [N, 4]
+
+        # 2. Invert the yaw quaternion
+        yaw_quat_inv = math_utils.quat_inv(yaw_quat)  # shape [N, 4]
+
+        # 3. Transform target orientation from world to horizontal frame
+        ee_target_quat_w = self._ee_commands[:, 3:7]  # shape [N, 4]
+        ee_target_quat_h = math_utils.quat_mul(yaw_quat_inv, ee_target_quat_w)  # shape [N, 4]
+
         obs = torch.cat(
             [
                 tensor
@@ -248,8 +260,10 @@ class ManipulationEnv(DirectRLEnv):
                     velocity_b,
                     angular_velocity_b,
                     projected_gravity_b,
-                    ee_position_commands_local_robot_h, #position
-                    self._ee_commands[:, 3:], #orientation
+                    #self._ee_commands[:, :3], #target position w
+                    #self._ee_commands[:, 3:], #target orientation w
+                    ee_position_commands_local_robot_h, #target position h
+                    ee_target_quat_h, #target orientation h
                     self._robot.data.joint_pos[:,self._ids_joints_order] - self._robot.data.default_joint_pos[:,self._ids_joints_order],
                     self._robot.data.joint_vel[:,self._ids_joints_order],
                     self._actions,
@@ -299,13 +313,13 @@ class ManipulationEnv(DirectRLEnv):
         ee_orientation_error_mapped = torch.exp(-ee_orientation_error / 0.10)
         ee_pose_error_mapped = ee_position_error_mapped + ee_orientation_error_mapped
 
-        # end effector final velocity reward #TODO reduce even rot vel and acc?
+        # end effector final velocity reward normalized per number of dimensions
         should_freeze = ee_position_error < 0.0025 #ee position error in a radius of 5cm
-        ee_final_velocity_error = torch.sum(torch.square(self._imu.data.lin_vel_b), dim=1)
-        ee_final_velocity_error_mapped = torch.exp(-ee_final_velocity_error / 0.10)*should_freeze
+        ee_final_velocity_error = torch.sum(torch.square(self._imu.data.lin_vel_b), dim=1)/3.
+        ee_final_velocity_error_mapped = torch.exp(-ee_final_velocity_error / 0.20)*should_freeze
 
-        # final joints velocity
-        joints_arm_final_velocity_error = torch.sum(torch.square(self._robot.data.joint_vel[:,self._ids_only_arms_joints_order]), dim=1)
+        # final joints velocity reward normalized per number of dimensions
+        joints_arm_final_velocity_error = torch.sum(torch.square(self._robot.data.joint_vel[:,self._ids_only_arms_joints_order]), dim=1)/6.
         joints_arm_final_velocity_reward = torch.exp(-joints_arm_final_velocity_error / 2.0)*should_freeze
 
         # action rate
@@ -449,11 +463,19 @@ class ManipulationEnv(DirectRLEnv):
 
         # Reset robot state
         joint_pos = self._robot.data.default_joint_pos[env_ids]
-        joint_pos[:, self._ids_only_arms_joints_order] += torch.zeros_like(joint_pos[:, self._ids_only_arms_joints_order]).uniform_(-3.14, 3.14)
-        # we need to project them inside the robots limits!
-        joints_limits = self._robot.data.default_joint_pos_limits
-        joints_arm_limits = joints_limits[:,self._ids_only_arms_joints_order]
-        joint_pos[:, self._ids_only_arms_joints_order] = torch.clamp(joint_pos[:, self._ids_only_arms_joints_order], joints_arm_limits[0,:,0], joints_arm_limits[0,:,1])
+        
+        #joint_pos[:, self._ids_only_arms_joints_order] += torch.zeros_like(joint_pos[:, self._ids_only_arms_joints_order]).uniform_(-3.14, 3.14)
+        # we need to project them inside the robots limits - natural constraint!
+        #joints_limits = self._robot.data.default_joint_pos_limits
+        #joints_arm_limits = joints_limits[:,self._ids_only_arms_joints_order]
+        #joint_pos[:, self._ids_only_arms_joints_order] = torch.clamp(joint_pos[:, self._ids_only_arms_joints_order], joints_arm_limits[0,:,0], joints_arm_limits[0,:,1])
+
+        # we need to project them inside the robots limits - smaller constraint!
+        joints_arm_limits_start_upper = torch.tensor([1.0, 2.6, -0.5, 1.5184, 1.3439, 2.7925], device=self.device) 
+        joints_arm_limits_start_lower = torch.tensor([-1.0, 1.6, -1.8, -1.5184, -1.3439, -2.7925], device=self.device) 
+        random_tensor = torch.rand((env_ids.shape[0],6), device=self.device)
+        sampled_arm_joints = joints_arm_limits_start_lower + (joints_arm_limits_start_upper - joints_arm_limits_start_lower) * random_tensor
+        joint_pos[:, self._ids_only_arms_joints_order] = sampled_arm_joints
 
         joint_vel = self._robot.data.default_joint_vel[env_ids]
         default_root_state = self._robot.data.default_root_state[env_ids]
@@ -490,6 +512,9 @@ class ManipulationEnv(DirectRLEnv):
 
 
     def _get_new_random_commands(self):
+        #distance_between_ee_and_command = torch.norm(self._imu.data.pos_w[:,0:3] - self._ee_commands[:,0:3], dim=1)
+        #random_sample_scalar = torch.rand((self._robot._ALL_INDICES, 6), device=self.device)
+
         # Sample new commands
         commands_resample = torch.zeros_like(self._ee_commands)
         commands_resample[:, 0] = torch.zeros_like(self._ee_commands[:, 0]).uniform_(0.5, 0.8)
