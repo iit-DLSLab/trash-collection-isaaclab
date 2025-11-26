@@ -292,12 +292,14 @@ class ArmFlatEnvCfg(DirectRLEnvCfg):
     desired_clip_actions = 6.0
     
     # Tracking reward scale
-    ee_pose_reward_scale = 1.5
+    ee_position_reward_scale = 1.5
+    ee_final_orientation_reward_scale = 1.5
     ee_final_velocity_reward_scale = 1.5
     
     # Joint reward scale
     joints_torque_reward_scale = -2.5e-6
     joints_accel_reward_scale = -2.5e-8
+    joints_vel_reward_scale = -2.5e-5
     joints_energy_reward_scale = -1e-4
     #joints_arm_position_reward_scale = -0.001
     joints_vel_smoothness_reward_scale = -1e-4

@@ -89,23 +89,26 @@ class ManipulationEnv(DirectRLEnv):
         self._episode_sums = {
             key: torch.zeros(self.num_envs, dtype=torch.float, device=self.device)
             for key in [
-                "track_ee_exp",
-                "track_ee_final_vel_exp",
+                "ee_position_exp",
+                "ee_final_orientation_exp",
+                "ee_final_vel_exp",
 
                 "undesired_contacts",
                 "action_rate_l2",
                 "action_smoothness_l2",
                 "action_pose_and_vel_near_zero_l2",
 
-                #"joints_pos_l2",
+                #"joints_pos_l2": joints_arm_position_reward * self.cfg.joints_arm_position_reward_scale * self.step_dt,
+                "joints_vel_l2",
+                "joints_final_vel_exp",
+                #"joints_vel_smoothness_l2": joints_vel_smoothness * self.cfg.joints_vel_smoothness_reward_scale * self.step_dt,
                 "joints_acc_l2",
                 "joints_torques_l2",
                 "joints_energy_l1",
-                #"joints_vel_smoothness_l2",
-                "joints_vel_final_exp",
 
-                "track_lin_vel_z_l2",
-                "track_ang_vel_l2",
+                # Robot Base stability
+                "base_ang_vel_l2",
+                "base_lin_vel_z_l2",
                 
             ]
         }
@@ -296,38 +299,43 @@ class ManipulationEnv(DirectRLEnv):
 
     def _get_rewards(self) -> torch.Tensor:
 
-        # tracking ee in horizontal frame
-        # position
+        # tracking position ee in horizontal frame
         ROT_H2W = math_utils.matrix_from_quat(math_utils.yaw_quat(self._initial_root_quat))
         ee_position_commands_local_w = torch.matmul(ROT_H2W, self._ee_commands[:, :3].unsqueeze(2))
         ee_position_commands_w = ee_position_commands_local_w[:,:,0] + self._robot.data.default_root_state[:,0:3] + self.scene.env_origins
-        next_ee_position_w = self._imu.data.pos_w[:,:3].reshape((self._imu.data.pos_w.shape[0],1,3)) + self._robot.data.body_lin_vel_w[:, self._ee_id_robot, :] * self.step_dt
-        ee_position_error = torch.sum(torch.square(ee_position_commands_w - next_ee_position_w.reshape((self._robot.data.body_pos_w.shape[0],3))), dim=1)
+        #next_ee_position_w = self._imu.data.pos_w[:,:3].reshape((self._imu.data.pos_w.shape[0],1,3)) + self._robot.data.body_lin_vel_w[:, self._ee_id_robot, :] * self.step_dt
+        #ee_position_error = torch.sum(torch.square(ee_position_commands_w - next_ee_position_w.reshape((self._robot.data.body_pos_w.shape[0],3))), dim=1)
+        ee_position_error = torch.sum(torch.square(ee_position_commands_w - self._imu.data.pos_w[:,:3]), dim=1)
         ee_position_error_mapped = torch.exp(-ee_position_error / 0.10)
         
-        # orientation
+
+        # tracking orientation ee near goal
+        should_freeze = ee_position_error < 0.0025 #ee position error in a radius of 5cm
         curr_quat_w = self._imu.data.quat_w
         des_quat_b = self._ee_commands[:, 3:7]
         des_quat_w = quat_mul(self._robot.data.root_quat_w, des_quat_b)
         ee_orientation_error = quat_error_magnitude(curr_quat_w, des_quat_w)
-        ee_orientation_error_mapped = torch.exp(-ee_orientation_error / 0.10)
-        ee_pose_error_mapped = ee_position_error_mapped + ee_orientation_error_mapped
+        ee_orientation_error_mapped = torch.exp(-ee_orientation_error / 0.10)*should_freeze
 
-        # end effector final velocity reward normalized per number of dimensions
-        should_freeze = ee_position_error < 0.0025 #ee position error in a radius of 5cm
+
+        # regulation final velocity ee near goal (reward normalized per number of dimensions)
         ee_final_velocity_error = torch.sum(torch.square(self._imu.data.lin_vel_b), dim=1)/3.
         ee_final_velocity_error_mapped = torch.exp(-ee_final_velocity_error / 0.20)*should_freeze
 
-        # final joints velocity reward normalized per number of dimensions
+
+        # regulation final velocity joints near goal (reward normalized per number of dimensions)
         joints_arm_final_velocity_error = torch.sum(torch.square(self._robot.data.joint_vel[:,self._ids_only_arms_joints_order]), dim=1)/6.
         joints_arm_final_velocity_reward = torch.exp(-joints_arm_final_velocity_error / 2.0)*should_freeze
+
 
         # action rate
         action_rate = torch.sum(torch.square(self._actions - self._previous_actions), dim=1)
         action_smoothness = torch.sum(torch.square(self._actions - 2*self._previous_actions + self._previous_previous_actions), dim=1)
 
+
         # action pose near zero
         action_pose_and_vel_near_zero = torch.sum(torch.square(self._actions[:, 6:]), dim=1)
+
 
         # undersired contacts
         net_contact_forces = self._contact_sensor.data.net_forces_w_history
@@ -341,13 +349,18 @@ class ManipulationEnv(DirectRLEnv):
         joints_accel = torch.sum(torch.square(self._robot.data.joint_acc[:,self._ids_only_arms_joints_order]), dim=1)
 
 
+        # joint velocity
+        joints_vel = torch.sum(torch.square(self._robot.data.joint_vel[:,self._ids_only_arms_joints_order]), dim=1)
+
+
         # joint torques
         joints_torques = torch.sum(torch.square(self._robot.data.applied_torque[:,self._ids_only_arms_joints_order]), dim=1)
 
 
         # energy = torque * velocity
         joints_energy = torch.sum(torch.abs(self._robot.data.applied_torque[:,self._ids_only_arms_joints_order] * self._robot.data.joint_vel[:,self._ids_only_arms_joints_order]), dim=1)
-        
+
+
         # joints position
         joints_arm_position = self._robot.data.joint_pos[:,self._ids_only_arms_joints_order[0:4]]
         joints_arm_position_error = torch.square(joints_arm_position - self._robot.data.default_joint_pos[:,self._ids_only_arms_joints_order[0:4]])
@@ -367,7 +380,7 @@ class ManipulationEnv(DirectRLEnv):
 
 
         # Nan and Inf check
-        total_nans_check_ee_pose_error_mapped = torch.isnan(ee_pose_error_mapped * self.cfg.ee_pose_reward_scale * self.step_dt).sum()
+        """total_nans_check_ee_pose_error_mapped = torch.isnan(ee_pose_error_mapped * self.cfg.ee_pose_reward_scale * self.step_dt).sum()
         total_nans_check_action_rate = torch.isnan(action_rate * self.cfg.action_rate_reward_scale * self.step_dt).sum()
         total_nans_check_action_smoothness = torch.isnan(action_smoothness * self.cfg.action_smoothness_reward_scale * self.step_dt).sum()
         total_nans_check_contacts = torch.isnan(contacts * self.cfg.undersired_contact_reward_scale * self.step_dt).sum()
@@ -391,13 +404,15 @@ class ManipulationEnv(DirectRLEnv):
                 total_infs_check_joints_accel + total_infs_check_joints_torques + total_infs_check_joints_energy
         if total_inf_check > 0:
             print("Infs in reward computation")
-            breakpoint()
+            breakpoint()"""
 
 
 
         rewards = {
-            "track_ee_exp": ee_pose_error_mapped * self.cfg.ee_pose_reward_scale * self.step_dt,
-            "track_ee_final_vel_exp": ee_final_velocity_error_mapped * self.cfg.ee_final_velocity_reward_scale * self.step_dt,
+            # End Effector
+            "ee_position_exp": ee_position_error_mapped * self.cfg.ee_position_reward_scale * self.step_dt,
+            "ee_final_orientation_exp": ee_orientation_error_mapped * self.cfg.ee_final_orientation_reward_scale * self.step_dt,
+            "ee_final_vel_exp": ee_final_velocity_error_mapped * self.cfg.ee_final_velocity_reward_scale * self.step_dt,
 
             "undesired_contacts": contacts * self.cfg.undersired_contact_reward_scale * self.step_dt,
             "action_rate_l2": action_rate * self.cfg.action_rate_reward_scale * self.step_dt,
@@ -405,14 +420,16 @@ class ManipulationEnv(DirectRLEnv):
             "action_pose_and_vel_near_zero_l2": action_pose_and_vel_near_zero * self.cfg.action_pose_and_vel_near_zero_reward_scale * self.step_dt,
 
             #"joints_pos_l2": joints_arm_position_reward * self.cfg.joints_arm_position_reward_scale * self.step_dt,
+            "joints_vel_l2": joints_vel * self.cfg.joints_vel_reward_scale * self.step_dt,
+            "joints_final_vel_exp": joints_arm_final_velocity_reward * self.cfg.joints_vel_final_reward_scale * self.step_dt,
+            #"joints_vel_smoothness_l2": joints_vel_smoothness * self.cfg.joints_vel_smoothness_reward_scale * self.step_dt,
             "joints_acc_l2": joints_accel * self.cfg.joints_accel_reward_scale * self.step_dt,
             "joints_torques_l2": joints_torques * self.cfg.joints_torque_reward_scale * self.step_dt,
             "joints_energy_l1": joints_energy * self.cfg.joints_energy_reward_scale * self.step_dt,
-            #"joints_vel_smoothness_l2": joints_vel_smoothness * self.cfg.joints_vel_smoothness_reward_scale * self.step_dt,
-            "joints_vel_final_exp": joints_arm_final_velocity_reward * self.cfg.joints_vel_final_reward_scale * self.step_dt,
 
-            "track_ang_vel_l2": ang_vel_error * self.cfg.ang_vel_reward_scale * self.step_dt,
-            "track_lin_vel_z_l2": z_vel_error * self.cfg.z_vel_reward_scale * self.step_dt,
+            # Robot Base stability
+            "base_ang_vel_l2": ang_vel_error * self.cfg.ang_vel_reward_scale * self.step_dt,
+            "base_lin_vel_z_l2": z_vel_error * self.cfg.z_vel_reward_scale * self.step_dt,
         }
         reward = torch.sum(torch.stack(list(rewards.values())), dim=0)
         
