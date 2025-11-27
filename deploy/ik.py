@@ -1,0 +1,148 @@
+import mujoco
+import mujoco.viewer
+import numpy as np
+import time
+from enum import Enum
+
+
+import sys
+import os 
+dir_path = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(dir_path+"/../")
+    
+# Integration timestep in seconds. This corresponds to the amount of time the joint
+# velocities will be integrated for to obtain the desired joint positions.
+integration_dt: float = 0.1
+
+# Damping term for the pseudoinverse. This is used to prevent joint velocities from
+# becoming too large when the Jacobian is close to singular.
+damping: float = 1e-5
+
+# Number of iterations for the IK solver.
+num_iterations: int = 150
+
+class IKState(Enum):
+    DIFF = 0
+    DAMPING = 1
+    GRADIENT = 2
+
+class IK:
+    def __init__(self) -> None:
+        # IK parameters
+        self.ik_state = IKState.DIFF
+
+        # Load model
+        self.model = mujoco.MjModel.from_xml_path(dir_path+"/mujoco/models/z1/scene_gripper_floating.xml")
+        self.data = mujoco.MjData(self.model)
+
+        # Get joint IDs
+        joint_names = ["basez", "basepitch", "joint1", "joint2", "joint3", "joint4", "joint5", "joint6"]
+        self.dof_ids = np.array([self.model.joint(name).id for name in joint_names])
+
+        # Set initial configuration
+        key_id = self.model.key("home").id
+        mujoco.mj_resetDataKeyframe(self.model, self.data, key_id)
+        self.final_quat =np.zeros(4)
+        self.joint_center = 0.5 * (self.model.jnt_range[:, 0] + self.model.jnt_range[:, 1])[:-1]
+        self.joint_range = 0.5 * (self.model.jnt_range[:, 1] - self.model.jnt_range[:, 0])[:-1]
+
+        # Get end-effector site ID
+        self.site_id = self.model.site("attachment_site").id
+
+    def compute(self, target_pos: np.ndarray, target_quat: np.ndarray, initial_q: np.ndarray) -> np.ndarray:
+        # Pre-allocate arrays
+        ik_succeded = True
+        jac = np.zeros((6, self.model.nv))
+        diag = damping * np.eye(6)
+        error = np.zeros(6)
+        error_pos = np.zeros(3)
+        error_ori = np.zeros(3)
+        site_quat = np.zeros(4)
+        site_quat_conj = np.zeros(4)
+        error_quat = np.zeros(4)
+
+
+        # Set initial joint configuration
+        self.data.qpos[0:8] = initial_q
+        # I define a new variable to neglect the gripper
+        q_eff= initial_q
+        # q = initial_q.copy()
+        mujoco.mj_fwdPosition(self.model, self.data)
+
+        for _ in range(num_iterations):
+            # Position error
+            error_pos = target_pos - self.data.site(self.site_id).xpos
+
+            # Orientation error
+            mujoco.mju_mat2Quat(site_quat, self.data.site(self.site_id).xmat)
+            mujoco.mju_negQuat(site_quat_conj, site_quat)
+            mujoco.mju_mulQuat(error_quat, target_quat, site_quat_conj)
+            mujoco.mju_quat2Vel(error_ori, error_quat, 1.0)
+
+            # Get Jacobian
+            mujoco.mj_jacSite(self.model, self.data, jac[:3], jac[3:], self.site_id)
+
+            # Compute error
+            error[:3] = error_pos
+            error[3:] = error_ori
+            
+            match self.ik_state:
+                case IKState.DIFF:
+                    # Differential IK
+                    dq = jac.T @ np.linalg.solve(jac @ jac.T + diag, error)
+                    q = self.data.qpos.copy()
+                    q += dq * integration_dt
+                    q_eff = q[0:8]
+
+
+                case IKState.GRADIENT:
+                    # Gradient descent
+                    q = self.data.qpos.copy()
+                    q = q + 0.1 * jac.T @ error
+                    q_eff = q[0:8]
+            
+                case IKState.DAMPING:
+                    # Damping to avoid hitting limits
+                    dq = jac[:, :-1].T @ np.linalg.solve(jac[:, :-1] @ jac[:, :-1].T + diag + np.diag(((q_eff- self.joint_center)/self.joint_range)**2), error)
+                    q_eff += dq * integration_dt
+                    
+            
+
+            self.data.qpos[0:8] = q_eff
+            mujoco.mj_fwdPosition(self.model, self.data)
+            mujoco.mju_mat2Quat(self.final_quat, self.data.site(self.site_id).xmat)
+        print("Final IK result:", q_eff)
+        if np.linalg.norm(error) > 0.1:
+            ik_succeded = False
+ 
+
+        return self.data.qpos, ik_succeded
+    
+
+if __name__ == "__main__":
+    ik_solver = IK()
+    while True:
+        # Define target position and orientation
+        x_pos = np.random.uniform(0.2, 0.4)
+        y_pos = np.random.uniform(-0.2, 0.2)
+        z_pos = np.random.uniform(0.3, 0.6)
+        target_pos = np.array([x_pos, y_pos, z_pos])
+        target_quat = np.array([1.0, 0.0, 0.0, 0.0])  # w, x, y, z
+        mocap_id = ik_solver.model.body("target").mocapid[0]
+        ik_solver.data.mocap_pos[mocap_id] = target_pos
+        ik_solver.data.mocap_quat[mocap_id] = target_quat
+
+        # Initial joint configuration
+        initial_q = np.array([0.0, 0.0, 0.0, -0.5, 0.5, 0.0, 1.0, 0.0])
+
+        # Compute IK
+        q_sol, success = ik_solver.compute(target_pos, target_quat, initial_q)
+        print("IK Success:", success)
+        print("Joint Solution:", q_sol[0:6])
+
+        # Visualize result
+        viewer = mujoco.viewer.launch_passive(ik_solver.model, ik_solver.data)
+        while viewer.is_running():
+            time.sleep(2)
+            viewer.close()
+            break
