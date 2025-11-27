@@ -25,6 +25,7 @@ from manipulation_policy_wrapper import ManipulationPolicyWrapper
 from locomotion_policy_wrapper import LocomotionPolicyWrapper
 from state_machine import StateMachine
 from state_machine import ArmStateType, GripperStateType
+from ik import IK
 
 
 import config
@@ -59,6 +60,7 @@ class PlayMujoco:
         self.manipulation_policy = ManipulationPolicyWrapper(mjModel=self.mjModel)
         self.locomotion_policy = LocomotionPolicyWrapper(mjModel=self.mjModel)
         self.state_machine = StateMachine()
+        self.ik_solver = IK()
 
         if(self.locomotion_policy.use_vision):
             resolution_heightmap = config.resolution_heightmap

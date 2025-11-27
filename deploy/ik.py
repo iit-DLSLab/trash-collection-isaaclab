@@ -49,7 +49,7 @@ class IK:
         # Get end-effector site ID
         self.site_id = self.model.site("attachment_site").id
 
-    def compute(self, target_pos: np.ndarray, target_quat: np.ndarray, initial_q: np.ndarray) -> np.ndarray:
+    def compute(self, target_pos: np.ndarray, target_quat: np.ndarray, initial_joints_position: np.ndarray, initial_base_pose: np.ndarray) -> np.ndarray:
         # Pre-allocate arrays
         ik_succeded = True
         jac = np.zeros((6, self.model.nv))
@@ -63,9 +63,9 @@ class IK:
 
 
         # Set initial joint configuration
-        self.data.qpos[0:8] = initial_q
+        self.data.qpos[0:8] = np.concatenate((initial_base_pose, initial_joints_position))
         # I define a new variable to neglect the gripper
-        q_eff= initial_q
+        q_eff= np.concatenate((initial_base_pose, initial_joints_position))
         # q = initial_q.copy()
         mujoco.mj_fwdPosition(self.model, self.data)
 
@@ -122,8 +122,11 @@ class IK:
         print("Final IK result:", q_eff)
         print("Success?", ik_succeded)
 
-        return self.data.qpos, ik_succeded
-    
+        final_base_pose = self.data.qpos[0:2]
+        final_arm_joints = self.data.qpos[2:8]
+
+        return final_base_pose, final_arm_joints, ik_succeded
+
 
 if __name__ == "__main__":
     ik_solver = IK()

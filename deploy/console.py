@@ -219,7 +219,7 @@ class Console():
                     print("Reached pre-reach")
                     self.controller_node.state_machine.change_state(state=ArmStateType.PREREACH) # Ready for policy handover
 
-                elif input_string == "armReachObject":
+                elif input_string == "armReachObjectRL":
 
                     if(self.controller_node.state_machine.state_type != ArmStateType.PREREACH and self.controller_node.state_machine.state_type != ArmStateType.REACH):
                         print("Error: first move to pre-reach position")
@@ -236,6 +236,29 @@ class Console():
 
                         self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
                         print("Reached pre-reach")
+
+                elif input_string == "armReachObjectIK":
+
+                    if(self.controller_node.state_machine.state_type != ArmStateType.PREREACH and self.controller_node.state_machine.state_type != ArmStateType.REACH):
+                        print("Error: first move to pre-reach position")
+                        continue
+                    
+                    target_pos = [0.5, 0.0, 0.5]
+                    target_quat = ([ -0.7071, 0.0, -0.7071, 0])
+                    print("target pos is ", target_pos)
+                    initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
+                    initial_base_pose = copy.deepcopy(self.controller_node.desired_pose_command_overwrite)
+                    reference_base_pose, reference_joints_position, ik_succeded = self.controller_node.ik_solver.compute(target_pos, target_quat, initial_joints_position, initial_base_pose)
+                    self.controller_node.desired_pose_command_overwrite = reference_base_pose
+                    if ik_succeded:
+                        time_motion = 5.
+                        self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
+                        print("Reaching grasping position at coordinates ", target_pos)
+                        self.controller_node.state_machine.change_state(state=ArmStateType.GRASP)
+                        self.controller_node.state_machine.change_state(gripper_state=GripperStateType.CLOSE) # CLOSE
+                    else:
+                        print("IK failed, position not reachable!")
+
 
                 elif input_string == "armReachBasket":
 
@@ -301,7 +324,7 @@ class Console():
         print("setBasePose: Set desired base pitch and height")
         print("armHome: Move arm to home position")
         print("armPreReachObject: Move arm to pre-reach object position")
-        print("armReachObject: Move arm to reach object position")
+        print("armReachObjectRL: Move arm to reach object position")
         print("armReachBasket: Move arm to reach basket position")
         print("armOpenBasket: Open the basket")
         print("armCloseGripper: Close the gripper")
