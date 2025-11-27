@@ -29,10 +29,10 @@ class IKState(Enum):
 class IK:
     def __init__(self) -> None:
         # IK parameters
-        self.ik_state = IKState.DIFF
+        self.ik_state = IKState.DAMPING
 
         # Load model
-        self.model = mujoco.MjModel.from_xml_path(dir_path+"/mujoco/models/z1/scene_gripper_floating.xml")
+        self.model = mujoco.MjModel.from_xml_path(dir_path+"/mujoco/models/z1/scene_floating.xml")
         self.data = mujoco.MjData(self.model)
 
         # Get joint IDs
@@ -43,8 +43,8 @@ class IK:
         key_id = self.model.key("home").id
         mujoco.mj_resetDataKeyframe(self.model, self.data, key_id)
         self.final_quat =np.zeros(4)
-        self.joint_center = 0.5 * (self.model.jnt_range[:, 0] + self.model.jnt_range[:, 1])[:-1]
-        self.joint_range = 0.5 * (self.model.jnt_range[:, 1] - self.model.jnt_range[:, 0])[:-1]
+        self.joint_center = 0.5 * (self.model.jnt_range[:, 0] + self.model.jnt_range[:, 1])
+        self.joint_range = 0.5 * (self.model.jnt_range[:, 1] - self.model.jnt_range[:, 0])
 
         # Get end-effector site ID
         self.site_id = self.model.site("attachment_site").id
@@ -85,7 +85,7 @@ class IK:
             # Compute error
             error[:3] = error_pos
             error[3:] = error_ori
-            
+
             match self.ik_state:
                 case IKState.DIFF:
                     # Differential IK
@@ -94,7 +94,6 @@ class IK:
                     q += dq * integration_dt
                     q_eff = q[0:8]
 
-
                 case IKState.GRADIENT:
                     # Gradient descent
                     q = self.data.qpos.copy()
@@ -102,19 +101,26 @@ class IK:
                     q_eff = q[0:8]
             
                 case IKState.DAMPING:
+                    jac_pseudo = jac.T @ np.linalg.solve(jac @ jac.T + diag, np.eye(6))
                     # Damping to avoid hitting limits
-                    dq = jac[:, :-1].T @ np.linalg.solve(jac[:, :-1] @ jac[:, :-1].T + diag + np.diag(((q_eff- self.joint_center)/self.joint_range)**2), error)
-                    q_eff += dq * integration_dt
-                    
+                    dq = jac_pseudo @ error
+                    # Damping to avoid joint limits
+                    W = np.eye(8)*0.0
+                    W[0,0] = 10.
+                    W[1,1] = 10.
+                    dq -= (np.eye(8) - jac_pseudo @ jac) @ W @ (q_eff- self.joint_center)
+                    q_eff += dq * integration_dt                    
             
-
+            # Update configuration
             self.data.qpos[0:8] = q_eff
             mujoco.mj_fwdPosition(self.model, self.data)
             mujoco.mju_mat2Quat(self.final_quat, self.data.site(self.site_id).xmat)
-        print("Final IK result:", q_eff)
+
         if np.linalg.norm(error) > 0.1:
             ik_succeded = False
  
+        print("Final IK result:", q_eff)
+        print("Success?", ik_succeded)
 
         return self.data.qpos, ik_succeded
     
