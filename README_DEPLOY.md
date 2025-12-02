@@ -6,7 +6,7 @@
 
 
 ```bash
-conda env create -f mamba_environment_ros1.yaml
+conda env create -f mamba_environment_ros2.yaml
 conda activate trash_collection_isaaclab_ros2_env
 ```
 
