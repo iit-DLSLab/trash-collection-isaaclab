@@ -4,11 +4,10 @@
       <statistic center="0 0 0.1" extent="0.8"/>
 
       <visual>
-            <headlight diffuse="0.6 0.6 0.6" ambient="0.3 0.3 0.3" specular="0 0 0"/>
+            <headlight diffuse="0.4 0.4 0.4" ambient="0.25 0.25 0.25" specular="0.25 0.25 0.25"/>
             <rgba haze="0.99 0.99 0.99 1"/>
             <global azimuth="-130" elevation="-20"/>
       </visual>
-
       <asset>
             <texture
                   type="skybox"
@@ -24,12 +23,12 @@
                   builtin="checker"
                   mark="edge"
                   rgb1="0.93 0.93 0.93"
-                  rgb2="1.0 1.0 1.0"
-                  markrgb="1 1 1"
-                  width="200"
-                  height="200"
+                  rgb2="0.93 0.93 0.93"
+                  markrgb="0 0 0"
+                  width="250"
+                  height="250"
             />
-            <material name="groundplane" texture="groundplane" texuniform="true" texrepeat="5 5" reflectance="0.05"/>
+            <material name="groundplane" texture="groundplane" texuniform="true" texrepeat="5 5" reflectance="0.0"/>
             <mesh name="waterbottle1" file="waterbottle/waterbottle.stl"/>
             <mesh name="waterbottle2" file="waterbottle/waterbottle.stl"/>
             <mesh name="waterbottle3" file="waterbottle/waterbottle.stl"/>
@@ -37,7 +36,7 @@
 
 
       <worldbody>
-            <light pos="0 0 3.5" dir="-1 0 -1" directional="true" castshadow="false"/>
+            <light pos="0 0 5.0" dir="0 0 -1" directional="true" castshadow="false"/>
 
             <body name="bottle1" pos="0.5 0 0.5">
                   <geom name="waterbottle_visual1" type="mesh" mesh="waterbottle1" rgba=".6 .3 .3 .5"/>
