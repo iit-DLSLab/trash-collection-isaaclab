@@ -6,7 +6,7 @@
 import rclpy 
 from rclpy.node import Node 
 from sensor_msgs.msg import Joy
-from dls2_interfaces.msg import BaseState, BlindState, Imu, TrajectoryGenerator, ArmBlindState, ArmTrajectoryGenerator
+from dls2_interfaces.msg import BaseState, BlindState, Imu, TrajectoryGenerator, ArmState, ArmTrajectoryGenerator
 import copy
 import time
 import numpy as np
@@ -307,10 +307,10 @@ class TrashControlNode(Node):
 
         #arm_trajectory_generator_msg = ArmTrajectoryGenerator()
         #arm_trajectory_generator_msg.timestamp = float(self.get_clock().now().nanoseconds)
-        #arm_trajectory_generator_msg.desired_arm_joints_position = self.desired_joint_pos_arm
-        #arm_trajectory_generator_msg.desired_arm_joints_velocity = np.zeros(6)
-        #arm_trajectory_generator_msg.arm_kp = np.ones(6)*self.Kp_arm
-        #arm_trajectory_generator_msg.arm_kd = np.ones(6)*self.Kd_arm
+        #arm_trajectory_generator_msg.desired_arm_joints_position = self.desired_joint_pos_arm.tolist()
+        #arm_trajectory_generator_msg.desired_arm_joints_velocity = np.zeros(6).tolist()
+        #arm_trajectory_generator_msg.arm_kp = (np.ones(6)*self.Kp_arm).tolist()
+        #arm_trajectory_generator_msg.arm_kd = (np.ones(6)*self.Kd_arm).tolist()
         #self.publisher_arm_trajectory_generator.publish(arm_trajectory_generator_msg)
         
 

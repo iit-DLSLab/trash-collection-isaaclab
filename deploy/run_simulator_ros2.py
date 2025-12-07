@@ -4,7 +4,7 @@
 # Giulio Turrisi
 import rclpy 
 from rclpy.node import Node 
-from dls2_interfaces.msg import BaseState, BlindState, Imu, TrajectoryGenerator, ArmBlindState, ArmTrajectoryGenerator
+from dls2_interfaces.msg import BaseState, BlindState, Imu, TrajectoryGenerator, ArmState, ArmTrajectoryGenerator
 
 import time
 import numpy as np
@@ -67,7 +67,6 @@ class MujocoSimulationNode(Node):
     def get_arm_trajectory_generator_callback(self, msg):
 
         joints_position = np.array(msg.desired_arm_joints_position)
-
         self.desired_arm_joints_position = joints_position
         self.Kp_arm = np.array(msg.arm_kp)[0]
         self.Kd_arm = np.array(msg.arm_kd)[0]
@@ -130,8 +129,8 @@ class MujocoSimulationNode(Node):
         self.publisher_blind_state.publish(blind_state_msg)
 
         arm_blind_state_msg = ArmBlindState()
-        arm_blind_state_msg.arm_joints_position = self.mjData.qpos[19:25]
-        arm_blind_state_msg.arm_joints_velocity = self.mjData.qvel[18:24]
+        arm_blind_state_msg.arm_joints_position = self.mjData.qpos[19:25].tolist()
+        arm_blind_state_msg.arm_joints_velocity = self.mjData.qvel[18:24].tolist()
         self.publisher_arm_blind_state.publish(arm_blind_state_msg)
 
 

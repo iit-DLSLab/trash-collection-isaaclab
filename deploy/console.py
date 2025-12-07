@@ -243,7 +243,7 @@ class Console():
                         print("Error: first move to pre-reach position")
                         continue
                     
-                    target_pos = [0.5, 0.0, 0.5]
+                    target_pos = [0.5, 0.0, 0.1]
                     target_quat = ([ -0.7071, 0.0, -0.7071, 0])
                     print("target pos is ", target_pos)
                     initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
