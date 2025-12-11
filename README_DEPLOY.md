@@ -49,7 +49,7 @@ python3 deploy/run_simulator_ros2.py
 cd deploy/ros2_ws
 colcon build
 source install/setup.bash
-./dls2_connect.sh
+source ./dls2_connect.sh
 python3 deploy/run_controller_ros2.py
 ```
 If you want a joystick, on a second terminal enter in the docker and then:
@@ -57,6 +57,6 @@ If you want a joystick, on a second terminal enter in the docker and then:
 ```bash
 cd deploy/
 source ros2_ws/install/setup.bash
-./dls2_connect.sh
+source ./dls2_connect.sh
 ros2 launch teleop_twist_joy teleop-launch.py joy_config:='xbox'
 ```
