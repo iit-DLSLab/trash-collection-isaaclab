@@ -42,14 +42,15 @@ class IK:
         # Set initial configuration
         key_id = self.model.key("home").id
         mujoco.mj_resetDataKeyframe(self.model, self.data, key_id)
-        self.final_quat =np.zeros(4)
+        self.final_quat = np.zeros(4)
         self.joint_center = 0.5 * (self.model.jnt_range[:, 0] + self.model.jnt_range[:, 1])
         self.joint_range = 0.5 * (self.model.jnt_range[:, 1] - self.model.jnt_range[:, 0])
 
         # Get end-effector site ID
         self.site_id = self.model.site("attachment_site").id
 
-    def compute(self, target_pos: np.ndarray, target_quat: np.ndarray, initial_joints_position: np.ndarray, initial_base_pose: np.ndarray) -> np.ndarray:
+    def compute(self, target_pos: np.ndarray, target_quat: np.ndarray, initial_joints_position: np.ndarray, initial_base_pose: np.ndarray, optimize_height = False, optimize_pitch = False) -> np.ndarray:
+        
         # Pre-allocate arrays
         ik_succeded = True
         jac = np.zeros((6, self.model.nv))
@@ -65,7 +66,7 @@ class IK:
         # Set initial joint configuration
         self.data.qpos[0:8] = np.concatenate((initial_base_pose, initial_joints_position))
         # I define a new variable to neglect the gripper
-        q_eff= np.concatenate((initial_base_pose, initial_joints_position))
+        q_eff = np.concatenate((initial_base_pose, initial_joints_position))
         # q = initial_q.copy()
         mujoco.mj_fwdPosition(self.model, self.data)
 
@@ -81,6 +82,13 @@ class IK:
 
             # Get Jacobian
             mujoco.mj_jacSite(self.model, self.data, jac[:3], jac[3:], self.site_id)
+
+
+            if(optimize_pitch == False):
+                jac[:, 0] = 0.0
+            if(optimize_height == False):
+                jac[:, 1] = 0.0
+            
 
             # Compute error
             error[:3] = error_pos
@@ -108,7 +116,7 @@ class IK:
                     W = np.eye(8)*0.0
                     W[0,0] = 10.
                     W[1,1] = 10.
-                    dq -= (np.eye(8) - jac_pseudo @ jac) @ W @ (q_eff- self.joint_center)
+                    dq -= (np.eye(8) - jac_pseudo @ jac) @ W @ (q_eff - self.joint_center)
                     q_eff += dq * integration_dt                    
             
             # Update configuration
@@ -130,6 +138,7 @@ class IK:
 
 if __name__ == "__main__":
     ik_solver = IK()
+    
     while True:
         # Define target position and orientation
         x_pos = np.random.uniform(0.2, 0.4)
@@ -142,12 +151,15 @@ if __name__ == "__main__":
         ik_solver.data.mocap_quat[mocap_id] = target_quat
 
         # Initial joint configuration
-        initial_q = np.array([0.0, 0.0, 0.0, -0.5, 0.5, 0.0, 1.0, 0.0])
+        initial_joints = np.array([0.0, -0.5, 0.5, 0.0, 1.0, 0.0])
+        initial_base_pose = np.array([0.0, 0.0])  # pitch, z
 
         # Compute IK
-        q_sol, success = ik_solver.compute(target_pos, target_quat, initial_q)
+        final_base_pose, \
+        final_arm_joints, \
+        success = ik_solver.compute(target_pos, target_quat, initial_joints, initial_base_pose, optimize_height=False, optimize_pitch=True)
         print("IK Success:", success)
-        print("Joint Solution:", q_sol[0:6])
+        print("Joint Solution:", final_arm_joints)
 
         # Visualize result
         viewer = mujoco.viewer.launch_passive(ik_solver.model, ik_solver.data)
