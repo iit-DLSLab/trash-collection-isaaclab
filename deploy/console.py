@@ -18,7 +18,7 @@ class Console():
         # Autocomplete setup
         self.commands = [
             "help", "ictp", "goUp", "goDown", "activate", "ictp", "setKp", "setKd",
-            "setBasePose", "armHome", "armPreReachObject", "armReachObject", "armReachBasket",
+            "setBasePose", "armHome", "armPreReachObject", "armReachObjectRL", "armReachObjectIK", "armReachBasket",
             "armOpenBasket", "armCloseGripper", "armOpenGripper"
         ]
         readline.set_completer(self.complete)
@@ -246,16 +246,34 @@ class Console():
                     target_pos = [0.5, 0.0, 0.1]
                     target_quat = ([ -0.7071, 0.0, -0.7071, 0])
                     print("target pos is ", target_pos)
+
                     initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
                     initial_base_pose = copy.deepcopy(self.controller_node.desired_pose_command_overwrite)
-                    reference_base_pose, reference_joints_position, ik_succeded = self.controller_node.ik_solver.compute(target_pos, target_quat, initial_joints_position, initial_base_pose)
-                    self.controller_node.desired_pose_command_overwrite = reference_base_pose
+                    
+                    reference_base_pose, \
+                        reference_joints_position, \
+                        ik_succeded = self.controller_node.ik_solver.compute(target_pos, target_quat, initial_joints_position, 
+                                                                initial_base_pose, optimize_height=True, optimize_pitch=True)
+                    
                     if ik_succeded:
+                        
+                        time_motion = 2.
+                        self.run_base_smoother(initial_base_pose, reference_base_pose, 2.)
+                        #self.controller_node.desired_pose_command_overwrite = copy.deepcopy(reference_base_pose)
+                        #time.sleep(2)
+
+                        initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
+                        initial_base_pose = copy.deepcopy(self.controller_node.desired_pose_command_overwrite)
+                        
+                        _, \
+                        reference_joints_position, \
+                        ik_succeded = self.controller_node.ik_solver.compute(target_pos, target_quat, initial_joints_position, initial_base_pose)
+
                         time_motion = 5.
                         self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
-                        print("Reaching grasping position at coordinates ", target_pos)
                         self.controller_node.state_machine.change_state(state=ArmStateType.GRASP)
                         self.controller_node.state_machine.change_state(gripper_state=GripperStateType.CLOSE) # CLOSE
+                        
                     else:
                         print("IK failed, position not reachable!")
 
@@ -325,6 +343,7 @@ class Console():
         print("armHome: Move arm to home position")
         print("armPreReachObject: Move arm to pre-reach object position")
         print("armReachObjectRL: Move arm to reach object position")
+        print("armReachObjectIK: Move arm to reach object position using IK")
         print("armReachBasket: Move arm to reach basket position")
         print("armOpenBasket: Open the basket")
         print("armCloseGripper: Close the gripper")
@@ -345,5 +364,22 @@ class Console():
             #interpolated_velocities = (interpolated_positions - past_joint_positions) / 0.01
             past_joint_positions = copy.deepcopy(interpolated_positions)
             self.controller_node.state_machine.desired_position = interpolated_positions
+            time.sleep(0.01)
+        print("end of control loop")
+
+    def run_base_smoother(self , initial_base_pose, reference_base_pose, time_motion):
+        start_time = time.time()
+        past_base_pose = copy.deepcopy(initial_base_pose)
+        while(time.time() - start_time < time_motion):
+            time_diff = time.time() - start_time
+            alpha = time_diff / time_motion
+            interpolated_positions = [
+                (1 - alpha) * initial + alpha * reference
+                for initial, reference in zip(initial_base_pose, reference_base_pose)
+            ]
+            interpolated_positions = np.array(interpolated_positions)
+            #interpolated_velocities = (interpolated_positions - past_joint_positions) / 0.01
+            past_base_pose = copy.deepcopy(interpolated_positions)
+            self.controller_node.desired_pose_command_overwrite = copy.deepcopy(interpolated_positions)
             time.sleep(0.01)
         print("end of control loop")
