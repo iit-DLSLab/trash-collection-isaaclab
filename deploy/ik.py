@@ -36,7 +36,7 @@ class IK:
         self.data = mujoco.MjData(self.model)
 
         # Get joint IDs
-        joint_names = ["basez", "basepitch", "joint1", "joint2", "joint3", "joint4", "joint5", "joint6"]
+        joint_names = ["basepitch", "basez", "joint1", "joint2", "joint3", "joint4", "joint5", "joint6"]
         self.dof_ids = np.array([self.model.joint(name).id for name in joint_names])
 
         # Set initial configuration
@@ -117,7 +117,8 @@ class IK:
                     W[0,0] = 10.
                     W[1,1] = 10.
                     dq -= (np.eye(8) - jac_pseudo @ jac) @ W @ (q_eff - self.joint_center)
-                    q_eff += dq * integration_dt                    
+                    q_eff += dq * integration_dt    
+               
             
             # Update configuration
             self.data.qpos[0:8] = q_eff
@@ -130,12 +131,16 @@ class IK:
         print("Final IK result:", q_eff)
         print("Success?", ik_succeded)
 
-        final_base_pose = self.data.qpos[0:2]
+        # Enforce joint limits
+        #self.data.qpos = np.clip(self.data.qpos, self.model.jnt_range[self.dof_ids, 0], self.model.jnt_range[self.dof_ids, 1]) 
+
+        final_base_pose = self.data.qpos[0:2] #base pitch, base z
         final_arm_joints = self.data.qpos[2:8]
 
         return final_base_pose, final_arm_joints, ik_succeded
 
 
+from scipy.spatial.transform import Rotation as R
 if __name__ == "__main__":
     ik_solver = IK()
     
@@ -145,7 +150,12 @@ if __name__ == "__main__":
         y_pos = np.random.uniform(-0.2, 0.2)
         z_pos = np.random.uniform(0.3, 0.6)
         target_pos = np.array([x_pos, y_pos, z_pos])
-        target_quat = np.array([1.0, 0.0, 0.0, 0.0])  # w, x, y, z
+
+        roll_grasp = np.random.uniform(-1.8, 1.8)
+        pitch_grasp = np.random.uniform(-1.8, 1.8)
+        yaw_grasp = np.random.uniform(-1.8, 1.8)
+        r = R.from_euler('xyz', [roll_grasp, pitch_grasp, yaw_grasp], degrees=False)
+        target_quat = r.as_quat()
         mocap_id = ik_solver.model.body("target").mocapid[0]
         ik_solver.data.mocap_pos[mocap_id] = target_pos
         ik_solver.data.mocap_quat[mocap_id] = target_quat
@@ -165,5 +175,6 @@ if __name__ == "__main__":
         viewer = mujoco.viewer.launch_passive(ik_solver.model, ik_solver.data)
         while viewer.is_running():
             time.sleep(2)
+            breakpoint()
             viewer.close()
             break

@@ -20,7 +20,7 @@
     <light pos="0 0 1.5" dir="0 0 -1" directional="true"/>
     <geom name="floor" size="0 0 0.05" type="plane" material="groundplane"/>
     <body name="target" pos="0.15 0. 0.15" quat="-0.5 0.5 0.5 0.5" mocap="true">
-      <geom type="box" size=".05 .05 .05" contype="0" conaffinity="0" rgba=".6 .3 .3 .5"/>
+      <geom type="box" size=".05 .05 .02" contype="0" conaffinity="0" rgba=".6 .3 .3 .5"/>
       <site type="sphere" size="0.01" rgba="0 0 1 1" group="1"/>
     </body>
   </worldbody>
