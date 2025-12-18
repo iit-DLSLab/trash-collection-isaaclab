@@ -1,6 +1,6 @@
 
 cmake_minimum_required(VERSION 3.15)
-project(dls2_interfaces)
+project(dls2_interface)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -17,8 +17,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/BaseState.msg"
   "msg/Imu.msg"
   "msg/TrajectoryGenerator.msg"
-  "msg/ArmState.idl"
-  "msg/ArmTrajectoryGenerator.idl"
+  "msg/ArmState.msg"
+  "msg/ArmTrajectoryGenerator.msg"
 )
 
 ament_export_dependencies(rosidl_default_runtime)

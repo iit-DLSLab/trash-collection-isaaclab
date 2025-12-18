@@ -4,7 +4,7 @@
 # Giulio Turrisi
 import rclpy 
 from rclpy.node import Node 
-from dls2_interfaces.msg import BaseState, BlindState, Imu, TrajectoryGenerator, ArmState, ArmTrajectoryGenerator
+from dls2_interface.msg import BaseState, BlindState, Imu, TrajectoryGenerator, ArmState, ArmTrajectoryGenerator
 
 import time
 import numpy as np
