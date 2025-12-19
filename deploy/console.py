@@ -217,7 +217,8 @@ class Console():
                     self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
                     
                     print("Reached pre-reach")
-                    self.controller_node.state_machine.change_state(state=ArmStateType.PREREACH) # Ready for policy handover
+                    self.controller_node.state_machine.change_state(state=ArmStateType.PREREACH)
+
 
                 elif input_string == "armReachObjectRL":
 
@@ -380,7 +381,7 @@ class Console():
             past_joint_positions = copy.deepcopy(interpolated_positions)
             self.controller_node.state_machine.desired_position = interpolated_positions
             time.sleep(0.01)
-        print("end of control loop")
+
 
     def run_base_smoother(self , initial_base_pose, reference_base_pose, time_motion):
         start_time = time.time()

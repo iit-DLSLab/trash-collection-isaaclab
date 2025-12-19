@@ -6,7 +6,7 @@
 import rclpy 
 from rclpy.node import Node 
 from sensor_msgs.msg import Joy
-from dls2_interface.msg import BaseState, BlindState, TrajectoryGenerator, ArmState, ArmTrajectoryGenerator
+from dls2_interface.msg import BaseState, BlindState, TrajectoryGenerator, ArmState, ArmTrajectoryGenerator, ArmControlSignal
 import copy
 import time
 import numpy as np
@@ -100,10 +100,11 @@ class TrashControlNode(Node):
         # Subscribers and Publishers
         self.subscription_base_state = self.create_subscription(BaseState,"/base_state", self.get_base_state_callback, 1)
         self.subscription_blind_state = self.create_subscription(BlindState,"/blind_state", self.get_blind_state_callback, 1)
-        self.subscription_arm_blind_state = self.create_subscription(ArmState,"/arm_blind_state", self.get_arm_blind_state_callback, 1)
+        self.subscription_arm_blind_state = self.create_subscription(ArmState,"/arm_state", self.get_arm_blind_state_callback, 1)
         self.subscription_joy = self.create_subscription(Joy,"/joy", self.get_joy_callback, 1)
         self.publisher_trajectory_generator = self.create_publisher(TrajectoryGenerator,"/trajectory_generator", 1)
         self.publisher_arm_trajectory_generator = self.create_publisher(ArmTrajectoryGenerator,"/arm_trajectory_generator", 1)
+        self.publisher_arm_control_signal = self.create_publisher(ArmControlSignal,"/arm_control_signal", 1)
         RL_FREQ = 1./(config.training_locomotion_env["sim"]["dt"]*config.training_locomotion_env["decimation"])  # Hz, frequency of the RL controller
         self.timer = self.create_timer(1.0/RL_FREQ, self.compute_rl_control)
 
@@ -111,7 +112,7 @@ class TrashControlNode(Node):
         # Safety check to not do anything until a first base and blind state are received
         self.first_message_base_arrived = False
         self.first_message_legs_joints_arrived = False
-        self.first_message_arm_joints_arrived = False
+        self.first_message_arm_joints_arrived = True
         self.last_joy_time = None
 
 
@@ -183,8 +184,8 @@ class TrashControlNode(Node):
      
     def get_arm_blind_state_callback(self, msg):
         
-        self.arm_joints_position = np.array(msg.arm_joints_position)
-        self.arm_joints_velocity = np.array(msg.arm_joints_velocity)
+        self.arm_joints_position = np.array(msg.joints_position)
+        self.arm_joints_velocity = np.array(msg.joints_velocity)
 
         self.first_message_arm_joints_arrived = True
 
@@ -213,7 +214,10 @@ class TrashControlNode(Node):
         
         self.mjData.qpos[7:19] = copy.deepcopy(self.legs_joints_position)
         self.mjData.qvel[6:18] = copy.deepcopy(self.legs_joints_velocity)
-        
+        self.mjData.qpos[19:25] = copy.deepcopy(self.arm_joints_position)
+        self.mjData.qvel[18:24] = copy.deepcopy(self.arm_joints_velocity)
+        mujoco.mj_forward(self.mjModel, self.mjData)
+
 
         # Get the current state of the robot -----------------------------------------------------
         qpos, qvel = self.mjData.qpos, self.mjData.qvel
@@ -223,7 +227,6 @@ class TrashControlNode(Node):
         heading_orientation_SO3 = mujoco_utils.heading_orientation_SO3(self.mjData)
         base_quat_wxyz = qpos[3:7]
         base_pos = mujoco_utils.base_pos(self.mjData)
-        self.arm_joints_position = qpos[19:25]
 
         joints_pos_leg = qpos[7:19]
         joints_pos_arm = qpos[19:25]
@@ -292,6 +295,9 @@ class TrashControlNode(Node):
             self.Kd_arm = self.manipulation_policy.Kd_arm
 
         
+        self.desired_joint_pos_arm = self.state_machine.desired_position
+
+        
         # Fix convention DLS2 and send PD target
         self.desired_joint_pos_leg[0] = -self.desired_joint_pos_leg[0]
         self.desired_joint_pos_leg[6] = -self.desired_joint_pos_leg[6]
@@ -305,16 +311,18 @@ class TrashControlNode(Node):
         trajectory_generator_msg.kd = (np.ones(12)*self.Kd_legs).tolist()
         self.publisher_trajectory_generator.publish(trajectory_generator_msg)
 
-        #arm_trajectory_generator_msg = ArmTrajectoryGenerator()
-        #arm_trajectory_generator_msg.timestamp = float(self.get_clock().now().nanoseconds)
-        #arm_trajectory_generator_msg.desired_arm_joints_position = self.desired_joint_pos_arm.tolist()
-        #arm_trajectory_generator_msg.desired_arm_joints_velocity = np.zeros(6).tolist()
-        #arm_trajectory_generator_msg.arm_kp = (np.ones(6)*self.Kp_arm).tolist()
-        #arm_trajectory_generator_msg.arm_kd = (np.ones(6)*self.Kd_arm).tolist()
-        #self.publisher_arm_trajectory_generator.publish(arm_trajectory_generator_msg)
-        
+        arm_trajectory_generator_msg = ArmTrajectoryGenerator()
+        arm_trajectory_generator_msg.timestamp = float(self.get_clock().now().nanoseconds)
+        arm_trajectory_generator_msg.desired_arm_joints_position = self.desired_joint_pos_arm.tolist()
+        arm_trajectory_generator_msg.desired_arm_joints_velocity = np.zeros(6).tolist()
+        arm_trajectory_generator_msg.arm_kp = (np.ones(6)*self.Kp_arm).tolist()
+        arm_trajectory_generator_msg.arm_kd = (np.ones(6)*self.Kd_arm).tolist()
+        self.publisher_arm_trajectory_generator.publish(arm_trajectory_generator_msg)
 
-
+        arm_control_signal_msg = ArmControlSignal()
+        arm_control_signal_msg.desired_arm_joints_torque = self.mjData.qfrc_bias[18:24].tolist()  # Send the gravity compensation torques
+        arm_control_signal_msg.desired_arm_gripper_torque = 0.0  # Placeholder for gripper torque
+        self.publisher_arm_control_signal.publish(arm_control_signal_msg)
 
 #---------------------------
 if __name__ == '__main__':

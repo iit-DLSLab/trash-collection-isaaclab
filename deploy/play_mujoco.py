@@ -51,6 +51,17 @@ class PlayMujoco:
                         show_right_ui=False,
                         #key_callback=lambda x: self._key_callback(x),
                     )
+        
+        joint_names = [
+            "joint1",
+            "joint2",
+            "joint3",
+            "joint4",
+            "joint5",
+            "joint6",
+        ]
+        self.arm_dof_ids = np.array([self.mjModel.joint(name).id for name in joint_names])
+        
         mujoco.mjv_defaultFreeCamera(self.mjModel, self.viewer.cam)
         self.last_render_time = time.time()
         self.RENDER_FREQ = 30.0  # Hz 
@@ -110,6 +121,8 @@ class PlayMujoco:
             heading_orientation_SO3 = mujoco_utils.heading_orientation_SO3(self.mjData)
             base_quat_wxyz = qpos[3:7]
             base_pos = mujoco_utils.base_pos(self.mjData)
+            
+            # Only for play_mujoco
             self.arm_joints_position = qpos[19:25]
 
             joints_pos_leg = qpos[7:19]
@@ -190,8 +203,10 @@ class PlayMujoco:
 
             
             # Set control and mujoco step ----------------------------------------------------------------------
+            #print("self.mjData.qfrc_bias", self.mjData.qfrc_bias)
+            #print("self.mjData.qfrc_bias[self.arm_dof_ids]: ", self.mjData.qfrc_bias[self.arm_dof_ids])
             self.mjData.ctrl[0:12] = tau_leg
-            self.mjData.ctrl[12:18] = tau_arm
+            self.mjData.ctrl[12:18] = tau_arm + self.mjData.qfrc_bias[18:24]  # Compensate for gravity on the arm
             self.mjData.ctrl[18] = tau_gripper
             mujoco.mj_step(self.mjModel, self.mjData)
             step_num = step_num +1

@@ -4,7 +4,7 @@
 # Giulio Turrisi
 import rclpy 
 from rclpy.node import Node 
-from dls2_interface.msg import BaseState, BlindState, Imu, TrajectoryGenerator, ArmState, ArmTrajectoryGenerator
+from dls2_interface.msg import BaseState, BlindState, TrajectoryGenerator, ArmState, ArmTrajectoryGenerator, ArmControlSignal
 
 import time
 import numpy as np
@@ -45,7 +45,7 @@ class MujocoSimulationNode(Node):
         # Subscribers and Publishers
         self.publisher_base_state = self.create_publisher(BaseState,"/base_state", 1)
         self.publisher_blind_state = self.create_publisher(BlindState,"/blind_state", 1)
-        self.publisher_arm_blind_state = self.create_publisher(ArmBlindState,"/arm_blind_state", 1)
+        self.publisher_arm_blind_state = self.create_publisher(ArmState,"/arm_state", 1)
         self.subscriber_trajectory_generator_arm = self.create_subscription(ArmTrajectoryGenerator,"/arm_trajectory_generator", self.get_arm_trajectory_generator_callback, 1)
         self.subscriber_trajectory_generator_legs = self.create_subscription(TrajectoryGenerator,"/trajectory_generator", self.get_legs_trajectory_generator_callback, 1)
         
@@ -128,9 +128,9 @@ class MujocoSimulationNode(Node):
         blind_state_msg.joints_velocity = self.mjData.qvel[6:18].tolist()
         self.publisher_blind_state.publish(blind_state_msg)
 
-        arm_blind_state_msg = ArmBlindState()
-        arm_blind_state_msg.arm_joints_position = self.mjData.qpos[19:25].tolist()
-        arm_blind_state_msg.arm_joints_velocity = self.mjData.qvel[18:24].tolist()
+        arm_blind_state_msg = ArmState()
+        arm_blind_state_msg.joints_position = self.mjData.qpos[19:25].tolist()
+        arm_blind_state_msg.joints_velocity = self.mjData.qvel[18:24].tolist()
         self.publisher_arm_blind_state.publish(arm_blind_state_msg)
 
 
