@@ -65,9 +65,10 @@
       <geom size="0.0325 0.0255" pos="0 0 0.0255" class="collision"/>
 
       <geom type="box" class="collision" size="0.18 0.075 0.056" name="trunk" pos="-0.22 0 -0.055"/>
+      <geom type="box" class="visual" size="0.18 0.075 0.056" pos="-0.22 0 -0.055"/>
 
-      <joint axis="0 1 0" name="basepitch" pos="0 0 0" type="hinge" range="-0.3 0.3"/>
-      <joint axis="0 0 1" name="basez" pos="0 0 0" type="slide" range="-0.2 0.2"/>
+      <joint axis="0 1 0" name="basepitch" pos="0 0 0" type="hinge" range="-0.2 0.2"/>
+      <joint axis="0 0 1" name="basez" pos="0 0 0" type="slide" range="-0.1 0.1"/>
       
 
       <body name="link01" pos="0 0 0.0585">

@@ -132,7 +132,7 @@ class IK:
         print("Success?", ik_succeded)
 
         # Enforce joint limits
-        #self.data.qpos = np.clip(self.data.qpos, self.model.jnt_range[self.dof_ids, 0], self.model.jnt_range[self.dof_ids, 1]) 
+        self.data.qpos = np.clip(self.data.qpos, self.model.jnt_range[self.dof_ids, 0], self.model.jnt_range[self.dof_ids, 1]) 
 
         final_base_pose = self.data.qpos[0:2] #base pitch, base z
         final_arm_joints = self.data.qpos[2:8]
