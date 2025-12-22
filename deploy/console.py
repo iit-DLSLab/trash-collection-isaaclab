@@ -18,7 +18,7 @@ class Console():
         # Autocomplete setup
         self.commands = [
             "help", "ictp", "goUp", "goDown", "activate", "ictp", "setKp", "setKd",
-            "setBasePose", "armHome", "armPreReachObject", "armReachObjectRL", "armReachObjectIK", "armReachBasket",
+            "setBasePose", "armHome", "armDance", "armPreReachObject", "armReachObjectRL", "armReachObjectIK", "armReachBasket",
             "armOpenBasket", "armCloseGripper", "armOpenGripper"
         ]
         readline.set_completer(self.complete)
@@ -378,6 +378,7 @@ class Console():
         print("setKd: Set the Kd values for the legs")
         print("setBasePose: Set desired base pitch and height")
         print("armHome: Move arm to home position")
+        print("armDance: Move the arm to random ee position")
         print("armPreReachObject: Move arm to pre-reach object position")
         print("armReachObjectRL: Move arm to reach object position")
         print("armReachObjectIK: Move arm to reach object position using IK")
