@@ -220,6 +220,33 @@ class Console():
                     self.controller_node.state_machine.change_state(state=ArmStateType.PREREACH)
 
 
+                elif input_string == "armDance":
+                    
+                    for j in range(10):
+                        x_target_pos = np.random.uniform(0.3, 0.6)
+                        y_target_pos = np.random.uniform(-0.3, 0.3)
+                        z_target_pos = np.random.uniform(0.1, 0.3)
+                        target_pos = [x_target_pos, y_target_pos, z_target_pos]
+                        if(j == 0):
+                            target_quat = ([ -0.7071, 0.0, -0.7071, 0])
+                        elif(j == 1):
+                            target_quat = ([ -0.7071, 0.0, -0.7071, 0])
+                        else:
+                            target_quat = ([ -0.7071, 0.0, -0.7071, 0])
+
+                        initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
+                        initial_base_pose = copy.deepcopy(self.controller_node.desired_pose_command_overwrite)
+                        
+                        reference_base_pose, \
+                            reference_joints_position, \
+                            ik_succeded = self.controller_node.ik_solver.compute(target_pos, target_quat, initial_joints_position, 
+                                                                    initial_base_pose, optimize_height=True, optimize_pitch=True)
+                        
+                        if ik_succeded:
+                            time_motion = 3.
+                            self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
+
+
                 elif input_string == "armReachObjectRL":
 
                     if(self.controller_node.state_machine.state_type != ArmStateType.PREREACH and self.controller_node.state_machine.state_type != ArmStateType.REACH):
