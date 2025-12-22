@@ -26,6 +26,7 @@ from locomotion_policy_wrapper import LocomotionPolicyWrapper
 from state_machine import StateMachine
 from state_machine import ArmStateType, GripperStateType
 from ik import IK
+from ik_mink import IKMink
 
 
 import config
@@ -72,6 +73,7 @@ class PlayMujoco:
         self.locomotion_policy = LocomotionPolicyWrapper(mjModel=self.mjModel)
         self.state_machine = StateMachine()
         self.ik_solver = IK()
+        self.ik_mink_solver = IKMink()
 
         if(self.locomotion_policy.use_vision):
             resolution_heightmap = config.resolution_heightmap
