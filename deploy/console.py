@@ -310,6 +310,11 @@ class Console():
                         time.sleep(1.)
                         self.controller_node.state_machine.change_state(state=ArmStateType.GRASP)
                         self.controller_node.state_machine.change_state(gripper_state=GripperStateType.CLOSE) # CLOSE
+
+                        # Return to previous base position base position
+                        time_motion = 2.
+                        reference_base_pose = reference_base_pose*0.0
+                        self.run_base_smoother(initial_base_pose, reference_base_pose, 2.)
                         
                     else:
                         print("IK failed, position not reachable!")
