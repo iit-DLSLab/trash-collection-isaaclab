@@ -17,7 +17,9 @@ class GripperStateType(Enum):
     CLOSE = 1
 
 class StateMachine:
-    def __init__(self):
+    def __init__(self, controller_node):
+        self.controller_node = controller_node
+
         # Number of joints
         self.state_type = ArmStateType.HOME
         self.gripper_state_type = GripperStateType.OPEN
@@ -80,6 +82,23 @@ class StateMachine:
             self.desired_position = interpolated_positions
             time.sleep(0.01)
 
+    def run_base_smoother(self , initial_base_pose, reference_base_pose, time_motion):
+        start_time = time.time()
+        past_base_pose = copy.deepcopy(initial_base_pose)
+        while(time.time() - start_time < time_motion):
+            time_diff = time.time() - start_time
+            alpha = time_diff / time_motion
+            interpolated_positions = [
+                (1 - alpha) * initial + alpha * reference
+                for initial, reference in zip(initial_base_pose, reference_base_pose)
+            ]
+            interpolated_positions = np.array(interpolated_positions)
+            #interpolated_velocities = (interpolated_positions - past_joint_positions) / 0.01
+            past_base_pose = copy.deepcopy(interpolated_positions)
+            self.controller_node.desired_pose_command_overwrite = copy.deepcopy(interpolated_positions)
+            time.sleep(0.01)
+        print("end of control loop")
+
     
     def armReachBasket(self, initial_joints_position):
         initial_joints_position = copy.deepcopy(initial_joints_position)
@@ -139,4 +158,79 @@ class StateMachine:
         self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
         
         self.change_state(state=ArmStateType.PREREACH)
+
+    def armReachObjectIK(self, initial_joints_position):
+        if(self.state_type != ArmStateType.PREREACH and self.state_type != ArmStateType.REACH):
+            print("Error: first move to pre-reach position")
+            return
+
+        self.controller_node.state_machine.change_state(gripper_state=GripperStateType.OPEN) # CLOSE
+        
+        target_pos = [0.5, 0.0, 0.1]
+        target_quat = ([ -0.7071, 0.0, -0.7071, 0])
+        print("target pos is ", target_pos)
+
+        initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
+        initial_base_pose = copy.deepcopy(self.controller_node.desired_pose_command_overwrite)
+        
+        reference_base_pose, \
+            reference_joints_position, \
+            ik_succeded = self.controller_node.ik_solver.compute(target_pos, target_quat, initial_joints_position, 
+                                                    initial_base_pose, optimize_height=True, optimize_pitch=True)
+        
+        if ik_succeded:
+            # First move the base
+            time_motion = 2.
+            self.run_base_smoother(initial_base_pose, reference_base_pose, 2.)
+
+            # Then move the arm in two steps, reaching an intermediate point
+            initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
+            initial_base_pose = copy.deepcopy(self.controller_node.desired_pose_command_overwrite)
+            intermediate_target_pos = copy.deepcopy(target_pos)
+            intermediate_target_pos[0] *= 0.8  # Raise Z by 10
+            intermediate_target_pos[2] *= 0.8  # Raise Z by 10
+            _, \
+                reference_joints_position, \
+                ik_succeded = self.controller_node.ik_solver.compute(intermediate_target_pos, target_quat, initial_joints_position, initial_base_pose)
+            time_motion = 5.
+            self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
+
+            # Finally reach the target
+            initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
+            initial_base_pose = copy.deepcopy(self.controller_node.desired_pose_command_overwrite)
+            _, \
+                reference_joints_position, \
+                ik_succeded = self.controller_node.ik_solver.compute(target_pos, target_quat, initial_joints_position, initial_base_pose)
+            time_motion = 3.
+            self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
+
+            # Close the gripper and grasp
+            time.sleep(1.)
+            self.change_state(state=ArmStateType.GRASP)
+            self.change_state(gripper_state=GripperStateType.CLOSE) # CLOSE
+
+            # Return to previous base position base position
+            time_motion = 2.
+            reference_base_pose = reference_base_pose*0.0
+            self.run_base_smoother(initial_base_pose, reference_base_pose, 2.)
+            
+        else:
+            print("IK failed, position not reachable!")
+
+    def armReachObjectRL(self, initial_joints_position):
+        if(self.state_type != ArmStateType.PREREACH and self.state_type != ArmStateType.REACH):
+            print("Error: first move to pre-reach position")
+            return
+
+        if(self.state_type == ArmStateType.PREREACH):
+            self.state_type = ArmStateType.REACH # Ready for policy handover
+        else:
+            self.state_type = ArmStateType.PREREACH # Go back in pre-reach
+            start_time = time.time()
+            time_motion = 5.
+            initial_joints_position = copy.deepcopy(initial_joints_position)
+            reference_joints_position = self.pre_reach_position - self.offset_home_position
+
+            self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
+            print("Reached pre-reach")
 

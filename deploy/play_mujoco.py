@@ -71,7 +71,7 @@ class PlayMujoco:
         # Initialization of variables used in the main control loop --------------------------------
         self.manipulation_policy = ManipulationPolicyWrapper(mjModel=self.mjModel)
         self.locomotion_policy = LocomotionPolicyWrapper(mjModel=self.mjModel)
-        self.state_machine = StateMachine()
+        self.state_machine = StateMachine(controller_node=self)
         self.ik_solver = IK()
         self.ik_mink_solver = IKMink()
 
