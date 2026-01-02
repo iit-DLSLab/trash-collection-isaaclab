@@ -1,8 +1,5 @@
 # Description: This script is used to run the policy on the real robot
 
-# Authors:
-# Giulio Turrisi
-
 import rclpy 
 from rclpy.node import Node 
 from sensor_msgs.msg import Joy
@@ -10,10 +7,13 @@ from dls2_interface.msg import BaseState, BlindState, TrajectoryGenerator, ArmSt
 from geometry_msgs.msg import PoseArray
 from rclpy.qos import QoSProfile, ReliabilityPolicy
 
+
 import copy
 import time
 import numpy as np
 from scipy.spatial.transform import Rotation as R
+
+
 import sys
 import os 
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -21,19 +21,25 @@ sys.path.append(dir_path+"/mujoco/")
 sys.path.append(dir_path+"/../")
 sys.path.append(dir_path+"/../scripts/rsl_rl")
 
+
 # Simulation related imports
 import mujoco
 import mujoco.viewer
 import mujoco_utils
 from heightmap import HeightMap
 
+
 # Trash Policy imports
 from manipulation_policy_wrapper import ManipulationPolicyWrapper
 from locomotion_policy_wrapper import LocomotionPolicyWrapper
 from state_machine import StateMachine
+from ik import IK
+from ik_mink import IKMink
+
 
 import config
 import threading
+
 
 # Set the priority of the process
 pid = os.getpid()
@@ -59,7 +65,9 @@ class TrashControlNode(Node):
         # Initialization of variables used in the main control loop --------------------------------
         self.manipulation_policy = ManipulationPolicyWrapper(mjModel=self.mjModel)
         self.locomotion_policy = LocomotionPolicyWrapper(mjModel=self.mjModel)
-        self.state_machine = StateMachine()
+        self.state_machine = StateMachine(controller_node=self)
+        self.ik_solver = IK()
+        self.ik_mink_solver = IKMink()
 
         if(self.locomotion_policy.use_vision):
             resolution_heightmap = config.resolution_heightmap
@@ -181,7 +189,7 @@ class TrashControlNode(Node):
             # This will kill the robot hal
             os.system("kill -9 $(ps -u | grep -m 1 hal | grep -o \"^[^ ]* *[0-9]*\" | grep -o \"[0-9]*\")")
             # This will kill the process running this script
-            os.system("pkill -f play_ros2.py") 
+            os.system("pkill -f run_controller_ros2.py") 
             exit(0)
 
 
@@ -200,10 +208,10 @@ class TrashControlNode(Node):
         self.legs_joints_velocity = np.array(msg.joints_velocity)
 
         # Fix convention DLS2
-        self.legs_joints_position[0] = -self.legs_joints_position[0]
+        """self.legs_joints_position[0] = -self.legs_joints_position[0]
         self.legs_joints_position[6] = -self.legs_joints_position[6]
         self.legs_joints_velocity[0] = -self.legs_joints_velocity[0]
-        self.legs_joints_velocity[6] = -self.legs_joints_velocity[6]
+        self.legs_joints_velocity[6] = -self.legs_joints_velocity[6]"""
 
         self.first_message_legs_joints_arrived = True
 
@@ -323,8 +331,8 @@ class TrashControlNode(Node):
 
         
         # Fix convention DLS2 and send PD target
-        self.desired_joint_pos_leg[0] = -self.desired_joint_pos_leg[0]
-        self.desired_joint_pos_leg[6] = -self.desired_joint_pos_leg[6]
+        """self.desired_joint_pos_leg[0] = -self.desired_joint_pos_leg[0]
+        self.desired_joint_pos_leg[6] = -self.desired_joint_pos_leg[6]"""
 
             
         trajectory_generator_msg = TrajectoryGenerator()

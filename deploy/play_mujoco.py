@@ -1,17 +1,16 @@
 # Description: This script is used to simulate the full model of the robot in mujoco
 
-# Authors:
-# Giulio Turrisi
-
 import time
 import numpy as np
-from tqdm import tqdm
+
+
 import sys
 import os 
 file_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(file_path+"/mujoco/")
 sys.path.append(file_path+"/../")
 sys.path.append(file_path+"/../scripts/rsl_rl")
+
 
 # Gym and Simulation related imports
 import mujoco

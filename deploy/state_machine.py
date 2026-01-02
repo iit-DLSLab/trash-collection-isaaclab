@@ -165,10 +165,18 @@ class StateMachine:
             return
 
         self.controller_node.state_machine.change_state(gripper_state=GripperStateType.OPEN) # CLOSE
+
+        if(self.controller_node.received_detection):
+            target_pos = self.controller_node.ik_goal_camera_frame
+            target_quat = self.controller_node.ik_goal_orient_camera_frame
+            self.controller_node.received_detection = False
+        else:
+            print("No detection received, cannot reach object!")
+            return
         
-        target_pos = [0.5, 0.0, 0.1]
-        target_quat = ([ -0.7071, 0.0, -0.7071, 0])
-        print("target pos is ", target_pos)
+        #target_pos = [0.5, 0.0, 0.1]
+        #target_quat = ([ -0.7071, 0.0, -0.7071, 0])
+        #print("target pos is ", target_pos)
 
         initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
         initial_base_pose = copy.deepcopy(self.controller_node.desired_pose_command_overwrite)

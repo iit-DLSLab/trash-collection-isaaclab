@@ -5,6 +5,8 @@
 import rclpy 
 from rclpy.node import Node 
 from dls2_interface.msg import BaseState, BlindState, TrajectoryGenerator, ArmState, ArmTrajectoryGenerator, ArmControlSignal
+from geometry_msgs.msg import PoseArray, Pose
+from rclpy.qos import QoSProfile, ReliabilityPolicy
 
 import time
 import numpy as np
@@ -48,6 +50,7 @@ class MujocoSimulationNode(Node):
         self.publisher_arm_blind_state = self.create_publisher(ArmState,"/arm_state", 1)
         self.subscriber_trajectory_generator_arm = self.create_subscription(ArmTrajectoryGenerator,"/arm_trajectory_generator", self.get_arm_trajectory_generator_callback, 1)
         self.subscriber_trajectory_generator_legs = self.create_subscription(TrajectoryGenerator,"/trajectory_generator", self.get_legs_trajectory_generator_callback, 1)
+        self.publisher_detections = self.create_publisher(PoseArray,"/detections3d/grasp_poses", QoSProfile(depth=1, reliability=ReliabilityPolicy.BEST_EFFORT))
         
         self.timer = self.create_timer(self.simulation_dt, self.compute_simulator_step_callback)
 
@@ -98,6 +101,9 @@ class MujocoSimulationNode(Node):
         joints_vel_arm = qvel[18:24]
         joints_vel_gripper = qvel[24]
 
+        # Fix convention DLS2 and send PD target
+        """self.desired_legs_joints_position[0] = -self.desired_legs_joints_position[0]
+        self.desired_legs_joints_position[6] = -self.desired_legs_joints_position[6]"""
         error_joints_pos_leg = self.desired_legs_joints_position - joints_pos_leg
         tau_leg = self.Kp_legs*error_joints_pos_leg - self.Kd_legs*joints_vel_leg
 
@@ -126,12 +132,36 @@ class MujocoSimulationNode(Node):
         blind_state_msg = BlindState()
         blind_state_msg.joints_position = self.mjData.qpos[7:19].tolist()
         blind_state_msg.joints_velocity = self.mjData.qvel[6:18].tolist()
+        # Fix convention DLS2
+        """blind_state_msg.joints_position[0] = -blind_state_msg.joints_position[0]
+        blind_state_msg.joints_position[6] = -blind_state_msg.joints_position[6]
+        blind_state_msg.joints_velocity[0] = -blind_state_msg.joints_velocity[0]
+        blind_state_msg.joints_velocity[6] = -blind_state_msg.joints_velocity[6]"""
         self.publisher_blind_state.publish(blind_state_msg)
 
         arm_blind_state_msg = ArmState()
         arm_blind_state_msg.joints_position = self.mjData.qpos[19:25].tolist()
         arm_blind_state_msg.joints_velocity = self.mjData.qvel[18:24].tolist()
         self.publisher_arm_blind_state.publish(arm_blind_state_msg)
+
+
+        # Publish the position of the bottle ----------------------------------------------------------
+        detections_msg = PoseArray()
+        detections_msg.header.stamp = self.get_clock().now().to_msg()
+        # For each bottle in the scene
+        for bottle_id in range(2):
+            bottle_pos = self.mjData.xpos[self.mjModel.body('bottle'+str(bottle_id)).id]
+            bottle_quat = self.mjData.xquat[self.mjModel.body('bottle'+str(bottle_id)).id]
+            detection_pose = Pose()
+            detection_pose.position.x = bottle_pos[0]
+            detection_pose.position.y = bottle_pos[1]
+            detection_pose.position.z = bottle_pos[2]
+            detection_pose.orientation.w = bottle_quat[0]
+            detection_pose.orientation.x = bottle_quat[1]
+            detection_pose.orientation.y = bottle_quat[2]
+            detection_pose.orientation.z = bottle_quat[3]
+            detections_msg.poses.append(detection_pose)
+        self.publisher_detections.publish(detections_msg)
 
 
         # Render only at a certain frequency -----------------------------------------------------------------
