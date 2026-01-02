@@ -93,7 +93,7 @@ class IKMink:
         mink.move_mocap_to_frame(self.model, self.data, "target", "attachment_site", "site")
 
     def compute(self, target_pos: np.ndarray, target_quat: np.ndarray, initial_joints_position: np.ndarray, initial_base_pose: np.ndarray, 
-                optimize_height = False, optimize_pitch = False, visualize = False) -> np.ndarray, np.ndarray, bool:
+                optimize_height = False, optimize_pitch = False, visualize = False) -> [np.ndarray, np.ndarray, bool]:
 
         self.data.qpos[0:8] = np.concatenate((initial_base_pose, initial_joints_position))
         self.configuration.update(self.data.qpos)
@@ -109,14 +109,38 @@ class IKMink:
 
         # Compute velocity and integrate into the next configuration.
         for i in range(self.max_iters):
-            vel = mink.solve_ik(
-                self.configuration,
-                [*self.tasks, self.damping_task],
-                0.005,
-                self.solver,
-                damping=1e-3,
-                limits=self.limits,
-            )
+            
+            if(optimize_pitch and optimize_height):
+                vel = mink.solve_ik(
+                    self.configuration,
+                    [*self.tasks, self.damping_task],
+                    0.005,
+                    self.solver,
+                    damping=1e-3,
+                    limits=self.limits,
+                )
+            else:
+                
+                if(optimize_pitch == True and optimize_height == False):
+                    # Create DOF freezing constraint for second joint.
+                    frozen_dofs = [1]
+                elif(optimize_pitch == False and optimize_height == True):
+                    # Create DOF freezing constraint for first joint.
+                    frozen_dofs = [0]
+                else:
+                    # Create DOF freezing constraint for first two joints.
+                    frozen_dofs = [0, 1]
+                
+                freeze_task = mink.DofFreezingTask(model=self.model, dof_indices=frozen_dofs)
+                vel = mink.solve_ik(
+                    self.configuration,
+                    [*self.tasks, self.damping_task],
+                    constraints=[freeze_task],
+                    dt=0.005,
+                    solver=self.solver,
+                    damping=1e-3,
+                    limits=self.limits,
+                )
 
             
             self.configuration.integrate_inplace(vel, 0.005)
