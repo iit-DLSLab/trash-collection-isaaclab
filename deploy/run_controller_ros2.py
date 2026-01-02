@@ -7,10 +7,13 @@ import rclpy
 from rclpy.node import Node 
 from sensor_msgs.msg import Joy
 from dls2_interface.msg import BaseState, BlindState, TrajectoryGenerator, ArmState, ArmTrajectoryGenerator, ArmControlSignal
+from geometry_msgs.msg import PoseArray
+from rclpy.qos import QoSProfile, ReliabilityPolicy
+
 import copy
 import time
 import numpy as np
-from tqdm import tqdm
+from scipy.spatial.transform import Rotation as R
 import sys
 import os 
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -18,19 +21,16 @@ sys.path.append(dir_path+"/mujoco/")
 sys.path.append(dir_path+"/../")
 sys.path.append(dir_path+"/../scripts/rsl_rl")
 
-# Gym and Simulation related imports
+# Simulation related imports
 import mujoco
 import mujoco.viewer
 import mujoco_utils
 from heightmap import HeightMap
 
-
 # Trash Policy imports
 from manipulation_policy_wrapper import ManipulationPolicyWrapper
 from locomotion_policy_wrapper import LocomotionPolicyWrapper
 from state_machine import StateMachine
-from state_machine import ArmStateType, GripperStateType
-
 
 import config
 import threading
@@ -48,7 +48,6 @@ class TrashControlNode(Node):
         super().__init__('Trash_Control_Node')
 
         self.simulation_dt = 0.002
-
 
         # Load the model and data.
         self.mjModel = mujoco.MjModel.from_xml_path("mujoco/models/scene_rough.xml")
@@ -96,7 +95,7 @@ class TrashControlNode(Node):
         #self.console.isDown = True  # Only in this play_mujoco script
         #self.console.isRLActivated = False  # Only in this play_mujoco script
                  
-
+        # --------------------------------------------------------------
         # Subscribers and Publishers
         self.subscription_base_state = self.create_subscription(BaseState,"/base_state", self.get_base_state_callback, 1)
         self.subscription_blind_state = self.create_subscription(BlindState,"/blind_state", self.get_blind_state_callback, 1)
@@ -108,6 +107,28 @@ class TrashControlNode(Node):
         RL_FREQ = 1./(config.training_locomotion_env["sim"]["dt"]*config.training_locomotion_env["decimation"])  # Hz, frequency of the RL controller
         self.timer = self.create_timer(1.0/RL_FREQ, self.compute_rl_control)
 
+        qos_profile = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, depth=1)
+        self.subscription_orientation = self.create_subscription(PoseArray,"detections3d/grasp_poses", self.get_grasp_pose_callback, qos_profile)
+
+        # Variables for IK from detection
+        self.received_detection = False
+        self.ik_goal_orient_camera_frame = np.array([1.0, 0.0 ,0.0 ,0.0])
+        self.r_optical_to_camera_frame = np.array([
+                                                [0.0, 0.0,  1.0],
+                                                [-1.0, 0.0, 0.0],
+                                                [0.0, -1.0, 0.0]
+                                            ])
+        self.r_camera_to_base_frame = np.array([
+                                                [1.0, 0.0,  0.0],
+                                                [0.0, 1.0, 0.0],
+                                                [0.0, 0.0, 1.0]
+                                            ])
+
+        self.r_camera_frame_to_base = self.r_camera_to_base_frame @ self.r_optical_to_camera_frame
+
+        self.ik_goal_camera_frame = np.zeros(3)
+        self.ik_goal_base_frame = np.zeros(3)
+        self.ik_goal_orient_base_frame = np.array([1.0, 0.0 ,0.0 ,0.0])
 
         # Safety check to not do anything until a first base and blind state are received
         self.first_message_base_arrived = False
@@ -115,21 +136,30 @@ class TrashControlNode(Node):
         self.first_message_arm_joints_arrived = True
         self.last_joy_time = None
 
-
         # Base State
         self.position = np.zeros(3)
         self.orientation = np.zeros(4)
         self.linear_velocity = np.zeros(3)
         self.angular_velocity = np.zeros(3)
 
-        # Blind State
-        self.joint_positions = np.zeros(12)
-        self.joint_velocities = np.zeros(12)
 
-        # IMU
-        self.imu_linear_acceleration = np.zeros(3)
-        self.imu_angular_velocity = np.zeros(3)
-        self.imu_orientation = np.zeros(4)
+    def get_grasp_pose_callback(self, msg):
+        if len(msg.poses) > 0:
+            pose = msg.poses[0]
+            self.ik_goal_camera_frame[0] = pose.position.x
+            self.ik_goal_camera_frame[1] = pose.position.y
+            self.ik_goal_camera_frame[2] = pose.position.z
+
+            #conversion from camera optical frame to base
+            self.ik_goal_base_frame =  self.r_camera_frame_to_base @ self.ik_goal_camera_frame
+
+            self.ik_goal_orient_camera_frame[0] = pose.orientation.w
+            self.ik_goal_orient_camera_frame[1] = pose.orientation.x
+            self.ik_goal_orient_camera_frame[2] = pose.orientation.y
+            self.ik_goal_orient_camera_frame[3] = pose.orientation.z
+
+            self.ik_goal_orient_base_frame = ( R.from_matrix(self.r_camera_frame_to_base) * R.from_quat(self.ik_goal_orient_camera_frame, scalar_first=True)).as_quat(scalar_first=True)
+            self.received_detection = True
 
     
     def get_joy_callback(self, msg):
@@ -137,7 +167,6 @@ class TrashControlNode(Node):
         Callback function to handle joystick input. Joystick used is a 
         8Bitdi Ultimate 2C Wireless Controller.
         """
-        
         filter_joystick = 0.7
         self.ref_base_lin_vel_H[0] = self.ref_base_lin_vel_H[0]*filter_joystick + (msg.axes[1]/3.5)*(1-filter_joystick)  # Forward/Backward
         self.ref_base_lin_vel_H[1] = self.ref_base_lin_vel_H[1]*filter_joystick + (msg.axes[0]/3.5)*(1-filter_joystick)  # Left/Right
@@ -156,9 +185,7 @@ class TrashControlNode(Node):
             exit(0)
 
 
-
     def get_base_state_callback(self, msg):
-        
         self.position = np.array(msg.pose.position) #world frame
         # For the quaternion, the order is [w, x, y, z] on mujoco, and [x, y, z, w] on DLS2
         self.orientation = np.roll(np.array(msg.pose.orientation), 1) #world frame
@@ -168,9 +195,7 @@ class TrashControlNode(Node):
         self.first_message_base_arrived = True
 
 
-
     def get_blind_state_callback(self, msg):
-        
         self.legs_joints_position = np.array(msg.joints_position)
         self.legs_joints_velocity = np.array(msg.joints_velocity)
 
@@ -181,9 +206,9 @@ class TrashControlNode(Node):
         self.legs_joints_velocity[6] = -self.legs_joints_velocity[6]
 
         self.first_message_legs_joints_arrived = True
-     
-    def get_arm_blind_state_callback(self, msg):
-        
+
+
+    def get_arm_blind_state_callback(self, msg):        
         self.arm_joints_position = np.array(msg.joints_position)
         self.arm_joints_velocity = np.array(msg.joints_velocity)
 
@@ -191,7 +216,6 @@ class TrashControlNode(Node):
 
 
     def compute_rl_control(self):        
-
         # Safety check to not do anything until a first base and blind state are received
         if(self.first_message_base_arrived==False or self.first_message_legs_joints_arrived==False or self.first_message_arm_joints_arrived==False):
             return
@@ -323,6 +347,7 @@ class TrashControlNode(Node):
         arm_control_signal_msg.desired_arm_joints_torque = self.mjData.qfrc_bias[18:24].tolist()  # Send the gravity compensation torques
         arm_control_signal_msg.desired_arm_gripper_torque = 0.0  # Placeholder for gripper torque
         self.publisher_arm_control_signal.publish(arm_control_signal_msg)
+
 
 #---------------------------
 if __name__ == '__main__':

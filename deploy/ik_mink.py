@@ -163,6 +163,7 @@ if __name__ == "__main__":
             yaw_grasp = np.random.uniform(-1.8, 1.8)
             r = R.from_euler('xyz', [roll_grasp, pitch_grasp, yaw_grasp], degrees=False)
             target_quat = r.as_quat()
+            breakpoint()
 
 
         # Compute IK
