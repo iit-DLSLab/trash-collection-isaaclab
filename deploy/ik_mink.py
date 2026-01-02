@@ -57,7 +57,7 @@ class IKMink:
         self.posture_task = mink.PostureTask(self.model, cost=self.posture_cost)
 
         self.immobile_base_cost = np.zeros((self.model.nv,))
-        self.immobile_base_cost[0:2] = 100
+        self.immobile_base_cost[0:2] = 1
         self.damping_task = mink.DampingTask(self.model, self.immobile_base_cost)
 
         self.tasks = [
@@ -114,13 +114,12 @@ class IKMink:
                 vel = mink.solve_ik(
                     self.configuration,
                     [*self.tasks, self.damping_task],
-                    0.005,
-                    self.solver,
+                    dt=0.005,
+                    solver=self.solver,
                     damping=1e-3,
                     limits=self.limits,
                 )
-            else:
-                
+            else:   
                 if(optimize_pitch == True and optimize_height == False):
                     # Create DOF freezing constraint for second joint.
                     frozen_dofs = [1]
@@ -168,10 +167,6 @@ class IKMink:
         self.data.qpos[0:2] = base_pose
         self.data.qpos[2:8] = arm_joints
 
-        mocap_id = self.model.body("target").mocapid[0]
-        self.data.mocap_pos[mocap_id] = target_pos
-        self.data.mocap_quat[mocap_id] = target_quat
-
         mujoco.mj_fwdPosition(self.model, self.data)
 
         # Launch viewer
@@ -207,7 +202,7 @@ if __name__ == "__main__":
         final_base_pose, \
         final_arm_joints, \
         success = ik_solver.compute(target_pos, target_quat, initial_joints, initial_base_pose, 
-                                    optimize_height=False, optimize_pitch=True, visualize=True)
+                                    optimize_height=False, optimize_pitch=False, visualize=True)
         
         print("IK Success? ", success)
 
