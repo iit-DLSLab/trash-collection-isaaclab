@@ -167,8 +167,8 @@ class StateMachine:
         self.controller_node.state_machine.change_state(gripper_state=GripperStateType.OPEN) # CLOSE
 
         if(self.controller_node.received_detection):
-            target_pos = self.controller_node.ik_goal_camera_frame
-            target_quat = self.controller_node.ik_goal_orient_camera_frame
+            target_pos = self.controller_node.ik_goal_base_frame
+            target_quat = self.controller_node.ik_goal_orient_base_frame
             self.controller_node.received_detection = False
         else:
             print("No detection received, cannot reach object!")
@@ -183,7 +183,7 @@ class StateMachine:
         
         reference_base_pose, \
             reference_joints_position, \
-            ik_succeded = self.controller_node.ik_solver.compute(target_pos, target_quat, initial_joints_position, 
+            ik_succeded = self.controller_node.ik_mink_solver.compute(target_pos, target_quat, initial_joints_position, 
                                                     initial_base_pose, optimize_height=True, optimize_pitch=True)
         
         if ik_succeded:

@@ -49,7 +49,8 @@ class IK:
         # Get end-effector site ID
         self.site_id = self.model.site("attachment_site").id
 
-    def compute(self, target_pos: np.ndarray, target_quat: np.ndarray, initial_joints_position: np.ndarray, initial_base_pose: np.ndarray, optimize_height = False, optimize_pitch = False) -> np.ndarray:
+    def compute(self, target_pos: np.ndarray, target_quat: np.ndarray, initial_joints_position: np.ndarray, initial_base_pose: np.ndarray, 
+                optimize_height = False, optimize_pitch = False, visualize = False) -> np.ndarray:
         
         # Pre-allocate arrays
         ik_succeded = True
@@ -137,12 +138,37 @@ class IK:
         final_base_pose = self.data.qpos[0:2] #base pitch, base z
         final_arm_joints = self.data.qpos[2:8]
 
+        if visualize:
+            self.visualize_ik(final_base_pose, final_arm_joints, target_pos, target_quat)
+
         return final_base_pose, final_arm_joints, ik_succeded
+
+    def visualize_ik(self, base_pose: np.ndarray, arm_joints: np.ndarray, target_pos: np.ndarray, target_quat: np.ndarray) -> None:
+        # Set final configuration
+        self.data.qpos[0:2] = base_pose
+        self.data.qpos[2:8] = arm_joints
+
+        mocap_id = self.model.body("target").mocapid[0]
+        self.data.mocap_pos[mocap_id] = target_pos
+        self.data.mocap_quat[mocap_id] = target_quat
+
+        mujoco.mj_fwdPosition(self.model, self.data)
+
+        # Launch viewer
+        viewer = mujoco.viewer.launch_passive(self.model, self.data)
+        while viewer.is_running():
+            input("Press Enter to close the viewer...")
+            viewer.close()
+
 
 
 from scipy.spatial.transform import Rotation as R
 if __name__ == "__main__":
     ik_solver = IK()
+    
+    # Initial joint configuration
+    initial_joints = np.array([0.0, -0.5, 0.5, 0.0, 1.0, 0.0])
+    initial_base_pose = np.array([0.0, 0.0])  # pitch, z
     
     while True:
         # Define target position and orientation
@@ -156,25 +182,11 @@ if __name__ == "__main__":
         yaw_grasp = np.random.uniform(-1.8, 1.8)
         r = R.from_euler('xyz', [roll_grasp, pitch_grasp, yaw_grasp], degrees=False)
         target_quat = r.as_quat()
-        mocap_id = ik_solver.model.body("target").mocapid[0]
-        ik_solver.data.mocap_pos[mocap_id] = target_pos
-        ik_solver.data.mocap_quat[mocap_id] = target_quat
-
-        # Initial joint configuration
-        initial_joints = np.array([0.0, -0.5, 0.5, 0.0, 1.0, 0.0])
-        initial_base_pose = np.array([0.0, 0.0])  # pitch, z
 
         # Compute IK
         final_base_pose, \
         final_arm_joints, \
-        success = ik_solver.compute(target_pos, target_quat, initial_joints, initial_base_pose, optimize_height=False, optimize_pitch=True)
-        print("IK Success:", success)
-        print("Joint Solution:", final_arm_joints)
-
-        # Visualize result
-        viewer = mujoco.viewer.launch_passive(ik_solver.model, ik_solver.data)
-        while viewer.is_running():
-            time.sleep(2)
-            breakpoint()
-            viewer.close()
-            break
+        success = ik_solver.compute(target_pos, target_quat, initial_joints, initial_base_pose, 
+                                    optimize_height=False, optimize_pitch=True, visualize=True)
+        
+        print("IK Success? ", success)

@@ -80,20 +80,21 @@ class IKMink:
 
         self.limits = [
             mink.ConfigurationLimit(self.model),
-            self.collision_avoidance_limit,
+            #self.collision_avoidance_limit,
         ]
 
         # IK settings.
         self.solver = "daqp"
-        self.pos_threshold = 1e-4
-        self.ori_threshold = 1e-4
+        self.pos_threshold = 1e-3
+        self.ori_threshold = 1e-3
         self.max_iters = 20
 
         # Initialize the mocap target at the end-effector site.
         mink.move_mocap_to_frame(self.model, self.data, "target", "attachment_site", "site")
 
-    def compute(self, target_pos: np.ndarray, target_quat: np.ndarray, initial_joints_position: np.ndarray, initial_base_pose: np.ndarray, optimize_height = False, optimize_pitch = False) -> np.ndarray:
-        
+    def compute(self, target_pos: np.ndarray, target_quat: np.ndarray, initial_joints_position: np.ndarray, initial_base_pose: np.ndarray, 
+                optimize_height = False, optimize_pitch = False, visualize = False) -> np.ndarray, np.ndarray, bool:
+
         self.data.qpos[0:8] = np.concatenate((initial_base_pose, initial_joints_position))
         self.configuration.update(self.data.qpos)
         self.posture_task.set_target_from_configuration(self.configuration)
@@ -114,11 +115,9 @@ class IKMink:
                 0.005,
                 self.solver,
                 damping=1e-3,
+                limits=self.limits,
             )
 
-            #vel = mink.solve_ik(
-            #    self.configuration, self.tasks, 0.005, self.solver, damping=1e-3
-            #)
             
             self.configuration.integrate_inplace(vel, 0.005)
 
@@ -126,60 +125,65 @@ class IKMink:
             err = self.end_effector_task.compute_error(self.configuration)
             pos_achieved = bool(np.linalg.norm(err[:3]) <= self.pos_threshold)
             ori_achieved = bool(np.linalg.norm(err[3:]) <= self.ori_threshold)
-            if pos_achieved and ori_achieved:
+            if pos_achieved:
                 ik_succeded = True
             else:
                 ik_succeded = False
 
         final_base_pose = self.configuration.q[0:2] #base pitch, base z
         final_arm_joints = self.configuration.q[2:8]
-        
+
+        if visualize:
+            self.visualize_ik(final_base_pose, final_arm_joints, target_pos, target_quat)
+
         return final_base_pose, final_arm_joints, ik_succeded
+    
+
+    def visualize_ik(self, base_pose: np.ndarray, arm_joints: np.ndarray, target_pos: np.ndarray, target_quat: np.ndarray) -> None:
+        # Set final configuration
+        self.data.qpos[0:2] = base_pose
+        self.data.qpos[2:8] = arm_joints
+
+        mocap_id = self.model.body("target").mocapid[0]
+        self.data.mocap_pos[mocap_id] = target_pos
+        self.data.mocap_quat[mocap_id] = target_quat
+
+        mujoco.mj_fwdPosition(self.model, self.data)
+
+        # Launch viewer
+        viewer = mujoco.viewer.launch_passive(self.model, self.data)
+        while viewer.is_running():
+            input("Press Enter to close the viewer...")
+            viewer.close()
 
 
 if __name__ == "__main__":
     
     ik_solver = IKMink()
-    
-    step = 0
 
     # Initial joint configuration
     initial_joints = np.array([0.0, -0.5, 0.5, 0.0, 1.0, 0.0])
     initial_base_pose = np.array([0.0, 0.0])  # pitch, z
 
-    # Visualize result
-    viewer = mujoco.viewer.launch_passive(ik_solver.model, ik_solver.data)
-    while viewer.is_running():
+    while True:
 
-        if(step % 100 == 0):
-            # Define target position and orientation
-            x_pos = np.random.uniform(0.4, 0.4)
-            y_pos = np.random.uniform(-0.2, 0.2)
-            z_pos = np.random.uniform(0.3, 0.6)
-            target_pos = np.array([x_pos, y_pos, z_pos])
+        # Define target position and orientation
+        x_pos = np.random.uniform(0.4, 0.4)
+        y_pos = np.random.uniform(-0.2, 0.2)
+        z_pos = np.random.uniform(0.3, 0.6)
+        target_pos = np.array([x_pos, y_pos, z_pos])
 
-            roll_grasp = np.random.uniform(-1.8, 1.8)
-            pitch_grasp = np.random.uniform(-1.8, 1.8)
-            yaw_grasp = np.random.uniform(-1.8, 1.8)
-            r = R.from_euler('xyz', [roll_grasp, pitch_grasp, yaw_grasp], degrees=False)
-            target_quat = r.as_quat()
-            breakpoint()
-
+        roll_grasp = np.random.uniform(-1.8, 1.8)
+        pitch_grasp = np.random.uniform(-1.8, 1.8)
+        yaw_grasp = np.random.uniform(-1.8, 1.8)
+        r = R.from_euler('xyz', [roll_grasp, pitch_grasp, yaw_grasp], degrees=False)
+        target_quat = r.as_quat()
 
         # Compute IK
         final_base_pose, \
         final_arm_joints, \
-        success = ik_solver.compute(target_pos, target_quat, initial_joints, initial_base_pose, optimize_height=False, optimize_pitch=True)
+        success = ik_solver.compute(target_pos, target_quat, initial_joints, initial_base_pose, 
+                                    optimize_height=False, optimize_pitch=True, visualize=True)
+        
+        print("IK Success? ", success)
 
-        # Update initial conditions for the next iteration
-        initial_joints = final_arm_joints
-        initial_base_pose = final_base_pose
-
-        ik_solver.data.qpos[0:8] = np.concatenate((initial_base_pose, initial_joints))
-
-        mujoco.mj_kinematics(ik_solver.model, ik_solver.data)
-
-        viewer.sync()
-        step += 1
-        print("step: ", step)
-        time.sleep(0.005)
