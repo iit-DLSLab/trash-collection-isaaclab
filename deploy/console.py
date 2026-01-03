@@ -115,8 +115,8 @@ class Console():
                     print("Kp stand_up_and_down: ", self.controller_node.locomotion_policy.Kp_stand_up_and_down)
                     temp = input("Enter Kp: ")
                     if(temp != ""):
-                        self.controller_node.Kp_stand_up_and_down= float(temp)
-                    
+                        self.controller_node.locomotion_policy.Kp_stand_up_and_down= float(temp)
+
                     print("Kp walking: ", self.controller_node.locomotion_policy.Kp_walking)
                     temp = input("Enter Kp: ")
                     if(temp != ""):
@@ -131,7 +131,7 @@ class Console():
                     print("Kd stand_up_and_down: ", self.controller_node.locomotion_policy.Kd_stand_up_and_down)
                     temp = input("Enter Kd: ")
                     if(temp != ""):
-                        self.controller_node.Kd_stand_up_and_down = float(temp)
+                        self.controller_node.locomotion_policy.Kd_stand_up_and_down = float(temp)
 
                     print("Kd walking: ", self.controller_node.locomotion_policy.Kd_walking)
                     temp = input("Enter Kd: ")

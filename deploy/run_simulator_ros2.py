@@ -10,6 +10,7 @@ from rclpy.qos import QoSProfile, ReliabilityPolicy
 
 import time
 import numpy as np
+import copy
 import sys
 import os 
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -56,9 +57,9 @@ class MujocoSimulationNode(Node):
 
         # Desired PD
         qpos, qvel = self.mjData.qpos, self.mjData.qvel
-        self.desired_arm_joints_position = qpos[19:25]
-        self.desired_legs_joints_position = qpos[7:19]
-        self.desired_gripper_position = qpos[25]
+        self.desired_arm_joints_position = copy.deepcopy(qpos[19:25])
+        self.desired_legs_joints_position = copy.deepcopy(qpos[7:19])
+        self.desired_gripper_position = copy.deepcopy(qpos[25])
         self.Kp_legs = 0
         self.Kd_legs = 0
         self.Kp_arm = 0
@@ -102,9 +103,11 @@ class MujocoSimulationNode(Node):
         joints_vel_gripper = qvel[24]
 
         # Fix convention DLS2 and send PD target
-        """self.desired_legs_joints_position[0] = -self.desired_legs_joints_position[0]
-        self.desired_legs_joints_position[6] = -self.desired_legs_joints_position[6]"""
-        error_joints_pos_leg = self.desired_legs_joints_position - joints_pos_leg
+        temp_desired_legs_joints_position = copy.deepcopy(self.desired_legs_joints_position)
+        temp_desired_legs_joints_position[0] = -temp_desired_legs_joints_position[0]
+        temp_desired_legs_joints_position[6] = -temp_desired_legs_joints_position[6]
+        
+        error_joints_pos_leg = temp_desired_legs_joints_position - joints_pos_leg
         tau_leg = self.Kp_legs*error_joints_pos_leg - self.Kd_legs*joints_vel_leg
 
         error_joints_pos_arm = self.desired_arm_joints_position - joints_pos_arm
@@ -130,13 +133,15 @@ class MujocoSimulationNode(Node):
         self.publisher_base_state.publish(base_state_msg)
 
         blind_state_msg = BlindState()
-        blind_state_msg.joints_position = self.mjData.qpos[7:19].tolist()
-        blind_state_msg.joints_velocity = self.mjData.qvel[6:18].tolist()
+        blind_state_msg.joints_position = copy.deepcopy(self.mjData.qpos[7:19]).tolist()
+        blind_state_msg.joints_velocity = copy.deepcopy(self.mjData.qvel[6:18]).tolist()
+        
         # Fix convention DLS2
-        """blind_state_msg.joints_position[0] = -blind_state_msg.joints_position[0]
+        blind_state_msg.joints_position[0] = -blind_state_msg.joints_position[0]
         blind_state_msg.joints_position[6] = -blind_state_msg.joints_position[6]
         blind_state_msg.joints_velocity[0] = -blind_state_msg.joints_velocity[0]
-        blind_state_msg.joints_velocity[6] = -blind_state_msg.joints_velocity[6]"""
+        blind_state_msg.joints_velocity[6] = -blind_state_msg.joints_velocity[6]
+
         self.publisher_blind_state.publish(blind_state_msg)
 
         arm_blind_state_msg = ArmState()
@@ -146,12 +151,17 @@ class MujocoSimulationNode(Node):
 
 
         # Publish the position of the bottle ----------------------------------------------------------
+        #TODO: to publish in camera frame
         detections_msg = PoseArray()
         detections_msg.header.stamp = self.get_clock().now().to_msg()
         # For each bottle in the scene
         for bottle_id in range(2):
             bottle_pos = self.mjData.xpos[self.mjModel.body('bottle'+str(bottle_id)).id]
             bottle_quat = self.mjData.xquat[self.mjModel.body('bottle'+str(bottle_id)).id]
+
+            # The bottle is in world frame, trasform it to camera frame
+            # TODO, extract the camera pose in world frame and do the transformation
+
             detection_pose = Pose()
             detection_pose.position.x = bottle_pos[0]
             detection_pose.position.y = bottle_pos[1]

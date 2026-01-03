@@ -60,6 +60,18 @@ class TrashControlNode(Node):
         self.mjData = mujoco.MjData(self.mjModel)
         keyframe_id = mujoco.mj_name2id(self.mjModel, mujoco.mjtObj.mjOBJ_KEY, "home")
         self.mjData.qpos = self.mjModel.key_qpos[keyframe_id]
+        
+        self.use_visualizer = False
+        if self.use_visualizer:
+            self.viewer = mujoco.viewer.launch_passive(
+                            self.mjModel,
+                            self.mjData,
+                            show_left_ui=False,
+                            show_right_ui=False,
+                            #key_callback=lambda x: self._key_callback(x),
+                        )
+            self.last_render_time = time.time()
+            self.RENDER_FREQ = 30.0  # Hz 
 
 
         # Initialization of variables used in the main control loop --------------------------------
@@ -208,10 +220,10 @@ class TrashControlNode(Node):
         self.legs_joints_velocity = np.array(msg.joints_velocity)
 
         # Fix convention DLS2
-        """self.legs_joints_position[0] = -self.legs_joints_position[0]
+        self.legs_joints_position[0] = -self.legs_joints_position[0]
         self.legs_joints_position[6] = -self.legs_joints_position[6]
         self.legs_joints_velocity[0] = -self.legs_joints_velocity[0]
-        self.legs_joints_velocity[6] = -self.legs_joints_velocity[6]"""
+        self.legs_joints_velocity[6] = -self.legs_joints_velocity[6]
 
         self.first_message_legs_joints_arrived = True
 
@@ -331,8 +343,8 @@ class TrashControlNode(Node):
 
         
         # Fix convention DLS2 and send PD target
-        """self.desired_joint_pos_leg[0] = -self.desired_joint_pos_leg[0]
-        self.desired_joint_pos_leg[6] = -self.desired_joint_pos_leg[6]"""
+        self.desired_joint_pos_leg[0] = -self.desired_joint_pos_leg[0]
+        self.desired_joint_pos_leg[6] = -self.desired_joint_pos_leg[6]
 
             
         trajectory_generator_msg = TrajectoryGenerator()
@@ -355,6 +367,20 @@ class TrashControlNode(Node):
         arm_control_signal_msg.desired_arm_joints_torque = self.mjData.qfrc_bias[18:24].tolist()  # Send the gravity compensation torques
         arm_control_signal_msg.desired_arm_gripper_torque = 0.0  # Placeholder for gripper torque
         self.publisher_arm_control_signal.publish(arm_control_signal_msg)
+
+        if self.use_visualizer:
+            # Render only at a certain frequency -----------------------------------------------------------------
+            if time.time() - self.last_render_time > 1.0 / self.RENDER_FREQ:
+                if(self.received_detection):
+                    # Update task target.
+                    mocap_id = self.mjModel.body("target").mocapid[0]
+                    self.mjData.mocap_pos[mocap_id] = self.ik_goal_base_frame
+                    self.mjData.mocap_quat[mocap_id] = self.ik_goal_orient_base_frame
+                
+                # Update the camera position
+                self.viewer.cam.lookat[:] = base_pos
+                self.viewer.sync()
+                self.last_render_time = time.time()
 
 
 #---------------------------
