@@ -154,23 +154,30 @@ class MujocoSimulationNode(Node):
         #TODO: to publish in camera frame
         detections_msg = PoseArray()
         detections_msg.header.stamp = self.get_clock().now().to_msg()
-        # For each bottle in the scene
-        for bottle_id in range(2):
-            bottle_pos = self.mjData.xpos[self.mjModel.body('bottle'+str(bottle_id)).id]
-            bottle_quat = self.mjData.xquat[self.mjModel.body('bottle'+str(bottle_id)).id]
 
-            # The bottle is in world frame, trasform it to camera frame
-            # TODO, extract the camera pose in world frame and do the transformation
+        # --- World-frame positions ---
+        p_WB = self.mjData.xpos[self.mjModel.body('bottle').id].copy()
+        R_WB = self.mjData.xmat[self.mjModel.body('bottle').id].copy().reshape(3, 3)
 
-            detection_pose = Pose()
-            detection_pose.position.x = bottle_pos[0]
-            detection_pose.position.y = bottle_pos[1]
-            detection_pose.position.z = bottle_pos[2]
-            detection_pose.orientation.w = bottle_quat[0]
-            detection_pose.orientation.x = bottle_quat[1]
-            detection_pose.orientation.y = bottle_quat[2]
-            detection_pose.orientation.z = bottle_quat[3]
-            detections_msg.poses.append(detection_pose)
+        cam_id  = mujoco.mj_name2id(self.mjModel, mujoco.mjtObj.mjOBJ_CAMERA, "robotcam")
+        p_WC = self.mjData.cam_xpos[cam_id].copy()     # camera origin in world
+        R_WC = self.mjData.cam_xmat[cam_id].copy().reshape(3, 3)
+
+        # --- Transform world → camera ---
+        p_CB = R_WC.T @ (p_WB - p_WC)
+        R_CB = R_WC.T @ R_WB
+        q_cb = np.zeros(4)
+        mujoco.mju_mat2Quat(q_cb, R_CB.reshape(9,))
+
+        detection_pose = Pose()
+        detection_pose.position.x = p_CB[0]
+        detection_pose.position.y = p_CB[1]
+        detection_pose.position.z = p_CB[2]
+        detection_pose.orientation.w = q_cb[0]
+        detection_pose.orientation.x = q_cb[1]
+        detection_pose.orientation.y = q_cb[2]
+        detection_pose.orientation.z = q_cb[3]
+        detections_msg.poses.append(detection_pose)
         self.publisher_detections.publish(detections_msg)
 
 

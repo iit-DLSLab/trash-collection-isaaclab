@@ -132,20 +132,6 @@ class TrashControlNode(Node):
 
         # Variables for IK from detection
         self.received_detection = False
-        self.ik_goal_orient_camera_frame = np.array([1.0, 0.0 ,0.0 ,0.0])
-        self.r_optical_to_camera_frame = np.array([
-                                                [0.0, 0.0,  1.0],
-                                                [-1.0, 0.0, 0.0],
-                                                [0.0, -1.0, 0.0]
-                                            ])
-        self.r_camera_to_base_frame = np.array([
-                                                [1.0, 0.0,  0.0],
-                                                [0.0, 1.0, 0.0],
-                                                [0.0, 0.0, 1.0]
-                                            ])
-
-        self.r_camera_frame_to_base = self.r_camera_to_base_frame @ self.r_optical_to_camera_frame
-
         self.ik_goal_camera_frame = np.zeros(3)
         self.ik_goal_base_frame = np.zeros(3)
         self.ik_goal_orient_base_frame = np.array([1.0, 0.0 ,0.0 ,0.0])
@@ -164,21 +150,62 @@ class TrashControlNode(Node):
 
 
     def get_grasp_pose_callback(self, msg):
+        # Trasformation from camera frame to base frame
+        body_id = mujoco.mj_name2id(self.mjModel, mujoco.mjtObj.mjOBJ_BODY, "trunk")
+        cam_id  = mujoco.mj_name2id(self.mjModel, mujoco.mjtObj.mjOBJ_CAMERA, "robotcam")
+
+        p_WB = self.mjData.xpos[body_id]
+        R_WB = self.mjData.xmat[body_id].reshape(3, 3)
+
+        p_WC = self.mjData.cam_xpos[cam_id]
+        R_WC = self.mjData.cam_xmat[cam_id].reshape(3, 3)
+
+        R_BC = R_WB.T @ R_WC
+        t_BC = R_WB.T @ (p_WC - p_WB)
+
+        self.r_optical_to_camera_frame = np.array([
+                                                [0.0, 0.0,  1.0],
+                                                [-1.0, 0.0, 0.0],
+                                                [0.0, -1.0, 0.0]
+                                            ])
+
         if len(msg.poses) > 0:
             pose = msg.poses[0]
             self.ik_goal_camera_frame[0] = pose.position.x
             self.ik_goal_camera_frame[1] = pose.position.y
             self.ik_goal_camera_frame[2] = pose.position.z
 
-            #conversion from camera optical frame to base
-            self.ik_goal_base_frame =  self.r_camera_frame_to_base @ self.ik_goal_camera_frame
-
             self.ik_goal_orient_camera_frame[0] = pose.orientation.w
             self.ik_goal_orient_camera_frame[1] = pose.orientation.x
             self.ik_goal_orient_camera_frame[2] = pose.orientation.y
             self.ik_goal_orient_camera_frame[3] = pose.orientation.z
 
-            self.ik_goal_orient_base_frame = ( R.from_matrix(self.r_camera_frame_to_base) * R.from_quat(self.ik_goal_orient_camera_frame, scalar_first=True)).as_quat(scalar_first=True)
+            #conversion from camera optical frame to base
+            #self.ik_goal_base_frame =  self.r_camera_frame_to_base @ self.ik_goal_camera_frame
+            #self.ik_goal_orient_base_frame = ( R.from_matrix(self.r_camera_frame_to_base) * R.from_quat(self.ik_goal_orient_camera_frame, scalar_first=True)).as_quat(scalar_first=True)
+            
+            # --- position ---
+            p_C = self.ik_goal_camera_frame
+            p_B = R_BC @ p_C + t_BC
+
+            # --- orientation ---
+            # Convert q_C to rotation matrix
+            R_C = np.zeros((3, 3), dtype=float)
+            mujoco.mju_quat2Mat(R_C.reshape(9,), self.ik_goal_orient_camera_frame)
+            R_C = R_C.reshape(3,3)
+
+            # Compose: body_R = (body<-camera) * (camera_R)
+            R_B = R_BC @ R_C
+
+            # Convert back to quaternion (w,x,y,z)
+            q_B = np.zeros(4, dtype=float)
+            mujoco.mju_mat2Quat(q_B, R_B.reshape(9,))
+            R_B = R_B.reshape(3,3)
+
+            self.ik_goal_base_frame = p_B
+            self.ik_goal_orient_base_frame = q_B
+
+
             self.received_detection = True
 
     
