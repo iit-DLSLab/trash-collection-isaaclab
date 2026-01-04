@@ -133,6 +133,7 @@ class TrashControlNode(Node):
         # Variables for IK from detection
         self.received_detection = False
         self.ik_goal_camera_frame = np.zeros(3)
+        self.ik_goal_orient_camera_frame = np.array([1.0, 0.0 ,0.0 ,0.0])
         self.ik_goal_base_frame = np.zeros(3)
         self.ik_goal_orient_base_frame = np.array([1.0, 0.0 ,0.0 ,0.0])
 
