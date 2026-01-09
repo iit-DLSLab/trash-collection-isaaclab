@@ -26,3 +26,5 @@ dependencies:
   - onnxruntime
   - torch
   - mujoco
+  - loop_rate_limiters
+  - mink
