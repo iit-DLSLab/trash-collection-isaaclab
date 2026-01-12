@@ -97,7 +97,7 @@
 
             <!-- imu and camera -->
             <site name="imu" pos="0 0 0"/>
-            <camera name="robotcam" pos="0.31 -0.005 0.00292751" quat="0.4 0.4 -0.4 -0.4"/>
+            <camera name="robotcam" pos="0.31 -0.005 0.00292751" />
 
             <!-- FL leg -->
             <body name="FL_hip" pos="0.2399 0.051 0">
