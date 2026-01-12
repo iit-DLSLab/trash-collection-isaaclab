@@ -255,7 +255,6 @@ class TrashControlNode(Node):
 
         self.first_message_legs_joints_arrived = True
 
-
     def get_arm_blind_state_callback(self, msg):        
         self.arm_joints_position = np.array(msg.joints_position)
         self.arm_joints_velocity = np.array(msg.joints_velocity)
@@ -389,6 +388,7 @@ class TrashControlNode(Node):
         arm_trajectory_generator_msg.desired_arm_joints_velocity = np.zeros(6).tolist()
         arm_trajectory_generator_msg.arm_kp = (np.ones(6)*self.Kp_arm).tolist()
         arm_trajectory_generator_msg.arm_kd = (np.ones(6)*self.Kd_arm).tolist()
+        arm_trajectory_generator_msg.desired_arm_gripper_position = float(self.state_machine.desired_gripper_position)
         self.publisher_arm_trajectory_generator.publish(arm_trajectory_generator_msg)
 
         arm_control_signal_msg = ArmControlSignal()
