@@ -39,6 +39,7 @@
 
             <body name="bottle" pos="3.1 -0.2 0.15" quat="0.70710678 0.70710678 0 0">
                   <geom name="waterbottle_visual" type="mesh" mesh="waterbottle" rgba=".6 .3 .3 .5"/>
+                  <site name="site_ik" size="0.01" quat="0.5 0.5 -0.5 -0.5" rgba="1 0 0 1" group="1"/>
             </body>
 
             <geom name="floor" size="0 0 0.05" type="plane" material="groundplane"/>
