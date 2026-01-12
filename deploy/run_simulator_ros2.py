@@ -156,27 +156,29 @@ class MujocoSimulationNode(Node):
         detections_msg.header.stamp = self.get_clock().now().to_msg()
 
         # --- World-frame positions ---
-        p_WB = self.mjData.xpos[self.mjModel.body('bottle').id].copy()
-        R_WB = self.mjData.xmat[self.mjModel.body('bottle').id].copy().reshape(3, 3)
+        p_WO = self.mjData.xpos[self.mjModel.body('bottle').id].copy()
+        R_WO = self.mjData.site_xmat[self.mjModel.site('site_ik').id].copy().reshape(3, 3)
+        q_wo = np.zeros(4)
+        mujoco.mju_mat2Quat(q_wo, R_WO.reshape(9,))
 
         cam_id  = mujoco.mj_name2id(self.mjModel, mujoco.mjtObj.mjOBJ_CAMERA, "robotcam")
         p_WC = self.mjData.cam_xpos[cam_id].copy()     # camera origin in world
         R_WC = self.mjData.cam_xmat[cam_id].copy().reshape(3, 3)
 
         # --- Transform world → camera ---
-        p_CB = R_WC.T @ (p_WB - p_WC)
-        R_CB = R_WC.T @ R_WB
-        q_cb = np.zeros(4)
-        mujoco.mju_mat2Quat(q_cb, R_CB.reshape(9,))
+        p_CO = R_WC.T @ (p_WO - p_WC)
+        R_CO = R_WC.T @ R_WO
+        q_co = np.zeros(4)
+        mujoco.mju_mat2Quat(q_co, R_CO.reshape(9,))
 
         detection_pose = Pose()
-        detection_pose.position.x = p_CB[0]
-        detection_pose.position.y = p_CB[1]
-        detection_pose.position.z = p_CB[2]
-        detection_pose.orientation.w = q_cb[0]
-        detection_pose.orientation.x = q_cb[1]
-        detection_pose.orientation.y = q_cb[2]
-        detection_pose.orientation.z = q_cb[3]
+        detection_pose.position.x = p_CO[0]
+        detection_pose.position.y = p_CO[1]
+        detection_pose.position.z = p_CO[2]
+        detection_pose.orientation.w = q_co[0]
+        detection_pose.orientation.x = q_co[1]
+        detection_pose.orientation.y = q_co[2]
+        detection_pose.orientation.z = q_co[3]
         detections_msg.poses.append(detection_pose)
         self.publisher_detections.publish(detections_msg)
 
