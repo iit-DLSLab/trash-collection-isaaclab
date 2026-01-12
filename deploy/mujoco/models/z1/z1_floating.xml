@@ -113,7 +113,7 @@
                   <joint name="joint6" axis="1 0 0" range="-2.79253 2.79253"/>
                   <geom class="visual" mesh="z1_Link06"/>
                   <geom size="0.0325 0.0255" pos="0.0255 0 0" quat="1 0 1 0" class="collision"/>
-                  <site name="attachment_site" size="0.01" pos="0.15 0 0" quat="-1 1 1 1" rgba="1 0 0 1" group="1"/>
+                  <site name="attachment_site" size="0.01" pos="0.15 0 0" rgba="1 0 0 1" group="1"/>
                   
                   <geom pos="0.051 0 0" type="mesh" mesh="z1_GripperStator" class="visual"/>
                   <geom class="z1_gripper_stator_collision" mesh="z1_GripperStator_col_1"/>
