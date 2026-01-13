@@ -12,6 +12,7 @@ services:
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility,video,graphics
+      - ROS_DOMAIN_ID=45
 
       # X11 GUI forwarding (Linux Xorg)
       - DISPLAY=${DISPLAY}
@@ -19,14 +20,14 @@ services:
       - WAYLAND_DISPLAY=$WAYLAND_DISPLAY
 
       # ROS 2 defaults (change if you prefer CycloneDDS)
-      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
-      - ROS_DISCOVERY_SERVER=127.0.0.1:11814
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 
     volumes:
       # X11 socket
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       # Mount your workspace from host -> container
       - ../../..:/home
+
 
     deploy:
       resources:
