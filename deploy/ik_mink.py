@@ -85,15 +85,15 @@ class IKMink:
 
         # IK settings.
         self.solver = "daqp"
-        self.pos_threshold = 1e-3
-        self.ori_threshold = 1e-3
+        self.pos_threshold = 1e-1
+        self.ori_threshold = 1e-1
         self.max_iters = 20
 
         # Initialize the mocap target at the end-effector site.
         mink.move_mocap_to_frame(self.model, self.data, "target", "attachment_site", "site")
 
     def compute(self, target_pos: np.ndarray, target_quat: np.ndarray, initial_joints_position: np.ndarray, initial_base_pose: np.ndarray, 
-                optimize_height = False, optimize_pitch = False, visualize = False) -> [np.ndarray, np.ndarray, bool]:
+                optimize_height = False, optimize_pitch = False, visualize = True) -> [np.ndarray, np.ndarray, bool]:
 
         self.data.qpos[0:8] = np.concatenate((initial_base_pose, initial_joints_position))
         self.configuration.update(self.data.qpos)

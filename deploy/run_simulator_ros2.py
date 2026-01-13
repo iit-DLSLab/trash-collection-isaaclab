@@ -31,7 +31,7 @@ class MujocoSimulationNode(Node):
         self.simulation_dt = 0.002
 
         # Load the model and data.
-        self.mjModel = mujoco.MjModel.from_xml_path("mujoco/models/scene_rough.xml")
+        self.mjModel = mujoco.MjModel.from_xml_path("mujoco/models/scene_flat.xml")
         self.mjData = mujoco.MjData(self.mjModel)
         keyframe_id = mujoco.mj_name2id(self.mjModel, mujoco.mjtObj.mjOBJ_KEY, "down")
         self.mjData.qpos = self.mjModel.key_qpos[keyframe_id]
@@ -156,8 +156,8 @@ class MujocoSimulationNode(Node):
         detections_msg.header.stamp = self.get_clock().now().to_msg()
 
         # --- World-frame positions ---
-        p_WO = self.mjData.xpos[self.mjModel.body('bottle').id].copy()
-        R_WO = self.mjData.site_xmat[self.mjModel.site('site_ik').id].copy().reshape(3, 3)
+        p_WO = self.mjData.xpos[self.mjModel.body('waterbottle').id].copy()
+        R_WO = self.mjData.site_xmat[self.mjModel.site('waterbottle_site').id].copy().reshape(3, 3)
         q_wo = np.zeros(4)
         mujoco.mju_mat2Quat(q_wo, R_WO.reshape(9,))
 

@@ -164,7 +164,7 @@ class StateMachine:
             print("Error: first move to pre-reach position")
             return
 
-        self.controller_node.state_machine.change_state(gripper_state=GripperStateType.OPEN) # CLOSE
+        self.controller_node.state_machine.change_state(gripper_state=GripperStateType.OPEN) # OPEN
 
         if(self.controller_node.received_detection):
             target_pos = self.controller_node.ik_goal_base_frame
@@ -173,10 +173,6 @@ class StateMachine:
         else:
             print("No detection received, cannot reach object!")
             return
-        
-        #target_pos = [0.5, 0.0, 0.1]
-        #target_quat = ([ -0.7071, 0.0, -0.7071, 0])
-        #print("target pos is ", target_pos)
 
         initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
         initial_base_pose = copy.deepcopy(self.controller_node.desired_pose_command_overwrite)
@@ -184,7 +180,7 @@ class StateMachine:
         reference_base_pose, \
             reference_joints_position, \
             ik_succeded = self.controller_node.ik_mink_solver.compute(target_pos, target_quat, initial_joints_position, 
-                                                    initial_base_pose, optimize_height=True, optimize_pitch=True)
+                                                    initial_base_pose, optimize_height=False, optimize_pitch=False)
         
         if ik_succeded:
             # First move the base
@@ -195,11 +191,11 @@ class StateMachine:
             initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
             initial_base_pose = copy.deepcopy(self.controller_node.desired_pose_command_overwrite)
             intermediate_target_pos = copy.deepcopy(target_pos)
-            intermediate_target_pos[0] *= 0.8  # Raise Z by 10
-            intermediate_target_pos[2] *= 0.8  # Raise Z by 10
+            #intermediate_target_pos[0] *= 0.8  # TODO this is in base frame, i should add it in world frame
+            intermediate_target_pos[2] += 0.15  # TODO this is in base frame, i should add it in world frame
             _, \
                 reference_joints_position, \
-                ik_succeded = self.controller_node.ik_solver.compute(intermediate_target_pos, target_quat, initial_joints_position, initial_base_pose)
+                ik_succeded = self.controller_node.ik_mink_solver.compute(intermediate_target_pos, target_quat, initial_joints_position, initial_base_pose)
             time_motion = 5.
             self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
 
@@ -208,7 +204,7 @@ class StateMachine:
             initial_base_pose = copy.deepcopy(self.controller_node.desired_pose_command_overwrite)
             _, \
                 reference_joints_position, \
-                ik_succeded = self.controller_node.ik_solver.compute(target_pos, target_quat, initial_joints_position, initial_base_pose)
+                ik_succeded = self.controller_node.ik_mink_solver.compute(target_pos, target_quat, initial_joints_position, initial_base_pose)
             time_motion = 3.
             self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
 
