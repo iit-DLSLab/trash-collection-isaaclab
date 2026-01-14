@@ -4,6 +4,8 @@ import numpy as np
 import copy
 import time
 
+import mujoco
+
 class ArmStateType(Enum):
     REST = 0
     PREREACH = 1
@@ -159,6 +161,7 @@ class StateMachine:
         
         self.change_state(state=ArmStateType.PREREACH)
 
+    
     def armReachObjectIK(self, initial_joints_position):
         if(self.state_type != ArmStateType.PREREACH and self.state_type != ArmStateType.REACH):
             print("Error: first move to pre-reach position")
@@ -167,13 +170,12 @@ class StateMachine:
         self.controller_node.state_machine.change_state(gripper_state=GripperStateType.OPEN) # OPEN
 
         if(self.controller_node.received_detection):
-            target_pos = self.controller_node.ik_goal_base_frame
-            target_quat = self.controller_node.ik_goal_orient_base_frame
             self.controller_node.received_detection = False
         else:
             print("No detection received, cannot reach object!")
             return
 
+        target_pos, target_quat = self.detection_from_camera_to_base()
         initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
         initial_base_pose = copy.deepcopy(self.controller_node.desired_pose_command_overwrite)
         
@@ -184,43 +186,46 @@ class StateMachine:
         
         if ik_succeded:
             # First move the base
-            time_motion = 2.
-            self.run_base_smoother(initial_base_pose, reference_base_pose, 2.)
+            self.run_base_smoother(initial_base_pose, reference_base_pose, time_motion=2.)
 
             # Then move the arm in two steps, reaching an intermediate point
+            target_pos, target_quat = self.detection_from_camera_to_base()
             initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
             initial_base_pose = copy.deepcopy(self.controller_node.desired_pose_command_overwrite)
             intermediate_target_pos = copy.deepcopy(target_pos)
+            
             #intermediate_target_pos[0] *= 0.8  # TODO this is in base frame, i should add it in world frame
             intermediate_target_pos[2] += 0.15  # TODO this is in base frame, i should add it in world frame
             _, \
                 reference_joints_position, \
                 ik_succeded = self.controller_node.ik_mink_solver.compute(intermediate_target_pos, target_quat, initial_joints_position, initial_base_pose)
-            time_motion = 5.
-            self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
+            
+            if ik_succeded:
+                self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion=5.)
 
-            # Finally reach the target
-            initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
-            initial_base_pose = copy.deepcopy(self.controller_node.desired_pose_command_overwrite)
-            _, \
-                reference_joints_position, \
-                ik_succeded = self.controller_node.ik_mink_solver.compute(target_pos, target_quat, initial_joints_position, initial_base_pose)
-            time_motion = 3.
-            self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
+                # Finally reach the target
+                initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
+                initial_base_pose = copy.deepcopy(self.controller_node.desired_pose_command_overwrite)
+                _, \
+                    reference_joints_position, \
+                    ik_succeded = self.controller_node.ik_mink_solver.compute(target_pos, target_quat, initial_joints_position, initial_base_pose)
+                
+                if ik_succeded:
+                    self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion=3.)
 
-            # Close the gripper and grasp
-            time.sleep(1.)
-            self.change_state(state=ArmStateType.GRASP)
-            self.change_state(gripper_state=GripperStateType.CLOSE) # CLOSE
+                    # Close the gripper and grasp
+                    time.sleep(1.)
+                    self.change_state(state=ArmStateType.GRASP)
+                    self.change_state(gripper_state=GripperStateType.CLOSE) # CLOSE
 
-            # Return to previous base position base position
-            time_motion = 2.
-            reference_base_pose = reference_base_pose*0.0
-            self.run_base_smoother(initial_base_pose, reference_base_pose, 2.)
+                    # Return to previous base position base position
+                    reference_base_pose = reference_base_pose*0.0
+                    self.run_base_smoother(initial_base_pose, reference_base_pose, time_motion = 2.)
             
         else:
             print("IK failed, position not reachable!")
 
+    
     def armReachObjectRL(self, initial_joints_position):
         if(self.state_type != ArmStateType.PREREACH and self.state_type != ArmStateType.REACH):
             print("Error: first move to pre-reach position")
@@ -237,4 +242,48 @@ class StateMachine:
 
             self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
             print("Reached pre-reach")
+
+
+    def detection_from_camera_to_base(self, ):
+
+        #FOR NOW IS ZERO
+        # self.r_optical_to_camera_frame = np.array([
+        #                                         [0.0, 0.0,  1.0],
+        #                                         [-1.0, 0.0, 0.0],
+        #                                         [0.0, -1.0, 0.0]
+        #                                     ])
+
+        # Trasformation from camera frame to base frame
+        body_id = mujoco.mj_name2id(self.controller_node.mjModel, mujoco.mjtObj.mjOBJ_BODY, "trunk")
+        cam_id  = mujoco.mj_name2id(self.controller_node.mjModel, mujoco.mjtObj.mjOBJ_CAMERA, "robotcam")
+
+        p_WB = self.controller_node.mjData.xpos[body_id]
+        R_WB = self.controller_node.mjData.xmat[body_id].reshape(3, 3)
+
+        p_WC = self.controller_node.mjData.cam_xpos[cam_id]
+        R_WC = self.controller_node.mjData.cam_xmat[cam_id].reshape(3, 3)
+
+        R_BC = R_WB.T @ R_WC
+        t_BC = R_BC @ (p_WC - p_WB)
+
+
+        # --- position ---
+        p_CO = self.controller_node.ik_goal_camera_frame
+        p_B = R_BC @ p_CO + t_BC
+
+        # --- orientation ---
+        # Convert q_C to rotation matrix
+        R_CO = np.zeros((3, 3), dtype=float)
+        mujoco.mju_quat2Mat(R_CO.reshape(9,), self.controller_node.ik_goal_orient_camera_frame)
+        R_CO = R_CO.reshape(3,3)
+        # Compose: body_R = (body<-camera) * (camera_R)
+        R_BO = R_BC @ R_CO
+
+        # Convert back to quaternion (w,x,y,z)
+        q_BO = np.zeros(4, dtype=float)
+        mujoco.mju_mat2Quat(q_BO, R_BO.reshape(9,))
+        R_BO = R_BO.reshape(3,3)
+
+        return p_B, q_BO
+        self.controller_node.ik_goal_orient_base_frame = q_BO
 
