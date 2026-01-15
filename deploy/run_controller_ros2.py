@@ -347,8 +347,20 @@ class TrashControlNode(Node):
         arm_trajectory_generator_msg.desired_arm_gripper_position = float(self.state_machine.desired_gripper_position)
         self.publisher_arm_trajectory_generator.publish(arm_trajectory_generator_msg)
 
+
+        # Compute the inverse dynamics
+        M = np.zeros((self.mjModel.nv, self.mjModel.nv))
+        mujoco.mj_solveM(self.mjModel, self.mjData, M, np.eye(self.mjModel.nv))
+        M = M[18:24, 18:24]
+        if abs(np.linalg.det(M)) >= 1e-2:
+            M_inv = np.linalg.inv(M)
+        else:
+            M_inv = np.linalg.pinv(M, rcond=1e-2)
+        tau_arm = M_inv@(self.Kp_arm*(self.desired_joint_pos_arm - joints_pos_arm) - self.Kd_arm*joints_vel_arm)
+        tau_arm += self.mjData.qfrc_bias[18:24]
+
         arm_control_signal_msg = ArmControlSignal()
-        arm_control_signal_msg.desired_arm_joints_torque = self.mjData.qfrc_bias[18:24].tolist()  # Send the gravity compensation torques
+        arm_control_signal_msg.desired_arm_joints_torque = tau_arm.tolist()
         arm_control_signal_msg.desired_arm_gripper_torque = 0.0  # Placeholder for gripper torque
         self.publisher_arm_control_signal.publish(arm_control_signal_msg)
 

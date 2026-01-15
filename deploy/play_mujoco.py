@@ -199,15 +199,24 @@ class PlayMujoco:
             error_joints_pos_arm = self.desired_joint_pos_arm - joints_pos_arm
             tau_arm = self.Kp_arm*error_joints_pos_arm - self.Kd_arm*joints_vel_arm
 
+            # Compute the inverse dynamics
+            M = np.zeros((self.mjModel.nv, self.mjModel.nv))
+            mujoco.mj_solveM(self.mjModel, self.mjData, M, np.eye(self.mjModel.nv))
+            M = M[18:24, 18:24]
+            if abs(np.linalg.det(M)) >= 1e-2:
+                M_inv = np.linalg.inv(M)
+            else:
+                M_inv = np.linalg.pinv(M, rcond=1e-2)
+            tau_arm += M_inv @ (self.Kp_arm*(error_joints_pos_arm) - self.Kd_arm*joints_vel_arm)
+            tau_arm += self.mjData.qfrc_bias[18:24]
+
             error_gripper_pos = self.state_machine.desired_gripper_position - joints_pos_gripper
             tau_gripper = config.Kp_gripper*error_gripper_pos - config.Kd_gripper*joints_vel_gripper
 
             
             # Set control and mujoco step ----------------------------------------------------------------------
-            #print("self.mjData.qfrc_bias", self.mjData.qfrc_bias)
-            #print("self.mjData.qfrc_bias[self.arm_dof_ids]: ", self.mjData.qfrc_bias[self.arm_dof_ids])
             self.mjData.ctrl[0:12] = tau_leg
-            self.mjData.ctrl[12:18] = tau_arm + self.mjData.qfrc_bias[18:24]  # Compensate for gravity on the arm
+            self.mjData.ctrl[12:18] = tau_arm 
             self.mjData.ctrl[18] = tau_gripper
             mujoco.mj_step(self.mjModel, self.mjData)
             step_num = step_num +1
