@@ -168,6 +168,16 @@ class MujocoSimulationNode(Node):
         # --- Transform world → camera ---
         p_CO = R_WC.T @ (p_WO - p_WC)
         R_CO = R_WC.T @ R_WO
+
+        r_optical_to_camera_frame = np.array([
+                                                [0.0, 0.0,  1.0],
+                                                [-1.0, 0.0, 0.0],
+                                                [0.0, -1.0, 0.0]
+                                            ])
+
+        #in run controller I am moving from optical to camera frame, so I need to do the opposite here
+        p_CO = r_optical_to_camera_frame.T @ p_CO
+        R_CO = r_optical_to_camera_frame.T @ R_CO
         q_co = np.zeros(4)
         mujoco.mju_mat2Quat(q_co, R_CO.reshape(9,))
 

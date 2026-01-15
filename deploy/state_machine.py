@@ -246,13 +246,6 @@ class StateMachine:
 
     def detection_from_camera_to_base(self, ):
 
-        #FOR NOW IS ZERO
-        # self.r_optical_to_camera_frame = np.array([
-        #                                         [0.0, 0.0,  1.0],
-        #                                         [-1.0, 0.0, 0.0],
-        #                                         [0.0, -1.0, 0.0]
-        #                                     ])
-
         # Trasformation from camera frame to base frame
         body_id = mujoco.mj_name2id(self.controller_node.mjModel, mujoco.mjtObj.mjOBJ_BODY, "trunk")
         cam_id  = mujoco.mj_name2id(self.controller_node.mjModel, mujoco.mjtObj.mjOBJ_CAMERA, "robotcam")

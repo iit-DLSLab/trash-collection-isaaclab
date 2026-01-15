@@ -136,6 +136,9 @@ class TrashControlNode(Node):
         self.ik_goal_orient_camera_frame = np.array([1.0, 0.0 ,0.0 ,0.0])
         self.ik_goal_base_frame = np.zeros(3)
         self.ik_goal_orient_base_frame = np.array([1.0, 0.0 ,0.0 ,0.0])
+        self.ik_goal_optical_camera_frame = np.zeros(3)
+        self.ik_goal_orient_optical_camera_frame = np.array([1.0, 0.0 ,0.0 ,0.0])
+
 
         # Safety check to not do anything until a first base and blind state are received
         self.first_message_base_arrived = False
@@ -149,19 +152,35 @@ class TrashControlNode(Node):
         self.linear_velocity = np.zeros(3)
         self.angular_velocity = np.zeros(3)
 
+        self.R_OpO = np.zeros((3, 3), dtype=float)
+
+        self.r_optical_to_camera_frame = np.array([
+                                                [0.0, 0.0,  1.0],
+                                                [-1.0, 0.0, 0.0],
+                                                [0.0, -1.0, 0.0]
+                                            ])
+
 
     def get_grasp_pose_callback(self, msg):
 
         if len(msg.poses) > 0:
             pose = msg.poses[0]
-            self.ik_goal_camera_frame[0] = pose.position.x
-            self.ik_goal_camera_frame[1] = pose.position.y
-            self.ik_goal_camera_frame[2] = pose.position.z
+            self.ik_goal_optical_camera_frame[0] = pose.position.x
+            self.ik_goal_optical_camera_frame[1] = pose.position.y
+            self.ik_goal_optical_camera_frame[2] = pose.position.z
 
-            self.ik_goal_orient_camera_frame[0] = pose.orientation.w
-            self.ik_goal_orient_camera_frame[1] = pose.orientation.x
-            self.ik_goal_orient_camera_frame[2] = pose.orientation.y
-            self.ik_goal_orient_camera_frame[3] = pose.orientation.z
+            self.ik_goal_orient_optical_camera_frame[0] = pose.orientation.w
+            self.ik_goal_orient_optical_camera_frame[1] = pose.orientation.x
+            self.ik_goal_orient_optical_camera_frame[2] = pose.orientation.y
+            self.ik_goal_orient_optical_camera_frame[3] = pose.orientation.z
+
+            #conversion from camera optical frame to camera
+            self.ik_goal_camera_frame = self.r_optical_to_camera_frame @ self.ik_goal_optical_camera_frame
+
+            mujoco.mju_quat2Mat(self.R_OpO.reshape(9,), self.ik_goal_orient_optical_camera_frame)
+            self.R_CO = self.r_optical_to_camera_frame @ self.R_OpO
+            mujoco.mju_mat2Quat(self.ik_goal_orient_camera_frame, self.R_CO.reshape(9,))
+
 
             self.received_detection = True
 

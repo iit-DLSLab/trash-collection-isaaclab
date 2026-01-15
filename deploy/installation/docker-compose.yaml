@@ -6,6 +6,8 @@ services:
     network_mode: "host"        # equivalent to --network=host (Linux only)
     ipc: host                   # larger shared memory segment visibility
     shm_size: "2gb"             # helpful for CV/ML workloads
+    privileged: true
+
 
     # GPU access (Compose supports `gpus: all`)
 
@@ -20,13 +22,15 @@ services:
       - WAYLAND_DISPLAY=$WAYLAND_DISPLAY
 
       # ROS 2 defaults (change if you prefer CycloneDDS)
-      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+
 
     volumes:
       # X11 socket
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       # Mount your workspace from host -> container
       - ../../..:/home
+
 
 
     deploy:
