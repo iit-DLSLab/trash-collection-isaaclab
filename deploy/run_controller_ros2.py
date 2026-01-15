@@ -350,13 +350,9 @@ class TrashControlNode(Node):
 
         # Compute the inverse dynamics
         M = np.zeros((self.mjModel.nv, self.mjModel.nv))
-        mujoco.mj_solveM(self.mjModel, self.mjData, M, np.eye(self.mjModel.nv))
+        mujoco.mj_fullM(self.mjModel, M, self.mjData.qM)
         M = M[18:24, 18:24]
-        if abs(np.linalg.det(M)) >= 1e-2:
-            M_inv = np.linalg.inv(M)
-        else:
-            M_inv = np.linalg.pinv(M, rcond=1e-2)
-        tau_arm = M_inv@(self.Kp_arm*(self.desired_joint_pos_arm - joints_pos_arm) - self.Kd_arm*joints_vel_arm)
+        tau_arm = M @ (self.Kp_arm * (self.desired_joint_pos_arm - joints_pos_arm) - self.Kd_arm * joints_vel_arm)
         tau_arm += self.mjData.qfrc_bias[18:24]
 
         arm_control_signal_msg = ArmControlSignal()
