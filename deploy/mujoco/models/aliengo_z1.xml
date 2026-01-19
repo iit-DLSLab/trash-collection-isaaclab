@@ -97,7 +97,8 @@
 
             <!-- imu and camera -->
             <site name="imu" pos="0 0 0"/>
-            <camera name="robotcam" pos="0.38 -0.005 0.09" />
+            <!-- camera is tilted of 55 degrees-->
+            <camera name="robotcam" pos="0.38 -0.005 0.04" quat="0.887 0 0.462 0"/>
 
             <!-- FL leg -->
             <body name="FL_hip" pos="0.2399 0.051 0">

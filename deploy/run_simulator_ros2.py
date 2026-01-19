@@ -142,7 +142,6 @@ class MujocoSimulationNode(Node):
 
 
         # Publish the position of the bottle ----------------------------------------------------------
-        #TODO: to publish in camera frame
         detections_msg = PoseArray()
         detections_msg.header.stamp = self.get_clock().now().to_msg()
 
