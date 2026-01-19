@@ -6,6 +6,8 @@ from sensor_msgs.msg import Joy
 from dls2_interface.msg import BaseState, BlindState, TrajectoryGenerator, ArmState, ArmTrajectoryGenerator, ArmControlSignal
 from geometry_msgs.msg import PoseArray
 from rclpy.qos import QoSProfile, ReliabilityPolicy
+from rclpy.callback_groups import ReentrantCallbackGroup, MutuallyExclusiveCallbackGroup
+from rclpy.executors import MultiThreadedExecutor
 
 
 import copy
@@ -117,18 +119,27 @@ class TrashControlNode(Node):
                  
         # --------------------------------------------------------------
         # Subscribers and Publishers
-        self.subscription_base_state = self.create_subscription(BaseState,"/base_state", self.get_base_state_callback, 1)
-        self.subscription_blind_state = self.create_subscription(BlindState,"/blind_state", self.get_blind_state_callback, 1)
-        self.subscription_arm_blind_state = self.create_subscription(ArmState,"/arm_state", self.get_arm_blind_state_callback, 1)
-        self.subscription_joy = self.create_subscription(Joy,"/joy", self.get_joy_callback, 1)
-        self.publisher_trajectory_generator = self.create_publisher(TrajectoryGenerator,"/trajectory_generator", 1)
-        self.publisher_arm_trajectory_generator = self.create_publisher(ArmTrajectoryGenerator,"/arm_trajectory_generator", 1)
-        self.publisher_arm_control_signal = self.create_publisher(ArmControlSignal,"/arm_control_signal", 1)
+        # callback "concurrent"
+        self.cb_reentrant = ReentrantCallbackGroup()
+
+        # callback "mutually exclusive"
+        self.cb_exclusive = MutuallyExclusiveCallbackGroup()
+
+        self.subscription_base_state = self.create_subscription(BaseState,"/base_state", self.get_base_state_callback, 1, callback_group=self.cb_exclusive)
+        self.subscription_blind_state = self.create_subscription(BlindState,"/blind_state", self.get_blind_state_callback, 1, callback_group=self.cb_exclusive)
+        self.subscription_arm_blind_state = self.create_subscription(ArmState,"/arm_state", self.get_arm_blind_state_callback, 1, callback_group=self.cb_exclusive)
+        
+        self.subscription_joy = self.create_subscription(Joy,"/joy", self.get_joy_callback, 1, callback_group=self.cb_reentrant)
+        
+        qos_profile = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, depth=1)
+        self.subscription_orientation = self.create_subscription(PoseArray,"detections3d/grasp_poses", self.get_grasp_pose_callback, qos_profile, callback_group=self.cb_exclusive)        
+        
+        self.publisher_trajectory_generator = self.create_publisher(TrajectoryGenerator,"/trajectory_generator", 1, callback_group=self.cb_exclusive)
+        self.publisher_arm_trajectory_generator = self.create_publisher(ArmTrajectoryGenerator,"/arm_trajectory_generator", 1, callback_group=self.cb_exclusive)
+        self.publisher_arm_control_signal = self.create_publisher(ArmControlSignal,"/arm_control_signal", 1, callback_group=self.cb_reentrant)
+        
         RL_FREQ = 1./(config.training_locomotion_env["sim"]["dt"]*config.training_locomotion_env["decimation"])  # Hz, frequency of the RL controller
         self.timer = self.create_timer(1.0/RL_FREQ, self.compute_rl_control)
-
-        qos_profile = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, depth=1)
-        self.subscription_orientation = self.create_subscription(PoseArray,"detections3d/grasp_poses", self.get_grasp_pose_callback, qos_profile)
 
         # Variables for IK from detection
         self.received_detection = False
@@ -206,6 +217,21 @@ class TrashControlNode(Node):
             # This will kill the process running this script
             os.system("pkill -f run_controller_ros2.py") 
             exit(0)
+        elif msg.buttons[0] == 1:
+            # Go Home
+            self.state_machine.armHome(self.arm_joints_position)
+        elif msg.buttons[1] == 1:
+            # Put the object in the bin
+            pass
+        elif msg.buttons[2] == 1:
+            # Collect object
+            self.state_machine.armPreReachObject(self.arm_joints_position)
+            self.state_machine.armReachObjectIK(self.arm_joints_position)
+            self.state_machine.armPreReachObject(self.arm_joints_position)
+        elif msg.buttons[3] == 1:
+            # Empty the bin
+            self.state_machine.armReachBasket(self.arm_joints_position)
+            self.state_machine.armOpenBasket(self.arm_joints_position)
 
 
     def get_base_state_callback(self, msg):
@@ -222,13 +248,8 @@ class TrashControlNode(Node):
         self.legs_joints_position = np.array(msg.joints_position)
         self.legs_joints_velocity = np.array(msg.joints_velocity)
 
-        # Fix convention DLS2
-        self.legs_joints_position[0] = -self.legs_joints_position[0]
-        self.legs_joints_position[6] = -self.legs_joints_position[6]
-        self.legs_joints_velocity[0] = -self.legs_joints_velocity[0]
-        self.legs_joints_velocity[6] = -self.legs_joints_velocity[6]
-
         self.first_message_legs_joints_arrived = True
+
 
     def get_arm_blind_state_callback(self, msg):        
         self.arm_joints_position = np.array(msg.joints_position)
@@ -343,12 +364,8 @@ class TrashControlNode(Node):
         
         self.desired_joint_pos_arm = self.state_machine.desired_position
 
-        
-        # Fix convention DLS2 and send PD target
-        self.desired_joint_pos_leg[0] = -self.desired_joint_pos_leg[0]
-        self.desired_joint_pos_leg[6] = -self.desired_joint_pos_leg[6]
 
-            
+        # Send the desired positions to the trajectory generator --------------------------------            
         trajectory_generator_msg = TrajectoryGenerator()
         trajectory_generator_msg.timestamp = float(self.get_clock().now().nanoseconds)
         trajectory_generator_msg.joints_position = self.desired_joint_pos_leg.tolist()
@@ -401,9 +418,20 @@ if __name__ == '__main__':
     
     rclpy.init()
     trash_control_node = TrashControlNode()
-    rclpy.spin(trash_control_node)
-    trash_control_node.destroy_node()
-    rclpy.shutdown()
+
+    # Executor multithread (>=2)
+    executor = MultiThreadedExecutor(num_threads=2)
+    executor.add_node(trash_control_node)
+    try:
+        executor.spin()
+    finally:
+        executor.shutdown()
+        trash_control_node.destroy_node()
+        rclpy.shutdown()
+
+    #rclpy.spin(trash_control_node)
+    #trash_control_node.destroy_node()
+    #rclpy.shutdown()
 
     print("trash control ros node is stopped")
     exit(0)

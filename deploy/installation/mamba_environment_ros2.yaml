@@ -21,6 +21,8 @@ dependencies:
 - rosdep
 - tqdm
 - gymnasium
+- onnxruntime
+- wandb
 - pip:
   - readchar
   - onnxruntime
