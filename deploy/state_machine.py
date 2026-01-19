@@ -262,8 +262,7 @@ class StateMachine:
         R_WC = self.controller_node.mjData.cam_xmat[cam_id].reshape(3, 3)
 
         R_BC = R_WB.T @ R_WC
-        t_BC = R_BC @ (p_WC - p_WB)
-
+        t_BC = R_WB.T @ (p_WC - p_WB)
 
         # --- position ---
         p_CO = self.controller_node.ik_goal_camera_frame
