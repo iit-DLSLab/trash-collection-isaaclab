@@ -193,9 +193,14 @@ class StateMachine:
             initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
             initial_base_pose = copy.deepcopy(self.controller_node.desired_pose_command_overwrite)
             intermediate_target_pos = copy.deepcopy(target_pos)
-            
-            #intermediate_target_pos[0] *= 0.8  # TODO this is in base frame, i should add it in world frame
-            intermediate_target_pos[2] += 0.15  # TODO this is in base frame, i should add it in world frame
+            #I need to apply an offset in the direction of grasping
+            offset_end_effector_frame = np.array([-0.15, 0.0, 0.0])
+            R_TE = np.zeros((3, 3), dtype=float)
+            mujoco.mju_quat2Mat(R_TE.reshape(9,), target_quat)
+            R_TE = R_TE.reshape(3,3)
+            offset_base_frame = R_TE @ offset_end_effector_frame
+
+            intermediate_target_pos += offset_base_frame
             _, \
                 reference_joints_position, \
                 ik_succeded = self.controller_node.ik_mink_solver.compute(intermediate_target_pos, target_quat, initial_joints_position, initial_base_pose)

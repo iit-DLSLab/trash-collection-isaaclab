@@ -18,8 +18,8 @@ Kd_stand_up_and_down = 2.
 Kp_arm = 50.
 Kd_arm = 5.
 
-Kp_gripper = 50.
-Kd_gripper = 5.
+Kp_gripper = 5.
+Kd_gripper = 1.
 
 # Load specific training parameters
 import yaml 
