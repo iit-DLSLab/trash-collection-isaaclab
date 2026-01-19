@@ -75,6 +75,7 @@ class MujocoSimulationNode(Node):
         self.Kp_arm = np.array(msg.arm_kp)[0]
         self.Kd_arm = np.array(msg.arm_kd)[0]
 
+
     def get_legs_trajectory_generator_callback(self, msg):
         
         # Desired leg joints position
@@ -86,7 +87,6 @@ class MujocoSimulationNode(Node):
 
     def compute_simulator_step_callback(self):
         
-
         # Get the current state of the robot -----------------------------------------------------
         qpos, qvel = self.mjData.qpos, self.mjData.qvel
         base_lin_vel = mujoco_utils.base_lin_vel(self.mjData, frame='base')
@@ -102,10 +102,8 @@ class MujocoSimulationNode(Node):
         joints_vel_arm = qvel[18:24]
         joints_vel_gripper = qvel[24]
 
-        # Fix convention DLS2 and send PD target
+        # Compute the PD torques ---------------------------------------------------------------
         temp_desired_legs_joints_position = copy.deepcopy(self.desired_legs_joints_position)
-        temp_desired_legs_joints_position[0] = -temp_desired_legs_joints_position[0]
-        temp_desired_legs_joints_position[6] = -temp_desired_legs_joints_position[6]
         
         error_joints_pos_leg = temp_desired_legs_joints_position - joints_pos_leg
         tau_leg = self.Kp_legs*error_joints_pos_leg - self.Kd_legs*joints_vel_leg
@@ -135,13 +133,6 @@ class MujocoSimulationNode(Node):
         blind_state_msg = BlindState()
         blind_state_msg.joints_position = copy.deepcopy(self.mjData.qpos[7:19]).tolist()
         blind_state_msg.joints_velocity = copy.deepcopy(self.mjData.qvel[6:18]).tolist()
-        
-        # Fix convention DLS2
-        blind_state_msg.joints_position[0] = -blind_state_msg.joints_position[0]
-        blind_state_msg.joints_position[6] = -blind_state_msg.joints_position[6]
-        blind_state_msg.joints_velocity[0] = -blind_state_msg.joints_velocity[0]
-        blind_state_msg.joints_velocity[6] = -blind_state_msg.joints_velocity[6]
-
         self.publisher_blind_state.publish(blind_state_msg)
 
         arm_blind_state_msg = ArmState()
