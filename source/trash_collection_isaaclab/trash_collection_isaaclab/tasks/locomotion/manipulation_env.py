@@ -26,12 +26,12 @@ from isaaclab.utils.math import combine_frame_transforms, quat_error_magnitude, 
 
 from isaaclab.markers import VisualizationMarkers
 
-from .arm_env_cfg import ArmFlatEnvCfg, ArmRoughBlindEnvCfg, ArmRoughVisionEnvCfg
+from .manipulation_env_cfg import ManipulationFlatEnvCfg, ManipulationRoughBlindEnvCfg, ManipulationRoughVisionEnvCfg
 
 class ManipulationEnv(DirectRLEnv):
-    cfg: ArmFlatEnvCfg | ArmRoughBlindEnvCfg | ArmRoughVisionEnvCfg
+    cfg: ManipulationFlatEnvCfg | ManipulationRoughBlindEnvCfg | ManipulationRoughVisionEnvCfg
 
-    def __init__(self, cfg: ArmFlatEnvCfg | ArmRoughBlindEnvCfg | ArmRoughVisionEnvCfg, render_mode: str | None = None, **kwargs):
+    def __init__(self, cfg: ManipulationFlatEnvCfg | ManipulationRoughBlindEnvCfg | ManipulationRoughVisionEnvCfg, render_mode: str | None = None, **kwargs):
         super().__init__(cfg, render_mode, **kwargs)
 
         # Joint position command (deviation from default joint positions)
@@ -282,7 +282,7 @@ class ManipulationEnv(DirectRLEnv):
 
 
         # Add heightmap data to obs if needed
-        if isinstance(self.cfg, ArmRoughVisionEnvCfg):
+        if isinstance(self.cfg, ManipulationRoughVisionEnvCfg):
             height_data = (
                 self._height_scanner.data.pos_w[:, 2].unsqueeze(1) - self._height_scanner.data.ray_hits_w[..., 2] - 0.5
             )

@@ -107,7 +107,7 @@ class EventCfg:
 
 
 @configclass
-class ArmFlatEnvCfg(DirectRLEnvCfg):
+class ManipulationFlatEnvCfg(DirectRLEnvCfg):
 
     # Viewer
     #viewer = ViewerCfg(eye=(1.5, 1.5, 0.3), origin_type="world", env_index=0, asset_name="robot")
@@ -357,7 +357,7 @@ class ArmFlatEnvCfg(DirectRLEnvCfg):
 import isaaclab.terrains as terrain_gen
 from isaaclab.terrains.terrain_generator_cfg import TerrainGeneratorCfg
 @configclass
-class ArmRoughBlindEnvCfg(ArmFlatEnvCfg):
+class ManipulationRoughBlindEnvCfg(ManipulationFlatEnvCfg):
 
     ROUGH_TERRAINS_CFG = TerrainGeneratorCfg(
         curriculum=False,
@@ -424,7 +424,7 @@ class ArmRoughBlindEnvCfg(ArmFlatEnvCfg):
 
 
 @configclass
-class ArmRoughVisionEnvCfg(ArmRoughBlindEnvCfg):
+class ManipulationRoughVisionEnvCfg(ManipulationRoughBlindEnvCfg):
     # env
     #observation_space = 276
     observation_space = 429

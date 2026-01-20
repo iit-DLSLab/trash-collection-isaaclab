@@ -22,7 +22,7 @@ from isaaclab.terrains import TerrainImporterCfg
 from isaaclab.utils import configclass
 
 
-from .aliengo_env_cfg import AliengoFlatEnvCfg, AliengoRoughBlindEnvCfg, AliengoRoughVisionEnvCfg
+from .locomotion_env_cfg import AliengoFlatEnvCfg, AliengoRoughBlindEnvCfg, AliengoRoughVisionEnvCfg
 
 class LocomotionEnv(DirectRLEnv):
     cfg: AliengoFlatEnvCfg | AliengoRoughBlindEnvCfg | AliengoRoughVisionEnvCfg 
@@ -476,24 +476,6 @@ class LocomotionEnv(DirectRLEnv):
         died_check_base = torch.any(torch.max(torch.norm(net_contact_forces[:, :, self._base_id], dim=-1), dim=1)[0] > 1.0, dim=1)
         died_check_hips = torch.any(torch.max(torch.norm(net_contact_forces[:, :, self._hip_ids], dim=-1), dim=1)[0] > 1.0, dim=1) 
         died = torch.logical_or(died_check_base, died_check_hips)
-        # Check if the robot is out of bounds of the terrain
-        """if(self._terrain.cfg.terrain_generator is not None):
-            # obtain the size of the sub-terrains
-            terrain_gen_cfg = self._terrain.cfg.terrain_generator
-            grid_width, grid_length = terrain_gen_cfg.size
-            n_rows, n_cols = terrain_gen_cfg.num_rows, terrain_gen_cfg.num_cols
-            border_width = terrain_gen_cfg.border_width
-            # compute the size of the map
-            map_width = n_rows * grid_width + 2 * border_width
-            map_height = n_cols * grid_length + 2 * border_width
-
-            # check if the agent is out of bounds
-            distance_buffer = 3.
-            x_out_of_bounds = torch.abs(self._robot.data.root_state_w[:, 0]) > 0.5 * map_width - distance_buffer
-            y_out_of_bounds = torch.abs(self._robot.data.root_state_w[:, 1]) > 0.5 * map_height - distance_buffer
-            out_of_bounds = torch.logical_or(x_out_of_bounds, y_out_of_bounds)
-            time_out = torch.logical_or(time_out, out_of_bounds) #HACK"""
-        
         return died, time_out
 
 
@@ -501,16 +483,6 @@ class LocomotionEnv(DirectRLEnv):
         if env_ids is None or len(env_ids) == self.num_envs:
             env_ids = self._robot._ALL_INDICES
 
-        if(self._terrain.cfg.terrain_generator is not None and self._terrain.cfg.terrain_generator.curriculum == True):
-            # Curriculum based on the distance the robot walked
-            distance = torch.norm(self._robot.data.root_state_w[env_ids, :2] - self._terrain.env_origins[env_ids, :2], dim=1)
-            # robots that walked far enough progress to harder terrains
-            move_up = distance > self._terrain.cfg.terrain_generator.size[0] / 2
-            # robots that walked less than half of their required distance go to simpler terrains
-            move_down = distance < torch.norm(self._velocity_commands[env_ids, :2], dim=1) * self.max_episode_length_s * 0.5
-            move_down *= ~move_up
-            # update terrain levels
-            self._terrain.update_env_origins(env_ids, move_up, move_down)
 
         self._robot.reset(env_ids)
         super()._reset_idx(env_ids)
@@ -527,7 +499,7 @@ class LocomotionEnv(DirectRLEnv):
         self._velocity_commands[env_ids, 1] *= 0.25 
         self._velocity_commands[env_ids, 2] *= 0.3 
         self._pose_commands[env_ids, 0] = torch.zeros_like(self._pose_commands[env_ids,0]).uniform_(-0.3, 0.3)
-        self._pose_commands[env_ids, 1] = torch.zeros_like(self._pose_commands[env_ids,1]).uniform_(-0.2, 0.0)
+        self._pose_commands[env_ids, 1] = torch.zeros_like(self._pose_commands[env_ids,1]).uniform_(-0.1, 0.0)
 
         # Reset swing peak
         self._swing_peak[env_ids] = torch.tensor([0.0, 0.0, 0.0, 0.0], device=self.device)
@@ -589,7 +561,7 @@ class LocomotionEnv(DirectRLEnv):
         specific_rest_time = self.episode_length_buf == self.max_episode_length - 100
         self._velocity_commands[:, :3] *= ~rest_time.unsqueeze(1).expand(-1, 3)
         self._pose_commands[:, 0] = self._pose_commands[:, 0] * ~specific_rest_time + torch.zeros_like(self._pose_commands[:,0]).uniform_(-0.3, 0.3) * specific_rest_time
-        self._pose_commands[:, 1] = self._pose_commands[:, 1] * ~specific_rest_time + torch.zeros_like(self._pose_commands[:,1]).uniform_(-0.2, 0.0) * specific_rest_time
+        self._pose_commands[:, 1] = self._pose_commands[:, 1] * ~specific_rest_time + torch.zeros_like(self._pose_commands[:,1]).uniform_(-0.1, 0.0) * specific_rest_time
         
 
         # Took some envs, and put to zero the vel
