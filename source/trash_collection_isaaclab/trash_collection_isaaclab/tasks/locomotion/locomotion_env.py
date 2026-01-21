@@ -498,8 +498,8 @@ class LocomotionEnv(DirectRLEnv):
         self._velocity_commands[env_ids, 0] *= 0.5
         self._velocity_commands[env_ids, 1] *= 0.25 
         self._velocity_commands[env_ids, 2] *= 0.3 
-        self._pose_commands[env_ids, 0] = torch.zeros_like(self._pose_commands[env_ids,0]).uniform_(-0.3, 0.3)
-        self._pose_commands[env_ids, 1] = torch.zeros_like(self._pose_commands[env_ids,1]).uniform_(-0.1, 0.0)
+        self._pose_commands[env_ids, 0] = torch.zeros_like(self._pose_commands[env_ids,0]).uniform_(-0.3, 0.3)*0.0
+        self._pose_commands[env_ids, 1] = torch.zeros_like(self._pose_commands[env_ids,1]).uniform_(-0.1, 0.0)*0.0
 
         # Reset swing peak
         self._swing_peak[env_ids] = torch.tensor([0.0, 0.0, 0.0, 0.0], device=self.device)
