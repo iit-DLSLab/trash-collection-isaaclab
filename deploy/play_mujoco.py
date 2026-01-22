@@ -136,9 +136,7 @@ class PlayMujoco:
 
         
             ref_base_lin_vel, ref_base_ang_vel = mujoco_utils.target_base_vel(self.mjData, self.ref_base_lin_vel_H, self.ref_base_ang_yaw_dot, frame='world')
-            print("heading_orientation_SO3", heading_orientation_SO3)
-            print("ref_base_lin_vel", ref_base_lin_vel)
-            print("ref_base_ang_vel", ref_base_ang_vel)
+
 
             if(self.locomotion_policy.use_vision):
                 self.heightmap.update_height_map(self.mjData.qpos[0:3], yaw=base_ori_euler_xyz[2])
