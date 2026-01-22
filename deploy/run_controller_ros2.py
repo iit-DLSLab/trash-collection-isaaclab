@@ -58,7 +58,7 @@ class TrashControlNode(Node):
         self.simulation_dt = 0.002
 
         # Load the model and data.
-        self.mjModel = mujoco.MjModel.from_xml_path("mujoco/models/scene_rough.xml")
+        self.mjModel = mujoco.MjModel.from_xml_path(dir_path+"/mujoco/models/scene_rough.xml")
         self.mjData = mujoco.MjData(self.mjModel)
         keyframe_id = mujoco.mj_name2id(self.mjModel, mujoco.mjtObj.mjOBJ_KEY, "home")
         self.mjData.qpos = self.mjModel.key_qpos[keyframe_id]
@@ -288,7 +288,7 @@ class TrashControlNode(Node):
         self.mjData.qvel[6:18] = copy.deepcopy(self.legs_joints_velocity)
         self.mjData.qpos[19:25] = copy.deepcopy(self.arm_joints_position)
         self.mjData.qvel[18:24] = copy.deepcopy(self.arm_joints_velocity)
-        mujoco.mj_forward(self.mjModel, self.mjData)
+        #mujoco.mj_forward(self.mjModel, self.mjData)
 
 
         # Get the current state of the robot -----------------------------------------------------

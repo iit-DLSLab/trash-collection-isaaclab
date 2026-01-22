@@ -31,7 +31,7 @@ class MujocoSimulationNode(Node):
         self.simulation_dt = 0.002
 
         # Load the model and data.
-        self.mjModel = mujoco.MjModel.from_xml_path("mujoco/models/scene_flat.xml")
+        self.mjModel = mujoco.MjModel.from_xml_path(dir_path+"/mujoco/models/scene_flat.xml")
         self.mjData = mujoco.MjData(self.mjModel)
         keyframe_id = mujoco.mj_name2id(self.mjModel, mujoco.mjtObj.mjOBJ_KEY, "down")
         self.mjData.qpos = self.mjModel.key_qpos[keyframe_id]
@@ -89,7 +89,7 @@ class MujocoSimulationNode(Node):
         
         # Get the current state of the robot -----------------------------------------------------
         qpos, qvel = self.mjData.qpos, self.mjData.qvel
-        base_lin_vel = mujoco_utils.base_lin_vel(self.mjData, frame='base')
+        base_lin_vel = mujoco_utils.base_lin_vel(self.mjData, frame='world')
         base_ang_vel = mujoco_utils.base_ang_vel(self.mjData, frame='base')
         base_pos = mujoco_utils.base_pos(self.mjData)
         self.arm_joints_position = qpos[19:25]

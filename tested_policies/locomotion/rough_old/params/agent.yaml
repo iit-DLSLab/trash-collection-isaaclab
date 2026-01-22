@@ -9,8 +9,8 @@ save_interval: 50
 experiment_name: rough_direct
 run_name: ''
 logger: wandb
-neptune_project: isaaclab
-wandb_project: isaaclab
+neptune_project: trash-locomotion
+wandb_project: trash-locomotion
 resume: false
 load_run: .*
 load_checkpoint: model_.*.pt
@@ -19,7 +19,6 @@ policy:
   class_name: ActorCritic
   init_noise_std: 1.0
   noise_std_type: scalar
-  state_dependent_std: false
   actor_obs_normalization: {}
   critic_obs_normalization: {}
   actor_hidden_dims:
