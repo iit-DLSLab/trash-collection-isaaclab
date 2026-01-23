@@ -63,9 +63,21 @@ class EventCfg:
             "torque_range": (-5.0, 5.0),
         },
     )
+
+    randomize_joint_parameters = EventTerm(
+        func=mdp.randomize_joint_parameters,
+        mode="reset",
+        params={
+            "asset_cfg": SceneEntityCfg("robot", joint_names=[".*"]), 
+            "friction_distribution_params": (0.2, 2.0),
+            "armature_distribution_params": (0.0, 1.0),
+            "operation": "abs",
+            "distribution": "uniform",
+        },
+    )
     
 
-    scale_all_joint_friction_model = EventTerm(
+    """scale_all_joint_friction_model = EventTerm(
         func=custom_events.randomize_joint_friction_model,
         mode="startup",
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*"]), 
@@ -80,7 +92,7 @@ class EventCfg:
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*"]), 
                 "armature_distribution_params": (0.0, 1.0),
                 "operation": "scale"},
-    )
+    )"""
     
 
 

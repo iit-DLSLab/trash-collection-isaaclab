@@ -574,7 +574,8 @@ class LocomotionEnv(DirectRLEnv):
     def _get_privileged_observation(self):
         asset_cfg = SceneEntityCfg("robot", joint_names=[".*"])
         asset: Articulation = self.scene[asset_cfg.name]
-        hip_static_friction = asset.actuators["hip"].friction_static
+        
+        """hip_static_friction = asset.actuators["hip"].friction_static
         thigh_static_friction = asset.actuators["thigh"].friction_static
         calf_static_friction = asset.actuators["calf"].friction_static
         
@@ -600,7 +601,7 @@ class LocomotionEnv(DirectRLEnv):
         #inertias = asset_base.root_physx_view.get_inertias()
 
         default_stiffness = asset.data.default_joint_stiffness[0][0]
-        default_damping = asset.data.default_joint_damping[0][0]
+        default_damping = asset.data.default_joint_damping[0][0]"""
 
 
         # height error
