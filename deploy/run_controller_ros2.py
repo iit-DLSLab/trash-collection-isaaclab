@@ -288,8 +288,7 @@ class TrashControlNode(Node):
         self.mjData.qvel[6:18] = copy.deepcopy(self.legs_joints_velocity)
         self.mjData.qpos[19:25] = copy.deepcopy(self.arm_joints_position)
         self.mjData.qvel[18:24] = copy.deepcopy(self.arm_joints_velocity)
-        #mujoco.mj_forward(self.mjModel, self.mjData)
-
+        mujoco.mj_forward(self.mjModel, self.mjData)
 
         # Get the current state of the robot -----------------------------------------------------
         qpos, qvel = self.mjData.qpos, self.mjData.qvel
