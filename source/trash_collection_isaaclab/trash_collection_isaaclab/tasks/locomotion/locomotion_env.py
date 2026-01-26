@@ -512,7 +512,8 @@ class LocomotionEnv(DirectRLEnv):
         # Reset robot state
         joint_pos = self._robot.data.default_joint_pos[env_ids]
         joint_pos[:, self._ids_only_arms_joints_order] += torch.zeros_like(joint_pos[:, self._ids_only_arms_joints_order]).uniform_(-3.14, 3.14)
-        # we need to project them inside the robots limits!
+        joint_pos[:, self._ids_only_legs_joints_order] += torch.zeros_like(joint_pos[:, self._ids_only_legs_joints_order]).uniform_(-0.2, 0.2)
+        # we need to project them inside the robots limits (only arms!)
         joints_limits = self._robot.data.default_joint_pos_limits
         joints_arm_limits = joints_limits[:,self._ids_only_arms_joints_order]
         joint_pos[:, self._ids_only_arms_joints_order] = torch.clamp(joint_pos[:, self._ids_only_arms_joints_order], joints_arm_limits[0,:,0], joints_arm_limits[0,:,1])

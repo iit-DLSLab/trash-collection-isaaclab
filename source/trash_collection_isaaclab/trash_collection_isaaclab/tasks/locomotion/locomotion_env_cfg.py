@@ -69,9 +69,9 @@ class EventCfg:
         mode="reset",
         params={
             "asset_cfg": SceneEntityCfg("robot", joint_names=[".*"]), 
-            "friction_distribution_params": (0.2, 2.0),
-            "armature_distribution_params": (0.0, 1.0),
-            "operation": "abs",
+            "friction_distribution_params": (0.1, 2.0),
+            "armature_distribution_params": (1.0, 2.0),
+            "operation": "scale",
             "distribution": "uniform",
         },
     )
@@ -286,7 +286,7 @@ class AliengoFlatEnvCfg(DirectRLEnvCfg):
     action_smoothness_reward_scale = -0.001
 
     # Feet reward scale
-    feet_air_time_reward_scale = 0.5
+    feet_air_time_reward_scale = 0.5 * 0.0
     feet_height_clearance_reward_scale = 0.25  
     feet_height_clearance_mujoco_reward_scale = 0.25 * 0.0
     feet_slide_reward_scale = -0.25 * 0.0
