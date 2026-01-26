@@ -52,6 +52,48 @@ ALIENGO_CALF_ACTUATOR_CFG = IdentifiedActuatorElectricCfg(
     activation_vel=0.1,
     friction_dynamic=friction_dynamic_mujoco,
 )
+"""
+
+ALIENGO_HIP_ACTUATOR_CFG = DelayedPDActuatorCfg(
+    joint_names_expr=[".*_hip_joint"],
+    effort_limit=44.4,
+    velocity_limit=21.0,
+    stiffness=stiffness_mujoco,
+    damping=damping_mujoco,
+    min_delay=0,  # physics time steps (min: 2.0*0=0.0ms)
+    max_delay=2,  # physics time steps (max: 2.0*2=4.0ms)
+)
+
+ALIENGO_THIGH_ACTUATOR_CFG = DelayedPDActuatorCfg(
+    joint_names_expr=[".*_thigh_joint"],
+    effort_limit=44.4,
+    velocity_limit=21.0,
+    stiffness=stiffness_mujoco,
+    damping=damping_mujoco,
+    min_delay=0,  # physics time steps (min: 2.0*0=0.0ms)
+    max_delay=2,  # physics time steps (max: 2.0*2=4.0ms)
+)
+
+ALIENGO_CALF_ACTUATOR_CFG = DelayedPDActuatorCfg(
+    joint_names_expr=[".*_calf_joint"],
+    effort_limit=44.4,
+    velocity_limit=21.0,
+    stiffness=stiffness_mujoco,
+    damping=damping_mujoco,
+    min_delay=0,  # physics time steps (min: 2.0*0=0.0ms)
+    max_delay=2,  # physics time steps (max: 2.0*2=4.0ms)
+)
+
+
+"""ALIENGO_ARM_ACTUATOR_CFG = DelayedPDActuatorCfg(
+    joint_names_expr=["arm_joint.*"],
+    effort_limit=30.0,
+    velocity_limit=3.1415,
+    stiffness=50.0,
+    damping=5.0,
+    min_delay=0,  # physics time steps (min: 2.0*0=0.0ms)
+    max_delay=2,  # physics time steps (max: 2.0*2=4.0ms)
+)"""
 
 ALIENGO_ARM_ACTUATOR_CFG = IdentifiedActuatorElectricCfg(
     joint_names_expr=["arm_joint.*"],
@@ -64,43 +106,6 @@ ALIENGO_ARM_ACTUATOR_CFG = IdentifiedActuatorElectricCfg(
     friction_static=0.1,
     activation_vel=0.1,
     friction_dynamic=0.1,
-)"""
-
-ALIENGO_HIP_ACTUATOR_CFG = DelayedPDActuatorCfg(
-    joint_names_expr=[".*_hip_joint"],
-    effort_limit=44.4,
-    stiffness=stiffness_mujoco,
-    damping=damping_mujoco,
-    min_delay=0,  # physics time steps (min: 2.0*0=0.0ms)
-    max_delay=2,  # physics time steps (max: 2.0*2=4.0ms)
-)
-
-ALIENGO_THIGH_ACTUATOR_CFG = DelayedPDActuatorCfg(
-    joint_names_expr=[".*_thigh_joint"],
-    effort_limit=44.4,
-    stiffness=stiffness_mujoco,
-    damping=damping_mujoco,
-    min_delay=0,  # physics time steps (min: 2.0*0=0.0ms)
-    max_delay=2,  # physics time steps (max: 2.0*2=4.0ms)
-)
-
-ALIENGO_CALF_ACTUATOR_CFG = DelayedPDActuatorCfg(
-    joint_names_expr=[".*_calf_joint"],
-    effort_limit=44.4,
-    stiffness=stiffness_mujoco,
-    damping=damping_mujoco,
-    min_delay=0,  # physics time steps (min: 2.0*0=0.0ms)
-    max_delay=2,  # physics time steps (max: 2.0*2=4.0ms)
-)
-
-
-ALIENGO_ARM_ACTUATOR_CFG = DelayedPDActuatorCfg(
-    joint_names_expr=["arm_joint.*"],
-    effort_limit=30.0,
-    stiffness=50.0,
-    damping=5.0,
-    min_delay=0,  # physics time steps (min: 2.0*0=0.0ms)
-    max_delay=2,  # physics time steps (max: 2.0*2=4.0ms)
 )
 
 ALIENGO_CFG = ArticulationCfg(
