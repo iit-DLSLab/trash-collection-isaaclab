@@ -275,9 +275,9 @@ class AliengoFlatEnvCfg(DirectRLEnvCfg):
     joints_torque_reward_scale = -2.5e-6
     joints_accel_reward_scale = -2.5e-7
     joints_energy_reward_scale = -1e-4
-    joints_hip_position_reward_scale = -0.1 * 0.0
-    joints_thigh_position_reward_scale = -0.1 * 0.0
-    joints_calf_position_reward_scale = -0.001 * 0.0
+    joints_hip_position_reward_scale = -0.1
+    joints_thigh_position_reward_scale = -0.1
+    joints_calf_position_reward_scale = -0.001
    
     
     # Undesired contacts reward scale
