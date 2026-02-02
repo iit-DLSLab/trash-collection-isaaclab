@@ -252,6 +252,25 @@ class Console():
                     print("Opening gripper")
                     self.controller_node.state_machine.change_state(gripper_state=GripperStateType.OPEN) # OPEN
 
+                elif input_string == "getTargetIKBase":
+                    target_pos, target_quat = self.controller_node.state_machine.detection_from_camera_to_base()
+                    print("Target IK Position Base: ", target_pos)
+                    print("Target IK Quaternion Base: ", target_quat)
+
+                elif input_string == "getTargetIKCamera":
+
+                    print("Target IK Position: ", self.controller_node.ik_goal_camera_frame)
+                    print("Target IK Quaternion: ", self.controller_node.ik_goal_orient_camera_frame)
+
+                elif input_string == "showIKFrames":
+                    target_pos, target_quat = self.controller_node.state_machine.detection_from_camera_to_base()
+
+                    initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
+                    initial_base_pose = copy.deepcopy(self.controller_node.desired_pose_command_overwrite)
+
+                    _, _, ik_succeded = self.controller_node.ik_mink_solver.compute(target_pos, target_quat, initial_joints_position, initial_base_pose)
+
+
             except Exception as e:
                 print("Error: ", e)
                 print("Invalid Command")
@@ -277,3 +296,6 @@ class Console():
         print("armOpenBasket: Open the basket")
         print("armCloseGripper: Close the gripper")
         print("armOpenGripper: Open the gripper\n")
+        print("getTargetIKBase: Get the target position for IK without moving")
+        print("getTargetIKCamera: Get the target position for IK without moving\n")
+        print("showIKFrames: Show the IK frames in the viewer\n")
