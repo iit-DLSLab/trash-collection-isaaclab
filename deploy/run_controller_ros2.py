@@ -63,17 +63,18 @@ class TrashControlNode(Node):
         keyframe_id = mujoco.mj_name2id(self.mjModel, mujoco.mjtObj.mjOBJ_KEY, "home")
         self.mjData.qpos = self.mjModel.key_qpos[keyframe_id]
         
-        self.use_visualizer = False
-        if self.use_visualizer:
+        self.use_detection_visualizer = True
+        if self.use_detection_visualizer:
+            self.visualizer_model = mujoco.MjModel.from_xml_path(dir_path+"/mujoco/models/z1/scene_floating.xml")
+            self.visualizer_data = mujoco.MjData(self.visualizer_model)
             self.viewer = mujoco.viewer.launch_passive(
-                            self.mjModel,
-                            self.mjData,
+                            self.visualizer_model,
+                            self.visualizer_data,
                             show_left_ui=False,
                             show_right_ui=False,
-                            #key_callback=lambda x: self._key_callback(x),
                         )
             self.last_render_time = time.time()
-            self.RENDER_FREQ = 30.0  # Hz 
+            self.RENDER_FREQ = 5.0  # Hz 
 
 
         # Initialization of variables used in the main control loop --------------------------------
@@ -400,14 +401,22 @@ class TrashControlNode(Node):
         arm_control_signal_msg.desired_arm_gripper_torque = 0.0  # Placeholder for gripper torque
         self.publisher_arm_control_signal.publish(arm_control_signal_msg)
 
-        if self.use_visualizer:
+        if self.use_detection_visualizer:
             # Render only at a certain frequency -----------------------------------------------------------------
             if time.time() - self.last_render_time > 1.0 / self.RENDER_FREQ:
                 if(self.received_detection):
                     # Update task target.
-                    mocap_id = self.mjModel.body("target").mocapid[0]
-                    self.mjData.mocap_pos[mocap_id] = self.ik_goal_base_frame
-                    self.mjData.mocap_quat[mocap_id] = self.ik_goal_orient_base_frame
+                    target_pos, target_quat = self.state_machine.detection_from_camera_to_base()
+
+                    # Set final configuration
+                    self.visualizer_data.qpos[0:2] = base_ori_euler_xyz[1], base_pos[2] #base pitch, base z
+                    self.visualizer_data.qpos[2:8] = self.arm_joints_position
+
+                    mujoco.mj_fwdPosition(self.visualizer_model, self.visualizer_data)
+
+                    mocap_id = self.visualizer_model.body("target").mocapid[0]
+                    self.visualizer_data.mocap_pos[mocap_id] = target_pos
+                    self.visualizer_data.mocap_quat[mocap_id] = target_quat
                 
                 # Update the camera position
                 self.viewer.cam.lookat[:] = base_pos

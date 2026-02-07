@@ -211,6 +211,15 @@ class StateMachine:
                 # Finally reach the target
                 initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
                 initial_base_pose = copy.deepcopy(self.controller_node.desired_pose_command_overwrite)
+
+                #Other offset to grasp better in the direction of grasping
+                offset_end_effector_frame = np.array([0.05, 0.0, 0.0])
+                R_TE = np.zeros((3, 3), dtype=float)
+                mujoco.mju_quat2Mat(R_TE.reshape(9,), target_quat)
+                R_TE = R_TE.reshape(3,3)
+                offset_base_frame = R_TE @ offset_end_effector_frame
+                target_pos += offset_base_frame
+                
                 _, \
                     reference_joints_position, \
                     ik_succeded = self.controller_node.ik_mink_solver.compute(target_pos, target_quat, initial_joints_position, initial_base_pose)
