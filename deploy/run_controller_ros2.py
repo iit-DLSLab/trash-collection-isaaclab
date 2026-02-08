@@ -63,7 +63,7 @@ class TrashControlNode(Node):
         keyframe_id = mujoco.mj_name2id(self.mjModel, mujoco.mjtObj.mjOBJ_KEY, "home")
         self.mjData.qpos = self.mjModel.key_qpos[keyframe_id]
         
-        self.use_detection_visualizer = False
+        self.use_detection_visualizer = True
         if self.use_detection_visualizer:
             self.visualizer_model = mujoco.MjModel.from_xml_path(dir_path+"/mujoco/models/z1/scene_floating.xml")
             self.visualizer_data = mujoco.MjData(self.visualizer_model)
@@ -408,16 +408,17 @@ class TrashControlNode(Node):
                     # Update task target.
                     target_pos, target_quat = self.state_machine.detection_from_camera_to_base()
 
-                    #final_base_pose, \
-                    #    final_arm_joints, \
-                    #        ik_succeded = self.ik_mink_solver.compute(target_pos, target_quat, self.arm_joints_position, self.desired_pose_command_overwrite, visualize=False)
+                    final_base_pose, \
+                        final_arm_joints, \
+                            ik_succeded = self.ik_mink_solver.compute(target_pos, target_quat, self.arm_joints_position, 
+                            self.desired_pose_command_overwrite, optimize_height= True, optimize_pitch= True,visualize=False)
 
                     # Set final configuration
-                    self.visualizer_data.qpos[0:2] = base_ori_euler_xyz[1], base_pos[2] #base pitch, base z
-                    self.visualizer_data.qpos[2:8] = self.arm_joints_position
+                    #self.visualizer_data.qpos[0:2] = base_ori_euler_xyz[1], base_pos[2] #base pitch, base z
+                    #self.visualizer_data.qpos[2:8] = self.arm_joints_position
 
-                    #self.visualizer_data.qpos[0:2] = final_base_pose #base pitch, base z
-                    #self.visualizer_data.qpos[2:8] = final_arm_joints
+                    self.visualizer_data.qpos[0:2] = final_base_pose #base pitch, base z
+                    self.visualizer_data.qpos[2:8] = final_arm_joints
 
                     mujoco.mj_fwdPosition(self.visualizer_model, self.visualizer_data)
 
