@@ -1,10 +1,11 @@
 ## Overview
 
-This repository is about trash collection using RL on quadruped robots, with sim-to-sim and sim-to-real scripts. It trains in sequence two different policies, one for locomotion and a second one for manipulation, able to reach desired end effector poses.
+This repository is about trash collection using RL on quadruped robots, with sim-to-sim and sim-to-real scripts. It trains in sequence two different policies, one for locomotion and a second one for manipulation, able to reach desired end effector poses. In alternative, an inverse kinematic using [mink](https://github.com/kevinzakka/mink) can be used to reach the target.
 
 Features:
 - Locomotion policy able to adjust pose and carry a manipulator
 - Manipulation policy able to reach desired end effector goal while coordinating the pose of the quadruped
+- Whole-body Inverse Kinematics with reduced model using [mink](https://github.com/kevinzakka/mink)
 - Sim-to-Sim in [Mujoco](https://github.com/google-deepmind/mujoco)
 - Sim-to-Real in ROS1 and ROS2
 
