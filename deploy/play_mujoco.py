@@ -86,7 +86,6 @@ class PlayMujoco:
         self.legs_joints_velocity = np.zeros(12)  # 12 leg joints 
         self.desired_joint_pos_arm = self.mjData.qpos[19:25] 
         self.desired_joint_pos_leg = self.mjData.qpos[7:19]
-        self.desired_pose_command = np.zeros(2)
         self.desired_pose_command_overwrite = np.zeros(2)
         self.Kp_legs = 0
         self.Kd_legs = 0
@@ -153,7 +152,7 @@ class PlayMujoco:
             if self.console.isRLActivated and step_num % round(1 / (self.locomotion_policy.RL_FREQ * self.simulation_dt)) == 0:            
                 
                 if self.state_machine.state_type == ArmStateType.REACH:
-                    self.desired_joint_pos_arm, self.desired_pose_command = self.manipulation_policy.compute_control(
+                    self.desired_joint_pos_arm, self.desired_pose_command_overwrite = self.manipulation_policy.compute_control(
                                 base_pos=base_pos, 
                                 base_ori_euler_xyz=base_ori_euler_xyz, 
                                 base_quat_wxyz=base_quat_wxyz,
@@ -169,7 +168,6 @@ class PlayMujoco:
                                 heightmap_data=self.heightmap.data if self.locomotion_policy.use_vision else None)
                 else:
                     self.desired_joint_pos_arm = self.state_machine.desired_position
-                    self.desired_pose_command = np.zeros(2)
 
                 self.desired_joint_pos_leg = self.locomotion_policy.compute_control(
                             base_pos=base_pos, 
@@ -183,7 +181,7 @@ class PlayMujoco:
                             joints_pos_arm=joints_pos_arm,
                             ref_base_lin_vel=ref_base_lin_vel, 
                             ref_base_ang_vel=ref_base_ang_vel,
-                            ref_pose_command=self.desired_pose_command + self.desired_pose_command_overwrite,
+                            ref_pose_command=self.desired_pose_command_overwrite,
                             heightmap_data=self.heightmap.data if self.locomotion_policy.use_vision else None)
 
                 self.Kp_legs = self.locomotion_policy.Kp_walking

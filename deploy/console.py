@@ -197,7 +197,7 @@ class Console():
                             break
 
                 elif input_string == "setBasePose":
-                    print("Current Base Position: ", self.controller_node.desired_pose_command)
+                    print("Current Base Position: ", self.controller_node.desired_pose_command_overwrite)
                     temp = input("Enter Pitch (rad): ")
                     if(temp != ""):
                         self.controller_node.desired_pose_command_overwrite[0] = float(temp)

@@ -74,7 +74,7 @@ class TrashControlNode(Node):
                             show_right_ui=False,
                         )
             self.last_render_time = time.time()
-            self.RENDER_FREQ = 1.0  # Hz 
+            self.RENDER_FREQ = 2.0  # Hz 
 
 
         # Initialization of variables used in the main control loop --------------------------------
@@ -96,7 +96,6 @@ class TrashControlNode(Node):
         self.legs_joints_velocity = np.zeros(12)  # 12 leg joints 
         self.desired_joint_pos_arm = self.mjData.qpos[19:25] 
         self.desired_joint_pos_leg = self.mjData.qpos[7:19]
-        self.desired_pose_command = np.zeros(2)
         self.desired_pose_command_overwrite = np.zeros(2)
         self.Kp_legs = 0
         self.Kd_legs = 0
@@ -358,7 +357,7 @@ class TrashControlNode(Node):
                         joints_pos_arm=joints_pos_arm,
                         ref_base_lin_vel=ref_base_lin_vel, 
                         ref_base_ang_vel=ref_base_ang_vel,
-                        ref_pose_command=self.desired_pose_command + self.desired_pose_command_overwrite,
+                        ref_pose_command=self.desired_pose_command_overwrite,
                         heightmap_data=self.heightmap.data if self.locomotion_policy.use_vision else None)
 
             self.Kp_legs = self.locomotion_policy.Kp_walking
@@ -411,12 +410,11 @@ class TrashControlNode(Node):
                     final_base_pose, \
                         final_arm_joints, \
                             ik_succeded = self.ik_mink_solver.compute(target_pos, target_quat, self.arm_joints_position, 
-                            self.desired_pose_command_overwrite, optimize_height= True, optimize_pitch= True,visualize=False)
+                            self.desired_pose_command_overwrite, optimize_height= True, optimize_pitch= True, visualize=False)
 
                     # Set final configuration
                     #self.visualizer_data.qpos[0:2] = base_ori_euler_xyz[1], base_pos[2] #base pitch, base z
                     #self.visualizer_data.qpos[2:8] = self.arm_joints_position
-
                     self.visualizer_data.qpos[0:2] = final_base_pose #base pitch, base z
                     self.visualizer_data.qpos[2:8] = final_arm_joints
 

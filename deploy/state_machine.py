@@ -3,6 +3,7 @@ from enum import Enum
 import numpy as np
 import copy
 import time
+from scipy.spatial.transform import Rotation
 
 import mujoco
 
@@ -178,11 +179,12 @@ class StateMachine:
         target_pos, target_quat = self.detection_from_camera_to_base()
         initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
         initial_base_pose = copy.deepcopy(self.controller_node.desired_pose_command_overwrite)
+        initial_base_pose_placeholder = copy.deepcopy(initial_base_pose)
         
         reference_base_pose, \
             reference_joints_position, \
             ik_succeded = self.controller_node.ik_mink_solver.compute(target_pos, target_quat, initial_joints_position, 
-                                                    initial_base_pose, optimize_height=False, optimize_pitch=False)
+                                                    initial_base_pose, optimize_height=True, optimize_pitch=True)
         
         if ik_succeded:
             # First move the base
@@ -233,8 +235,7 @@ class StateMachine:
                     self.change_state(gripper_state=GripperStateType.CLOSE) # CLOSE
 
                     # Return to previous base position base position
-                    reference_base_pose = reference_base_pose*0.0
-                    self.run_base_smoother(initial_base_pose, reference_base_pose, time_motion = 2.)
+                    self.run_base_smoother(initial_base_pose, initial_base_pose_placeholder, time_motion = 2.)
             
         else:
             print("IK failed, position not reachable!")
@@ -290,6 +291,20 @@ class StateMachine:
         mujoco.mju_mat2Quat(q_BO, R_BO.reshape(9,))
         R_BO = R_BO.reshape(3,3)
 
+        #transform in RPY and remove roll and yaw
+        #rpy = np.zeros(3)
+        #rpy[1] = np.arcsin(-R_BO[2, 0]) 
+        #q_target = np.zeros(4, dtype=float)
+        #mujoco.mju_euler2Quat(q_target, rpy, "XYZ")
+        #return p_B, q_target
+
+        #quat_wxyz = q_BO
+        #quat_xyzw = np.roll(quat_wxyz, -1)
+        #rpy = Rotation.from_quat(quat_xyzw).as_euler('xyz')
+        #rpy[2] = 0.0
+        #mujoco.mju_euler2Quat(q_target, rpy, "XYZ")
+        #return p_B, q_target
+
+
         return p_B, q_BO
-        self.controller_node.ik_goal_orient_base_frame = q_BO
 

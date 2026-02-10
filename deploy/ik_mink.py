@@ -57,7 +57,7 @@ class IKMink:
         self.posture_task = mink.PostureTask(self.model, cost=self.posture_cost)
 
         self.immobile_base_cost = np.zeros((self.model.nv,))
-        self.immobile_base_cost[0:2] = 1
+        self.immobile_base_cost[0:2] = 5
         self.damping_task = mink.DampingTask(self.model, self.immobile_base_cost)
 
         self.tasks = [
@@ -93,7 +93,7 @@ class IKMink:
         mink.move_mocap_to_frame(self.model, self.data, "target", "attachment_site", "site")
 
     def compute(self, target_pos: np.ndarray, target_quat: np.ndarray, initial_joints_position: np.ndarray, initial_base_pose: np.ndarray, 
-                optimize_height = False, optimize_pitch = False, visualize = True) -> [np.ndarray, np.ndarray, bool]:
+                optimize_height = False, optimize_pitch = False, visualize = False) -> [np.ndarray, np.ndarray, bool]:
 
         self.data.qpos[0:8] = np.concatenate((initial_base_pose, initial_joints_position))
         self.configuration.update(self.data.qpos)
