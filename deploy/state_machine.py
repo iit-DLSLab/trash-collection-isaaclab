@@ -208,7 +208,7 @@ class StateMachine:
                 ik_succeded = self.controller_node.ik_mink_solver.compute(intermediate_target_pos, target_quat, initial_joints_position, initial_base_pose)
             
             if ik_succeded:
-                self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion=5.)
+                self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion=3.)
 
                 # Finally reach the target
                 initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
@@ -227,7 +227,7 @@ class StateMachine:
                     ik_succeded = self.controller_node.ik_mink_solver.compute(target_pos, target_quat, initial_joints_position, initial_base_pose)
                 
                 if ik_succeded:
-                    self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion=3.)
+                    self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion=2.)
 
                     # Close the gripper and grasp
                     time.sleep(1.)
