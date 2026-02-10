@@ -25,6 +25,13 @@ else
    docker exec -it trash_collection_isaaclab_container bash; \
 fi'
 ```
+
+3. or use docker compose
+
+```bash
+alias trash_collection_isaaclab_docker_compose='xhost + && cd absolute_path_to_this_repo/deploy/installation && docker compose -f docker-compose.yaml run trash-docker bash'
+```
+
 Remember to update absolute_path_to_this_repo !!
 
 ## Run Sim-to-Sim 
@@ -34,29 +41,23 @@ Remember to update absolute_path_to_this_repo !!
 python3 deploy/play_mujoco.py
 
 ## Sim-to-Sim with ROS2
-cd deploy/ros2_ws
-colcon build
-source install/setup.bash
-python3 deploy/run_controller_ros2.py  
-ros2 launch teleop_twist_joy teleop-launch.py joy_config:='xbox' (if want joystick)
-python3 deploy/run_simulator_ros2.py
+source deploy/ros2_localhost_connect.sh (TERMINAL 1)
+python3 deploy/run_controller_ros2.py (TERMINAL 1)
+
+source deploy/ros2_localhost_connect.sh (TERMINAL 2)
+python3 deploy/run_simulator_ros2.py (TERMINAL 2)
+
+source deploy/ros2_localhost_connect.sh (TERMINAL 3)
+ros2 launch teleop_twist_joy teleop-launch.py joy_config:='xbox' (if want joystick) (TERMINAL 3)
 ```
 
 ## Run Sim-to-Real
 
 ```bash
 ## Sim-to-Real with ROS2
-cd deploy/ros2_ws
-colcon build
-source install/setup.bash
-source ./dls2_connect.sh
-python3 deploy/run_controller_ros2.py
-```
-If you want a joystick, on a second terminal enter in the docker and then:
+source deploy/dls2_connect.sh (TERMINAL 1)
+python3 deploy/run_controller_ros2.py (TERMINAL 1)
 
-```bash
-cd deploy/
-source ros2_ws/install/setup.bash
-source ./dls2_connect.sh
-ros2 launch teleop_twist_joy teleop-launch.py joy_config:='xbox'
+source deploy/dls2_connect.sh (TERMINAL 2)
+ros2 launch teleop_twist_joy teleop-launch.py joy_config:='xbox' (if want joystick) (TERMINAL 2)
 ```
