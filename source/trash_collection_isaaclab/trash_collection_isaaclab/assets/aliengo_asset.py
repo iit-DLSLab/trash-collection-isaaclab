@@ -1,18 +1,15 @@
-# Copyright (c) 2022-2024, The Berkeley Humanoid Project Developers.
-# All rights reserved.
-#
-# SPDX-License-Identifier: BSD-3-Clause
-
 import isaaclab.sim as sim_utils
 from trash_collection_isaaclab.actuators import IdentifiedActuatorElectricCfg
+from isaaclab.actuators import DelayedPDActuatorCfg
 from isaaclab.assets.articulation import ArticulationCfg
 
 from trash_collection_isaaclab.assets import ISAAC_ASSET_DIR
 
-
 # Aliengo robot configuration from mujoco
 stiffness_mujoco = 25.0
 damping_mujoco = 2.0
+
+"""
 friction_static_mujoco = 0.2
 friction_dynamic_mujoco = 0.6
 armature_mujoco = 0.01
@@ -55,6 +52,48 @@ ALIENGO_CALF_ACTUATOR_CFG = IdentifiedActuatorElectricCfg(
     activation_vel=0.1,
     friction_dynamic=friction_dynamic_mujoco,
 )
+"""
+
+ALIENGO_HIP_ACTUATOR_CFG = DelayedPDActuatorCfg(
+    joint_names_expr=[".*_hip_joint"],
+    effort_limit=44.4,
+    velocity_limit=21.0,
+    stiffness=stiffness_mujoco,
+    damping=damping_mujoco,
+    min_delay=0,  # physics time steps (min: 2.0*0=0.0ms)
+    max_delay=2,  # physics time steps (max: 2.0*2=4.0ms)
+)
+
+ALIENGO_THIGH_ACTUATOR_CFG = DelayedPDActuatorCfg(
+    joint_names_expr=[".*_thigh_joint"],
+    effort_limit=44.4,
+    velocity_limit=21.0,
+    stiffness=stiffness_mujoco,
+    damping=damping_mujoco,
+    min_delay=0,  # physics time steps (min: 2.0*0=0.0ms)
+    max_delay=2,  # physics time steps (max: 2.0*2=4.0ms)
+)
+
+ALIENGO_CALF_ACTUATOR_CFG = DelayedPDActuatorCfg(
+    joint_names_expr=[".*_calf_joint"],
+    effort_limit=44.4,
+    velocity_limit=21.0,
+    stiffness=stiffness_mujoco,
+    damping=damping_mujoco,
+    min_delay=0,  # physics time steps (min: 2.0*0=0.0ms)
+    max_delay=2,  # physics time steps (max: 2.0*2=4.0ms)
+)
+
+
+"""ALIENGO_ARM_ACTUATOR_CFG = DelayedPDActuatorCfg(
+    joint_names_expr=["arm_joint.*"],
+    effort_limit=30.0,
+    velocity_limit=3.1415,
+    stiffness=50.0,
+    damping=5.0,
+    min_delay=0,  # physics time steps (min: 2.0*0=0.0ms)
+    max_delay=2,  # physics time steps (max: 2.0*2=4.0ms)
+)"""
 
 ALIENGO_ARM_ACTUATOR_CFG = IdentifiedActuatorElectricCfg(
     joint_names_expr=["arm_joint.*"],

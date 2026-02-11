@@ -23,9 +23,3 @@ class IdentifiedActuatorElectricCfg(DCMotorCfg):
     """ (in Rad/s)."""
     friction_dynamic: float = MISSING
     """ (in N-m-s/Rad)."""
-
-    # This is used only for imitate hydraulic actuators
-    first_order_delay_filter: float = 1.0
-    """ (in percentage)."""
-    second_order_delay_filter: float = 1.0
-    """ (in percentage)."""
