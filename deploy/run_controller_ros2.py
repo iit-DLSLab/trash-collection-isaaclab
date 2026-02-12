@@ -365,6 +365,18 @@ class TrashControlNode(Node):
             self.Kp_arm = self.manipulation_policy.Kp_arm
             self.Kd_arm = self.manipulation_policy.Kd_arm
 
+            # Torque saturation for the legs
+            max_torque = self.mjModel.actuator_ctrlrange[0:12, 1]
+            max_torque = max_torque*0.95  # A margin for safety
+            lower = (-max_torque + self.Kd_legs * joints_vel_leg) / self.Kp_legs
+            upper = ( max_torque + self.Kd_legs * joints_vel_leg) / self.Kp_legs
+
+            self.desired_joint_pos_leg = np.clip(
+                self.desired_joint_pos_leg,
+                joints_pos_leg + lower,
+                joints_pos_leg + upper
+            )
+
         
         self.desired_joint_pos_arm = self.state_machine.desired_position
 
