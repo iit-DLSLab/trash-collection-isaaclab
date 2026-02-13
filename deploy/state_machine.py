@@ -88,7 +88,7 @@ class StateMachine:
             self.desired_position = interpolated_positions
             self.desired_velocity = interpolated_velocities
             time.sleep(0.01)
-        self.desired_velocity = desired_velocity*0.0
+        self.desired_velocity = self.desired_velocity*0.0
 
     def run_base_smoother(self , initial_base_pose, reference_base_pose, time_motion):
         start_time = time.time()
