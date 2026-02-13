@@ -421,7 +421,7 @@ class TrashControlNode(Node):
 
                     final_base_pose, \
                         final_arm_joints, \
-                            ik_succeded = self.ik_mink_solver.compute(target_pos, target_quat, self.arm_joints_position + self.offset_home_position, 
+                            ik_succeded = self.ik_mink_solver.compute(target_pos, target_quat, self.arm_joints_position + self.state_machine.offset_home_position,
                             self.desired_pose_command_overwrite, optimize_height= True, optimize_pitch= True, visualize=False)
 
                     # Set final configuration
