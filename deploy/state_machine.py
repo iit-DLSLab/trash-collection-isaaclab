@@ -163,6 +163,9 @@ class StateMachine:
 
             self.change_state(gripper_state=GripperStateType.CLOSE) # CLOSE
 
+        if(self.state_type == ArmStateType.PREREACH):
+            print("going in rest position first!!")
+            self.armRest(initial_joints_position)
 
         time_motion = 5.
         initial_joints_position = copy.deepcopy(initial_joints_position)
@@ -197,10 +200,14 @@ class StateMachine:
         reference_joints_position = self.arm_rest - self.offset_home_position
         self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
 
-        self.change_state(state=ArmStateType.HOME) 
+        self.change_state(state=ArmStateType.REST)
 
 
     def armPreReachObject(self, initial_joints_position):
+        if(self.state_type == ArmStateType.HOME):
+            print("going in rest position first!!")
+            self.armRest(initial_joints_position)
+
         time_motion = 5.
         initial_joints_position = copy.deepcopy(initial_joints_position)
         reference_joints_position = self.pre_reach_position - self.offset_home_position
