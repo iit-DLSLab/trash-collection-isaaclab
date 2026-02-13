@@ -177,7 +177,7 @@ class StateMachine:
             return
 
         target_pos, target_quat = self.detection_from_camera_to_base()
-        initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
+        initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position) + self.offset_home_position
         initial_base_pose = copy.deepcopy(self.controller_node.desired_pose_command_overwrite)
         initial_base_pose_placeholder = copy.deepcopy(initial_base_pose)
         
@@ -192,7 +192,7 @@ class StateMachine:
 
             # Then move the arm in two steps, reaching an intermediate point
             target_pos, target_quat = self.detection_from_camera_to_base()
-            initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
+            initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position) + self.offset_home_position
             initial_base_pose = copy.deepcopy(self.controller_node.desired_pose_command_overwrite)
             intermediate_target_pos = copy.deepcopy(target_pos)
             #I need to apply an offset in the direction of grasping
@@ -208,10 +208,10 @@ class StateMachine:
                 ik_succeded = self.controller_node.ik_mink_solver.compute(intermediate_target_pos, target_quat, initial_joints_position, initial_base_pose)
             
             if ik_succeded:
-                self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion=3.)
+                self.run_arm_smoother(initial_joints_position, reference_joints_position - self.offset_home_position, time_motion=3.)
 
                 # Finally reach the target
-                initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
+                initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position) + self.offset_home_position
                 initial_base_pose = copy.deepcopy(self.controller_node.desired_pose_command_overwrite)
 
                 #Other offset to grasp better in the direction of grasping
@@ -227,7 +227,7 @@ class StateMachine:
                     ik_succeded = self.controller_node.ik_mink_solver.compute(target_pos, target_quat, initial_joints_position, initial_base_pose)
                 
                 if ik_succeded:
-                    self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion=2.)
+                    self.run_arm_smoother(initial_joints_position, reference_joints_position - self.offset_home_position, time_motion=2.)
 
                     # Close the gripper and grasp
                     time.sleep(1.)

@@ -224,7 +224,7 @@ class PlayMujoco:
             self.mjData.ctrl[12:18] = tau_arm 
             self.mjData.ctrl[18] = tau_gripper
             mujoco.mj_step(self.mjModel, self.mjData)
-            step_num = step_num +1
+            step_num = step_num + 1
 
 
             # Sleep to match real-time ---------------------------------------------------------
