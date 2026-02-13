@@ -290,6 +290,7 @@ class Console():
         print("setKd: Set the Kd values for the legs")
         print("setBasePose: Set desired base pitch and height")
         print("armHome: Move arm to home position")
+        print("armRest: Move arm to rest position")
         print("armDance: Move the arm to random ee position")
         print("armPreReachObject: Move arm to pre-reach object position")
         print("armReachObjectRL: Move arm to reach object position")
