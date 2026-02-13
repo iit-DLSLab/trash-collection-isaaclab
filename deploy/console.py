@@ -18,7 +18,7 @@ class Console():
         # Autocomplete setup
         self.commands = [
             "help", "ictp", "goUp", "goDown", "activate", "ictp", "setKp", "setKd",
-            "setBasePose", "armHome", "armDance", "armPreReachObject", "armReachObjectRL", "armReachObjectIK", "armReachBasket",
+            "setBasePose", "armHome", "armRest", "armDance", "armPreReachObject", "armReachObjectRL", "armReachObjectIK", "armReachBasket",
             "armOpenBasket", "armCloseGripper", "armOpenGripper"
         ]
         readline.set_completer(self.complete)
@@ -205,9 +205,11 @@ class Console():
                     if(temp != ""):
                         self.controller_node.desired_pose_command_overwrite[1] = float(temp)  
 
-
                 elif input_string =="armHome":
                     self.controller_node.state_machine.armHome(self.controller_node.arm_joints_position)
+                
+                elif input_string =="armRest":
+                    self.controller_node.state_machine.armRest(self.controller_node.arm_joints_position)
                 
                 elif input_string == "armPreReachObject":
                     self.controller_node.state_machine.armPreReachObject(self.controller_node.arm_joints_position)

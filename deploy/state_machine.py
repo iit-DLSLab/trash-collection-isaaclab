@@ -37,6 +37,7 @@ class StateMachine:
         self.gripper_close_pos = 0.1
         self.desired_gripper_position = self.gripper_close_pos #self.gripper_open_pos
 
+        self.arm_rest = np.array([1.8, 1.24, 0.0, -0.4, -1.37, 0.0]) 
 
         self.reach_basket_position_1 = np.array([1.61, 1.84, -1.18, 0.01, 0.02, -0.02])
         self.reach_basket_position_2 = np.array([2.17, 1.02, -0.84, -0.71, 1.44, -1.13]) 
@@ -44,10 +45,10 @@ class StateMachine:
         self.open_basket_position_1 = np.array([ 2.74,  0.88, -0.85,  0.2 ,  1.23, -1.85])
         self.open_basket_position_2 = np.array([ 2.74,  0.98, -1.18,  0.06,  1.22, -1.48])
 
-        self.pre_reach_position = np.array([0, 1.5, -1.5, 0.54, 0, 0])
+        self.pre_reach_position = np.array([0, 1.8, -1.5, 0.54, 0, 0])
 
         # Offset for the home position wrt mujoco model
-        #self.offset_home_position = np.array([1.27, 0.0, 0.0, 0., 0, 0]) # standard home pos with first joint rotated for the experiment!!
+        #self.offset_home_position = np.array([1.57, 0.0, 0.0, 0., 0, 0]) # standard home pos with first joint rotated for the experiment!!
         self.offset_home_position = np.array([0.0, 0.0, 0.0, 0., 0, 0]) # standard home pos with first joint rotated
 
         # Goal end-effector position
@@ -149,6 +150,25 @@ class StateMachine:
         time_motion = 5.
         initial_joints_position = copy.deepcopy(initial_joints_position)
         reference_joints_position = self.home_position
+        self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
+
+        self.change_state(state=ArmStateType.HOME) 
+
+
+    def armRest(self, initial_joints_position):
+        if(self.state_type == ArmStateType.BASKET):
+            self.change_state(gripper_state=GripperStateType.CLOSE) # CLOSE
+
+            time_motion = 5.
+            initial_joints_position = copy.deepcopy(initial_joints_position)
+            reference_joints_position = self.reach_basket_position_1 - self.offset_home_position
+            self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
+            initial_joints_position = copy.deepcopy(self.desired_position)
+
+
+        time_motion = 5.
+        initial_joints_position = copy.deepcopy(initial_joints_position)
+        reference_joints_position = self.arm_rest - self.offset_home_position
         self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
 
         self.change_state(state=ArmStateType.HOME) 
