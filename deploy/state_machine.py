@@ -105,6 +105,10 @@ class StateMachine:
 
     
     def armReachBasket(self, initial_joints_position):
+        if(self.state_type == ArmStateType.BASKET):
+            print("Already in BASKET position, call armRest!")
+            return
+
         initial_joints_position = copy.deepcopy(initial_joints_position)
         reference_joints_position = self.reach_basket_position_1 - self.offset_home_position
         time_motion = 5.
@@ -120,7 +124,7 @@ class StateMachine:
     def armOpenBasket(self, initial_joints_position):
 
         if(self.state_type != ArmStateType.BASKET):
-            print("Go to BASKET position first!")
+            print("Call armReachBasket first!")
             return
         
         self.change_state(gripper_state=GripperStateType.OPEN) # OPEN
