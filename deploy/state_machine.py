@@ -83,10 +83,12 @@ class StateMachine:
                 for initial, reference in zip(initial_joints_position, reference_joints_position)
             ]
             interpolated_positions = np.array(interpolated_positions)
-            #interpolated_velocities = (interpolated_positions - past_joint_positions) / 0.01
+            interpolated_velocities = (interpolated_positions - past_joint_positions) / 0.01
             past_joint_positions = copy.deepcopy(interpolated_positions)
             self.desired_position = interpolated_positions
+            self.desired_velocity = interpolated_velocities
             time.sleep(0.01)
+        self.desired_velocity = desired_velocity*0.0
 
     def run_base_smoother(self , initial_base_pose, reference_base_pose, time_motion):
         start_time = time.time()

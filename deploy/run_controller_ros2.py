@@ -379,6 +379,7 @@ class TrashControlNode(Node):
 
         
         self.desired_joint_pos_arm = self.state_machine.desired_position
+        self.desired_joint_vel_arm = self.state_machine.desired_velocity
 
 
         # Send the desired positions to the trajectory generator --------------------------------            
@@ -393,7 +394,7 @@ class TrashControlNode(Node):
         arm_trajectory_generator_msg = ArmTrajectoryGenerator()
         arm_trajectory_generator_msg.timestamp = float(self.get_clock().now().nanoseconds)
         arm_trajectory_generator_msg.desired_arm_joints_position = self.desired_joint_pos_arm.tolist()
-        arm_trajectory_generator_msg.desired_arm_joints_velocity = np.zeros(6).tolist()
+        arm_trajectory_generator_msg.desired_arm_joints_velocity = self.desired_joint_vel_arm.tolist()
         arm_trajectory_generator_msg.arm_kp = (np.ones(6)*self.Kp_arm).tolist()
         arm_trajectory_generator_msg.arm_kd = (np.ones(6)*self.Kd_arm).tolist()
         arm_trajectory_generator_msg.desired_arm_gripper_position = float(self.state_machine.desired_gripper_position)
