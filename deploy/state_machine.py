@@ -308,6 +308,7 @@ class StateMachine:
         R_BC = R_WB.T @ R_WC
         t_BC = R_WB.T @ (p_WC - p_WB)
 
+
         # --- position ---
         p_CO = self.controller_node.ik_goal_camera_frame
         p_B = R_BC @ p_CO + t_BC
@@ -325,20 +326,25 @@ class StateMachine:
         mujoco.mju_mat2Quat(q_BO, R_BO.reshape(9,))
         R_BO = R_BO.reshape(3,3)
 
-        #transform in RPY and remove roll and yaw
-        #rpy = np.zeros(3)
-        #rpy[1] = np.arcsin(-R_BO[2, 0]) 
-        #q_target = np.zeros(4, dtype=float)
-        #mujoco.mju_euler2Quat(q_target, rpy, "XYZ")
-        #return p_B, q_target
+        quat_wxyz = q_BO
+        quat_xyzw = np.roll(quat_wxyz, -1)
+        rpy = Rotation.from_quat(quat_xyzw).as_euler('xyz')
 
-        #quat_wxyz = q_BO
-        #quat_xyzw = np.roll(quat_wxyz, -1)
-        #rpy = Rotation.from_quat(quat_xyzw).as_euler('xyz')
-        #rpy[2] = 0.0
-        #mujoco.mju_euler2Quat(q_target, rpy, "XYZ")
-        #return p_B, q_target
+        # setting yaw to zero when we are in gimbal lock condition
+        eps = 1e-3
+        proj = np.hypot(R_BO[0, 0], R_BO[1, 0])
+        if proj < eps:
+            rpy[2] = 0.0
 
+        q_target = np.zeros(4, dtype=float)
+        # rotation around Y axis (90 deg) to have X axis of the
+        # end-effector entering in the ground
+        tmp_1 = np.array([0.70710678, 0.0, 0.70710678, 0.0,])
+        # rotation around world Z
+        tmp_2 = np.array([np.cos(rpy[2]/2), 0.0, 0.0, np.sin(rpy[2]/2)])
+        mujoco.mju_mulQuat(q_target, tmp_2, tmp_1)
 
-        return p_B, q_BO
+        p_B[0] -= 0.06
+
+        return p_B, q_target
 
