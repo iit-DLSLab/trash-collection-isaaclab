@@ -71,7 +71,7 @@
       <joint axis="0 0 1" name="basez" pos="0 0 0" type="slide" range="-0.1 0.1"/>
       
 
-      <body name="link01" pos="0 0 0.0585">
+      <body name="link01" pos="0 0 0.0585"  quat="0.707107 0 0.0 0.707107">
         <inertial pos="2.47e-06 -0.00025198 0.0231717" quat="0.708578 0.705633 0.000281462 -0.000355927" mass="0.673326"
           diaginertia="0.00128328 0.000839362 0.000719308"/>
         <joint name="joint1" axis="0 0 1" range="-2.61799 2.61799"/>

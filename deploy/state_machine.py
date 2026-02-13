@@ -44,6 +44,8 @@ class StateMachine:
 
         self.open_basket_position_1 = np.array([ 2.74,  0.88, -0.85,  0.2 ,  1.23, -1.85])
         self.open_basket_position_2 = np.array([ 2.74,  0.98, -1.18,  0.06,  1.22, -1.48])
+        
+        self.away_from_handle_basket = np.array([ 2.74,  0.6, -0.85,  0.2 ,  0.56, -1.85])
 
         self.pre_reach_position = np.array([0, 1.8, -1.5, 0.54, 0, 0])
 
@@ -148,6 +150,10 @@ class StateMachine:
             self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
 
             initial_joints_position = copy.deepcopy(self.desired_position)
+            reference_joints_position = self.away_from_handle_basket - self.offset_home_position
+            self.run_arm_smoother(initial_joints_position, reference_joints_position, 2)            
+
+            initial_joints_position = copy.deepcopy(self.desired_position)
             reference_joints_position = self.reach_basket_position_1 - self.offset_home_position
             self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
 
@@ -170,6 +176,10 @@ class StateMachine:
             initial_joints_position = copy.deepcopy(initial_joints_position)
             reference_joints_position = self.open_basket_position_1 - self.offset_home_position
             self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
+
+            initial_joints_position = copy.deepcopy(self.desired_position)
+            reference_joints_position = self.away_from_handle_basket - self.offset_home_position
+            self.run_arm_smoother(initial_joints_position, reference_joints_position, 2)            
 
             initial_joints_position = copy.deepcopy(self.desired_position)
             reference_joints_position = self.reach_basket_position_1 - self.offset_home_position
@@ -226,7 +236,7 @@ class StateMachine:
 
             # Then move the arm in two steps, reaching an intermediate point
             target_pos, target_quat = self.detection_from_camera_to_base()
-            initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position) + self.offset_home_position
+            initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
             initial_base_pose = copy.deepcopy(self.controller_node.desired_pose_command_overwrite)
             intermediate_target_pos = copy.deepcopy(target_pos)
             #I need to apply an offset in the direction of grasping
@@ -242,10 +252,10 @@ class StateMachine:
                 ik_succeded = self.controller_node.ik_mink_solver.compute(intermediate_target_pos, target_quat, initial_joints_position, initial_base_pose)
             
             if ik_succeded:
-                self.run_arm_smoother(initial_joints_position, reference_joints_position - self.offset_home_position, time_motion=3.)
+                self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion=3.)
 
                 # Finally reach the target
-                initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position) + self.offset_home_position
+                initial_joints_position = copy.deepcopy(self.controller_node.arm_joints_position)
                 initial_base_pose = copy.deepcopy(self.controller_node.desired_pose_command_overwrite)
 
                 #Other offset to grasp better in the direction of grasping
@@ -261,7 +271,7 @@ class StateMachine:
                     ik_succeded = self.controller_node.ik_mink_solver.compute(target_pos, target_quat, initial_joints_position, initial_base_pose)
                 
                 if ik_succeded:
-                    self.run_arm_smoother(initial_joints_position, reference_joints_position - self.offset_home_position, time_motion=2.)
+                    self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion=2.)
 
                     # Close the gripper and grasp
                     time.sleep(1.)
