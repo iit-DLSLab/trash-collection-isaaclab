@@ -9,7 +9,7 @@ from trash_collection_isaaclab.assets import ISAAC_ASSET_DIR
 stiffness_mujoco = 25.0
 damping_mujoco = 2.0
 
-"""
+
 friction_static_mujoco = 0.2
 friction_dynamic_mujoco = 0.6
 armature_mujoco = 0.01
@@ -52,9 +52,21 @@ ALIENGO_CALF_ACTUATOR_CFG = IdentifiedActuatorElectricCfg(
     activation_vel=0.1,
     friction_dynamic=friction_dynamic_mujoco,
 )
-"""
 
-ALIENGO_HIP_ACTUATOR_CFG = DelayedPDActuatorCfg(
+ALIENGO_ARM_ACTUATOR_CFG = IdentifiedActuatorElectricCfg(
+    joint_names_expr=["arm_joint.*"],
+    effort_limit=30.0, #TODO, the joint2 has 60 as limits
+    velocity_limit=3.1415,
+    saturation_effort=10.0,
+    stiffness=50.0,
+    damping=5.0,
+    armature=0.01,
+    friction_static=0.1,
+    activation_vel=0.1,
+    friction_dynamic=0.1,
+)
+
+"""ALIENGO_HIP_ACTUATOR_CFG = DelayedPDActuatorCfg(
     joint_names_expr=[".*_hip_joint"],
     effort_limit=44.4,
     velocity_limit=21.0,
@@ -85,7 +97,7 @@ ALIENGO_CALF_ACTUATOR_CFG = DelayedPDActuatorCfg(
 )
 
 
-"""ALIENGO_ARM_ACTUATOR_CFG = DelayedPDActuatorCfg(
+ALIENGO_ARM_ACTUATOR_CFG = DelayedPDActuatorCfg(
     joint_names_expr=["arm_joint.*"],
     effort_limit=30.0,
     velocity_limit=3.1415,
@@ -94,19 +106,6 @@ ALIENGO_CALF_ACTUATOR_CFG = DelayedPDActuatorCfg(
     min_delay=0,  # physics time steps (min: 2.0*0=0.0ms)
     max_delay=2,  # physics time steps (max: 2.0*2=4.0ms)
 )"""
-
-ALIENGO_ARM_ACTUATOR_CFG = IdentifiedActuatorElectricCfg(
-    joint_names_expr=["arm_joint.*"],
-    effort_limit=30.0, #TODO, the joint2 has 60 as limits
-    velocity_limit=3.1415,
-    saturation_effort=10.0,
-    stiffness=50.0,
-    damping=5.0,
-    armature=0.01,
-    friction_static=0.1,
-    activation_vel=0.1,
-    friction_dynamic=0.1,
-)
 
 ALIENGO_CFG = ArticulationCfg(
     prim_path=None,

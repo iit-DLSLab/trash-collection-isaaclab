@@ -354,7 +354,7 @@ class TrashControlNode(Node):
                         heading_orientation_SO3=heading_orientation_SO3,
                         joints_pos_leg=joints_pos_leg, 
                         joints_vel_leg=joints_vel_leg,
-                        joints_pos_arm=joints_pos_arm,
+                        joints_pos_arm=joints_pos_arm + self.state_machine.offset_home_position,
                         ref_base_lin_vel=ref_base_lin_vel, 
                         ref_base_ang_vel=ref_base_ang_vel,
                         ref_pose_command=self.desired_pose_command_overwrite,

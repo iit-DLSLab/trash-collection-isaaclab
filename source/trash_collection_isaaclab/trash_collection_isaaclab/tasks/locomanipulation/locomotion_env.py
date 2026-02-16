@@ -474,7 +474,7 @@ class LocomotionEnv(DirectRLEnv):
         joints_limits = self._robot.data.default_joint_pos_limits
         joints_arm_limits = joints_limits[:,self._ids_only_arms_joints_order]
         joint_pos[:, self._ids_only_arms_joints_order] = torch.clamp(joint_pos[:, self._ids_only_arms_joints_order], joints_arm_limits[0,:,0], joints_arm_limits[0,:,1])
-        
+
         # we save the arm positions to keep them fixed during the episode via PD control
         self._joints_arm_fixed_pos[env_ids] = joint_pos[:, self._ids_only_arms_joints_order].clone()
         
