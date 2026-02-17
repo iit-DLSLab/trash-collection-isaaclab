@@ -19,7 +19,7 @@ class Console():
         self.commands = [
             "help", "ictp", "goUp", "goDown", "activate", "ictp", "setKp", "setKd",
             "setBasePose", "armHome", "armRest", "armDance", "armPreReachObject", "armReachObjectRL", "armReachObjectIK", "armReachBasket",
-            "armOpenBasket", "armCloseGripper", "armOpenGripper"
+            "armOpenBasket", "armCloseGripper", "armOpenGripper", "showDetectionVisualizer"
         ]
         readline.set_completer(self.complete)
         readline.parse_and_bind("tab: complete")
@@ -260,6 +260,9 @@ class Console():
                     print("Opening gripper")
                     self.controller_node.state_machine.change_state(gripper_state=GripperStateType.OPEN) # OPEN
 
+                elif input_string == "showDetectionVisualizer":
+                    self.controller_node.use_detection_visualizer = not self.controller_node.use_detection_visualizer
+
                 # elif input_string == "getTargetIKBase":
                 #     target_pos, target_quat = self.controller_node.state_machine.detection_from_camera_to_base()
                 #     print("Target IK Position Base: ", target_pos)
@@ -286,12 +289,12 @@ class Console():
 
 
     def print_all_commands(self):
-        print("\nAvailable Commands")
+        print("\nAvailable keyboard commands:")
         print("help: Display all available messages")
         print("ictp: Interactive Keyboard Control")
         print("goUp: Move the robot to standing position")
         print("goDown: Move the robot to crouch position")
-        print("activate: Activate/Deactivate RL policy for locomotion\n")
+        print("activate: Activate/Deactivate RL policy for locomotion")
         print("setKp: Set the Kp values for the legs")
         print("setKd: Set the Kd values for the legs")
         print("setBasePose: Set desired base pitch and height")
@@ -299,12 +302,14 @@ class Console():
         print("armRest: Move arm to rest position")
         print("armDance: Move the arm to random ee position")
         print("armPreReachObject: Move arm to pre-reach object position")
-        print("armReachObjectRL: Move arm to reach object position")
+        print("armReachObjectRL: Move arm to reach object position using RL")
         print("armReachObjectIK: Move arm to reach object position using IK")
         print("armReachBasket: Move arm to reach basket position")
         print("armOpenBasket: Open the basket")
         print("armCloseGripper: Close the gripper")
-        print("armOpenGripper: Open the gripper\n")
+        print("armOpenGripper: Open the gripper")
+        print("showDetectionVisualizer: Toggle detection visualizer\n")
+        print("\nAvailable joystick commands:")
         print("joy A: Go Rest")
         print("joy B: Reach Basket")
         print("joy X: Collect Object")
