@@ -101,7 +101,7 @@ class TrashControlNode(Node):
         self.Kd_legs = 0
         self.Kp_arm = 0
         self.Kd_arm = 0
-        
+
 
         # --------------------------------------------------------------
         self.ref_base_lin_vel_H = np.array([0.0, 0.0, 0.0])  # Desired base linear velocity in the horizontal plane (x, y, z)
@@ -116,7 +116,7 @@ class TrashControlNode(Node):
 
         #self.console.isDown = True  # Only in this play_mujoco script
         #self.console.isRLActivated = False  # Only in this play_mujoco script
-                 
+
         # --------------------------------------------------------------
         # Subscribers and Publishers
         # callback "mutually exclusive"
@@ -171,6 +171,7 @@ class TrashControlNode(Node):
                                                 [-1.0, 0.0, 0.0],
                                                 [0.0, -1.0, 0.0]
                                             ])
+        self.old_buttons = np.zeros(11)
 
 
     def get_grasp_pose_callback(self, msg):
@@ -218,25 +219,38 @@ class TrashControlNode(Node):
             # This will kill the process running this script
             os.system("pkill -f run_controller_ros2.py") 
             exit(0)
-        elif msg.buttons[0] == 1: 
+        elif self.old_buttons[0] == 0 and msg.buttons[0] == 1:
             # Go Home, A button
-            print("Going Home")
-            self.state_machine.armHome(self.arm_joints_position)
-        elif msg.buttons[1] == 1:
+            print("Going Rest")
+            self.state_machine.armRest(self.arm_joints_position)
+            self.old_buttons *= 0
+            self.old_buttons[0] =  1
+
+        elif self.old_buttons[1] == 0 and  msg.buttons[1] == 1:
             print("Putting Object in the Basket")
             # Put the object in the basket, B button
+            self.state_machine.armReachBasket(self.arm_joints_position)
+            self.old_buttons *= 0
+            self.old_buttons[1] = 1
             pass
-        elif msg.buttons[2] == 1: 
+        elif self.old_buttons[2] == 0 and msg.buttons[2] == 1:
             # Collect object, X button
             print("Collecting Object")
             self.state_machine.armPreReachObject(self.arm_joints_position)
             self.state_machine.armReachObjectIK(self.arm_joints_position)
             self.state_machine.armPreReachObject(self.arm_joints_position)
-        elif msg.buttons[3] == 1:
+            self.old_buttons *= 0
+            self.old_buttons[2] = 1
+
+        elif self.old_buttons[3] == 0 and  msg.buttons[3] == 1:
             # Empty the basket, Y button
             print("Emptying the Basket")
-            self.state_machine.armReachBasket(self.arm_joints_position)
             self.state_machine.armOpenBasket(self.arm_joints_position)
+            self.state_machine.armReachBasket(self.arm_joints_position)
+            self.old_buttons *= 0
+            self.old_buttons[3] = 1
+
+
 
 
     def get_base_state_callback(self, msg):

@@ -299,6 +299,8 @@ class Console():
         print("armOpenBasket: Open the basket")
         print("armCloseGripper: Close the gripper")
         print("armOpenGripper: Open the gripper\n")
-        print("getTargetIKBase: Get the target position for IK without moving")
-        print("getTargetIKCamera: Get the target position for IK without moving\n")
-        print("showIKFrames: Show the IK frames in the viewer\n")
+        print("joy A: Go Rest")
+        print("joy B: Reach Basket")
+        print("joy X: Collect Object")
+        print("joy Y: Empty the Basket\n")
+
