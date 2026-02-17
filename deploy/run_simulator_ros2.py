@@ -72,8 +72,8 @@ class MujocoSimulationNode(Node):
 
         joints_position = np.array(msg.desired_arm_joints_position)
         self.desired_arm_joints_position = joints_position
-        self.Kp_arm = np.array(msg.arm_kp)[0]*25 #FROM UNITREE Z1 DOCS DUE TO CAN
-        self.Kd_arm = np.array(msg.arm_kd)[0]*8 #FROM UNITREE Z1 DOCS DUE TO CAN
+        self.Kp_arm = np.array(msg.arm_kp)[0]*25.6 #as UNITREE Z1 SDK DUE TO COMUNICATION PROTOCOL
+        self.Kd_arm = np.array(msg.arm_kd)[0]*0.0128 #as UNITREE Z1 SDK DUE TO COMUNICATION PROTOCOL
 
 
     def get_legs_trajectory_generator_callback(self, msg):

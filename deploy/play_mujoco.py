@@ -145,8 +145,8 @@ class PlayMujoco:
                 # Impedence Loop
                 self.Kp_legs = self.locomotion_policy.Kp_stand_up_and_down
                 self.Kd_legs = self.locomotion_policy.Kd_stand_up_and_down
-                self.Kp_arm = self.manipulation_policy.Kp_arm*25 #from UNITREE Z1 DOCS DUE TO CAN
-                self.Kd_arm = self.manipulation_policy.Kd_arm*8 #from UNITREE Z1 DOCS DUE TO CAN
+                self.Kp_arm = self.manipulation_policy.Kp_arm*25.6 #as UNITREE Z1 SDK DUE TO COMUNICATION PROTOCOL
+                self.Kd_arm = self.manipulation_policy.Kd_arm*0.0128 #as UNITREE Z1 SDK DUE TO COMUNICATION PROTOCOL
 
             # RL controller --------------------------------------------------------------
             if self.console.isRLActivated and step_num % round(1 / (self.locomotion_policy.RL_FREQ * self.simulation_dt)) == 0:            
@@ -186,8 +186,8 @@ class PlayMujoco:
 
                 self.Kp_legs = self.locomotion_policy.Kp_walking
                 self.Kd_legs = self.locomotion_policy.Kd_walking
-                self.Kp_arm = self.manipulation_policy.Kp_arm*25 #from UNITREE Z1 DOCS DUE TO CAN
-                self.Kd_arm = self.manipulation_policy.Kd_arm*8 #from UNITREE Z1 DOCS DUE TO CAN
+                self.Kp_arm = self.manipulation_policy.Kp_arm*25.6 #as UNITREE Z1 SDK DUE TO COMUNICATION PROTOCOL
+                self.Kd_arm = self.manipulation_policy.Kd_arm*0.0128 #as UNITREE Z1 SDK DUE TO COMUNICATION PROTOCOL
 
                 # Torque saturation for the legs
                 max_torque = self.mjModel.actuator_ctrlrange[0:12, 1]
