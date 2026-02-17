@@ -242,13 +242,24 @@ class TrashControlNode(Node):
             self.old_buttons *= 0
             self.old_buttons[2] = 1
 
-        elif self.old_buttons[3] == 0 and  msg.buttons[3] == 1:
+        elif self.old_buttons[3] == 0 and msg.buttons[3] == 1:
             # Empty the basket, Y button
             print("Emptying the Basket")
             self.state_machine.armOpenBasket(self.arm_joints_position)
             self.state_machine.armReachBasket(self.arm_joints_position)
             self.old_buttons *= 0
             self.old_buttons[3] = 1
+        elif self.old_buttons[7] == 0 and msg.buttons[7] == 1:
+            print("Locomotion activation")
+            self.console.isRLActivated = not self.console.isRLActivated
+            self.old_buttons *= 0
+            self.old_buttons[7] = 1
+        elif(msg.axes[7] == 1.0):
+            print("goUp")
+            self.console.goUp()
+        elif(msg.axes[7] == -1.0):
+            print("goDown")
+            self.console.goDown()
 
 
 

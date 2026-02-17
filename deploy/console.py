@@ -33,6 +33,66 @@ class Console():
         else:
             return None
 
+    def goUp(self, ): 
+        if(not self.isDown):
+            print("The robot is already up")
+            return
+
+                            
+        start_time = time.time()
+        time_motion = 5.
+
+
+        initial_joint_positions = copy.deepcopy(self.controller_node.legs_joints_position)
+
+        keyframe_id = mujoco.mj_name2id(self.controller_node.mjModel, mujoco.mjtObj.mjOBJ_KEY, "home")
+        standUp_qpos = self.controller_node.mjModel.key_qpos[keyframe_id]
+        reference_joint_positions = standUp_qpos[7:19]
+
+        while(time.time() - start_time < time_motion):
+            time_diff = time.time() - start_time
+            alpha = time_diff / time_motion
+            interpolated_positions = [
+                (1 - alpha) * initial + alpha * reference
+                for initial, reference in zip(initial_joint_positions, reference_joint_positions)
+            ]
+
+            self.controller_node.desired_joint_pos_leg = np.array(interpolated_positions)
+
+            time.sleep(0.01)
+
+        self.isDown = False
+
+    def goDown(self, ):
+        if(self.isDown):
+            print("The robot is already down")
+            return
+
+        self.isDown = True
+        self.isRLActivated = False
+
+        start_time = time.time()
+        time_motion = 5.
+
+        temp = copy.deepcopy(self.controller_node.legs_joints_position)
+        initial_joint_positions = temp
+        
+        keyframe_id = mujoco.mj_name2id(self.controller_node.mjModel, mujoco.mjtObj.mjOBJ_KEY, "down")
+        goDown_qpos = self.controller_node.mjModel.key_qpos[keyframe_id]
+        reference_joint_positions = goDown_qpos[7:19]
+
+        while(time.time() - start_time < time_motion):
+            time_diff = time.time() - start_time
+            alpha = time_diff / time_motion
+            interpolated_positions = [
+                (1 - alpha) * initial + alpha * reference
+                for initial, reference in zip(initial_joint_positions, reference_joint_positions)
+            ]
+
+            self.controller_node.desired_joint_pos_leg = np.array(interpolated_positions)
+
+            time.sleep(0.01)
+
 
     def interactive_command_line(self, ):
         self.print_all_commands()
@@ -41,66 +101,12 @@ class Console():
             try:
                 if(input_string == "goUp"):
                     print("Going Up")
-                    if(not self.isDown):
-                        print("The robot is already up")
-                        continue
-
-                                        
-                    start_time = time.time()
-                    time_motion = 5.
-
-
-                    initial_joint_positions = copy.deepcopy(self.controller_node.legs_joints_position)
-
-                    keyframe_id = mujoco.mj_name2id(self.controller_node.mjModel, mujoco.mjtObj.mjOBJ_KEY, "home")
-                    standUp_qpos = self.controller_node.mjModel.key_qpos[keyframe_id]
-                    reference_joint_positions = standUp_qpos[7:19]
-
-                    while(time.time() - start_time < time_motion):
-                        time_diff = time.time() - start_time
-                        alpha = time_diff / time_motion
-                        interpolated_positions = [
-                            (1 - alpha) * initial + alpha * reference
-                            for initial, reference in zip(initial_joint_positions, reference_joint_positions)
-                        ]
-
-                        self.controller_node.desired_joint_pos_leg = np.array(interpolated_positions)
-
-                        time.sleep(0.01)
-
-                    self.isDown = False
+                    self.goUp()
 
 
                 elif(input_string == "goDown"):
                     print("Going Down")
-                    if(self.isDown):
-                        print("The robot is already down")
-                        continue
-
-                    self.isDown = True
-                    self.isRLActivated = False
-
-                    start_time = time.time()
-                    time_motion = 5.
-
-                    temp = copy.deepcopy(self.controller_node.legs_joints_position)
-                    initial_joint_positions = temp
-                    
-                    keyframe_id = mujoco.mj_name2id(self.controller_node.mjModel, mujoco.mjtObj.mjOBJ_KEY, "down")
-                    goDown_qpos = self.controller_node.mjModel.key_qpos[keyframe_id]
-                    reference_joint_positions = goDown_qpos[7:19]
-
-                    while(time.time() - start_time < time_motion):
-                        time_diff = time.time() - start_time
-                        alpha = time_diff / time_motion
-                        interpolated_positions = [
-                            (1 - alpha) * initial + alpha * reference
-                            for initial, reference in zip(initial_joint_positions, reference_joint_positions)
-                        ]
-            
-                        self.controller_node.desired_joint_pos_leg = np.array(interpolated_positions)
-
-                        time.sleep(0.01)
+                    self.goDown()
 
                     
                 elif(input_string == "activate"):
