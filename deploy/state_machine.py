@@ -14,6 +14,7 @@ class ArmStateType(Enum):
     GRASP = 3
     HOME = 4
     BASKET = 5
+    REACH_BASKET = 6
 
 class GripperStateType(Enum):
     OPEN = 0
@@ -71,7 +72,7 @@ class StateMachine:
                 self.desired_gripper_position = self.gripper_close_pos + self.gripper_close_delta
             self.gripper_state_type = gripper_state
 
-    
+
     def run_arm_smoother(self , initial_joints_position, reference_joints_position, time_motion):
         start_time = time.time()
         past_joint_positions = copy.deepcopy(initial_joints_position)
@@ -109,28 +110,35 @@ class StateMachine:
 
     
     def armReachBasket(self, initial_joints_position):
-        if(self.state_type == ArmStateType.BASKET):
+        if(self.state_type == ArmStateType.REACH_BASKET):
             print("Already in BASKET position, call armRest!")
             return
 
-        initial_joints_position = copy.deepcopy(initial_joints_position)
-        reference_joints_position = self.reach_basket_position_1 - self.offset_home_position
-        time_motion = 5.
-        self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
- 
+        if (self.state_type == ArmStateType.BASKET):
+            time_motion = 5.
+            initial_joints_position = copy.deepcopy(initial_joints_position)
+            reference_joints_position = self.open_basket_position_1 - self.offset_home_position
+            self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
+
+        else:
+            initial_joints_position = copy.deepcopy(initial_joints_position)
+            reference_joints_position = self.reach_basket_position_1 - self.offset_home_position
+            time_motion = 5.
+            self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
+
         initial_joints_position = copy.deepcopy(self.desired_position)
         reference_joints_position = self.reach_basket_position_2 - self.offset_home_position
         self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
 
-        self.change_state(state=ArmStateType.BASKET)
+        self.change_state(state=ArmStateType.REACH_BASKET)
 
 
     def armOpenBasket(self, initial_joints_position):
 
-        if(self.state_type != ArmStateType.BASKET):
+        if(self.state_type != ArmStateType.REACH_BASKET):
             print("Call armReachBasket first!")
             return
-        
+
         self.change_state(gripper_state=GripperStateType.OPEN) # OPEN
 
         time_motion = 5.
@@ -143,8 +151,12 @@ class StateMachine:
         reference_joints_position = self.open_basket_position_2 - self.offset_home_position
         self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
 
+        self.change_state(state=ArmStateType.BASKET)
+
 
     def armHome(self, initial_joints_position):
+        initial_joints_position = copy.deepcopy(initial_joints_position)
+
         if(self.state_type == ArmStateType.BASKET):
             time_motion = 5.
             initial_joints_position = copy.deepcopy(initial_joints_position)
@@ -163,12 +175,12 @@ class StateMachine:
 
             self.change_state(gripper_state=GripperStateType.CLOSE) # CLOSE
 
-        if(self.state_type == ArmStateType.PREREACH):
+        if(self.state_type == ArmStateType.PREREACH or self.state_type == ArmStateType.REACH_BASKET):
             print("going in rest position first!!")
             self.armRest(initial_joints_position)
+            initial_joints_position = copy.deepcopy(self.desired_position)
 
         time_motion = 5.
-        initial_joints_position = copy.deepcopy(initial_joints_position)
         reference_joints_position = self.home_position
         self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
 
@@ -176,9 +188,10 @@ class StateMachine:
 
 
     def armRest(self, initial_joints_position):
+        initial_joints_position = copy.deepcopy(initial_joints_position)
+
         if(self.state_type == ArmStateType.BASKET):
             time_motion = 5.
-            initial_joints_position = copy.deepcopy(initial_joints_position)
             reference_joints_position = self.open_basket_position_1 - self.offset_home_position
             self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
 
@@ -195,8 +208,18 @@ class StateMachine:
             self.change_state(gripper_state=GripperStateType.CLOSE) # CLOSE
 
 
+        if(self.state_type == ArmStateType.REACH_BASKET):
+            time_motion = 5.
+            reference_joints_position = self.reach_basket_position_1 - self.offset_home_position
+            self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
+
+            initial_joints_position = copy.deepcopy(self.desired_position)
+
+            self.change_state(gripper_state=GripperStateType.CLOSE) # CLOSE
+
+
+
         time_motion = 5.
-        initial_joints_position = copy.deepcopy(initial_joints_position)
         reference_joints_position = self.arm_rest - self.offset_home_position
         self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
 
@@ -204,18 +227,20 @@ class StateMachine:
 
 
     def armPreReachObject(self, initial_joints_position):
+        initial_joints_position = copy.deepcopy(initial_joints_position)
         if(self.state_type == ArmStateType.HOME):
             print("going in rest position first!!")
             self.armRest(initial_joints_position)
+            initial_joints_position = copy.deepcopy(self.desired_position)
 
         time_motion = 5.
-        initial_joints_position = copy.deepcopy(initial_joints_position)
+
         reference_joints_position = self.pre_reach_position - self.offset_home_position
         self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
-        
+
         self.change_state(state=ArmStateType.PREREACH)
 
-    
+
     def armReachObjectIK(self, initial_joints_position):
         if(self.state_type != ArmStateType.PREREACH and self.state_type != ArmStateType.REACH):
             print("Error: first move to pre-reach position")
