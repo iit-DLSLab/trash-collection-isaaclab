@@ -363,7 +363,7 @@ class StateMachine:
         tmp_2 = np.array([np.cos(rpy[2]/2), 0.0, 0.0, np.sin(rpy[2]/2)])
         mujoco.mju_mulQuat(q_target, tmp_2, tmp_1)
 
-        p_B[0] -= 0.06
+        p_B[0] -= 0.03
 
         return p_B, q_target
 
