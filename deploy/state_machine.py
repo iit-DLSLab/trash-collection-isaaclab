@@ -115,7 +115,7 @@ class StateMachine:
             return
 
         if (self.state_type == ArmStateType.BASKET):
-            time_motion = 5.
+            time_motion = 3.
             initial_joints_position = copy.deepcopy(initial_joints_position)
             reference_joints_position = self.open_basket_position_1 - self.offset_home_position
             self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
@@ -123,7 +123,7 @@ class StateMachine:
         else:
             initial_joints_position = copy.deepcopy(initial_joints_position)
             reference_joints_position = self.reach_basket_position_1 - self.offset_home_position
-            time_motion = 5.
+            time_motion = 3.
             self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
 
         initial_joints_position = copy.deepcopy(self.desired_position)
@@ -158,7 +158,7 @@ class StateMachine:
         initial_joints_position = copy.deepcopy(initial_joints_position)
 
         if(self.state_type == ArmStateType.BASKET):
-            time_motion = 5.
+            time_motion = 3.
             initial_joints_position = copy.deepcopy(initial_joints_position)
             reference_joints_position = self.open_basket_position_1 - self.offset_home_position
             self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
@@ -180,7 +180,7 @@ class StateMachine:
             self.armRest(initial_joints_position)
             initial_joints_position = copy.deepcopy(self.desired_position)
 
-        time_motion = 5.
+        time_motion = 3.
         reference_joints_position = self.home_position
         self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
 
@@ -191,7 +191,7 @@ class StateMachine:
         initial_joints_position = copy.deepcopy(initial_joints_position)
 
         if(self.state_type == ArmStateType.BASKET):
-            time_motion = 5.
+            time_motion = 3.
             reference_joints_position = self.open_basket_position_1 - self.offset_home_position
             self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
 
@@ -209,7 +209,7 @@ class StateMachine:
 
 
         if(self.state_type == ArmStateType.REACH_BASKET):
-            time_motion = 5.
+            time_motion = 3.
             reference_joints_position = self.reach_basket_position_1 - self.offset_home_position
             self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
 
@@ -219,7 +219,7 @@ class StateMachine:
 
 
 
-        time_motion = 5.
+        time_motion = 3.
         reference_joints_position = self.arm_rest - self.offset_home_position
         self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
 
@@ -233,7 +233,7 @@ class StateMachine:
             self.armRest(initial_joints_position)
             initial_joints_position = copy.deepcopy(self.desired_position)
 
-        time_motion = 5.
+        time_motion = 3.
 
         reference_joints_position = self.pre_reach_position - self.offset_home_position
         self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)

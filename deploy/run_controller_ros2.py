@@ -230,6 +230,7 @@ class TrashControlNode(Node):
             print("Putting Object in the Basket")
             # Put the object in the basket, B button
             self.state_machine.armReachBasket(self.arm_joints_position)
+            self.state_machine.change_state(gripper_state=GripperStateType.OPEN) # OPEN
             self.old_buttons *= 0
             self.old_buttons[1] = 1
             pass
