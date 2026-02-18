@@ -131,6 +131,7 @@ class StateMachine:
         self.run_arm_smoother(initial_joints_position, reference_joints_position, time_motion)
 
         self.change_state(state=ArmStateType.REACH_BASKET)
+        self.change_state(gripper_state=GripperStateType.OPEN)
 
 
     def armOpenBasket(self, initial_joints_position):
