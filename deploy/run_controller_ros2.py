@@ -63,7 +63,7 @@ class TrashControlNode(Node):
         keyframe_id = mujoco.mj_name2id(self.mjModel, mujoco.mjtObj.mjOBJ_KEY, "home")
         self.mjData.qpos = self.mjModel.key_qpos[keyframe_id]
         
-        self.use_detection_visualizer = True
+        self.use_detection_visualizer = False
         if self.use_detection_visualizer:
             self.visualizer_model = mujoco.MjModel.from_xml_path(dir_path+"/mujoco/models/z1/scene_floating.xml")
             self.visualizer_data = mujoco.MjData(self.visualizer_model)
@@ -230,7 +230,6 @@ class TrashControlNode(Node):
             print("Putting Object in the Basket")
             # Put the object in the basket, B button
             self.state_machine.armReachBasket(self.arm_joints_position)
-            self.state_machine.change_state(gripper_state=GripperStateType.OPEN) # OPEN
             self.old_buttons *= 0
             self.old_buttons[1] = 1
             pass
