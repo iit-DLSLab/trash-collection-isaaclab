@@ -4,7 +4,7 @@ This repository is about trash collection using RL on quadruped robots, with sim
 
 Features:
 - Locomotion policy able to adjust pose and carry a manipulator
-- Manipulation policy able to reach desired end effector goal while coordinating the pose of the quadruped
+- Manipulation policy able to reach desired end effector goal while coordinating the pose of the quadruped (**work in progress - pull request well accepted!**)
 - Whole-body Inverse Kinematics with reduced model using [mink](https://github.com/kevinzakka/mink)
 - Sim-to-Sim in [Mujoco](https://github.com/google-deepmind/mujoco)
 - Sim-to-Real in ROS1 and ROS2
@@ -23,3 +23,11 @@ A list of robots available and envs are described below:
 
 If you want only to deploy a trained policy on your robot, continue on [README_DEPLOY](https://github.com/iit-DLSLab/trash-collection-isaaclab/blob/main/README_DEPLOY.md) otherwise on [README_TRAIN](https://github.com/iit-DLSLab/trash-collection-isaaclab/blob/main/README_TRAIN.md).
 
+## Cite this work
+
+@article{turrisi26littercollection,
+  author = {Giulio Turrisi and Angelo Bratta and Giovanni Minelli and Gabriel Fischer Abati and Amir H. Rad and João Carlos Virgolino Soares and Claudio Semini},
+  title ={BinWalker: Development and Field Evaluation of a Quadruped Manipulator Platform for Sustainable Litter Collection},
+  journal = {arXiv},
+  year = {2026}
+}
