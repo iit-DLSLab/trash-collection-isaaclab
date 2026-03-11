@@ -28,7 +28,7 @@ If you want only to deploy a trained policy on your robot, continue on [README_D
 ```
 @article{turrisi26littercollection,
   author = {Giulio Turrisi and Angelo Bratta and Giovanni Minelli and Gabriel Fischer Abati and Amir H. Rad and João Carlos Virgolino Soares and Claudio Semini},
-  title ={BinWalker: Development and Field Evaluation of a Quadruped Manipulator Platform for Sustainable Litter Collection},
+  title = {BinWalker: Development and Field Evaluation of a Quadruped Manipulator Platform for Sustainable Litter Collection},
   journal = {arXiv},
   year = {2026}
 }
