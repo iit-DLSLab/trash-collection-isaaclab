@@ -25,6 +25,8 @@ If you want only to deploy a trained policy on your robot, continue on [README_D
 
 ## Cite this work
 
+If you find the work useful, please consider citing [BinWalker: Development and Field Evaluation of a Quadruped Manipulator Platform for Sustainable Litter Collection](https://arxiv.org/pdf/2603.10529):
+
 ```
 @article{turrisi26littercollection,
   author = {Giulio Turrisi and Angelo Bratta and Giovanni Minelli and Gabriel Fischer Abati and Amir H. Rad and João Carlos Virgolino Soares and Claudio Semini},
