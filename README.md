@@ -7,7 +7,7 @@ Features:
 - Manipulation policy able to reach desired end effector goal while coordinating the pose of the quadruped (**work in progress - pull request well accepted!**)
 - Whole-body Inverse Kinematics with reduced model using [mink](https://github.com/kevinzakka/mink)
 - Sim-to-Sim in [Mujoco](https://github.com/google-deepmind/mujoco)
-- Sim-to-Real in ROS1 and ROS2
+- Sim-to-Real in ROS2 compatible with our public low-level robot's hal for Unitree robots (only z1 for now available - not aliengo) [unitree_ros2_dls](https://github.com/iit-DLSLab/unitree_ros2_dls)
 
 A list of robots available and envs are described below:
 
