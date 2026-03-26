@@ -15,8 +15,8 @@ Kd_walking = 3.5
 Kp_stand_up_and_down = 25.
 Kd_stand_up_and_down = 2.
 
-Kp_arm = 5.
-Kd_arm = 1.5
+Kp_arm = 100.
+Kd_arm = 10.
 
 Kp_gripper = 5.
 Kd_gripper = 1.

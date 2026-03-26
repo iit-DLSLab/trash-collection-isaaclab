@@ -4,7 +4,6 @@ from pathlib import Path
 import mujoco
 import mujoco.viewer
 import numpy as np
-from loop_rate_limiters import RateLimiter
 
 import mink
 from mink.contrib.keyboard_teleop import keycodes
