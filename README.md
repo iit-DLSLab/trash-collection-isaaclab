@@ -35,3 +35,7 @@ If you find the work useful, please consider citing [BinWalker: Development and 
   year = {2026}
 }
 ```
+
+## Maintainer
+
+This repository is maintained by [Giulio Turrisi](https://github.com/giulioturrisi).
