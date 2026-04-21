@@ -3,9 +3,15 @@
   <img src="https://img.shields.io/badge/rsl_rl%20-v3.3.0-brown" alt="rsl-rl v3.3.0" style="margin-bottom: 1px;">
   <img src="https://img.shields.io/badge/Mujoco%20-v3.7.0-blue" alt="Mujoco v3.7.0" style="margin-bottom: 1px;">
   <div style="display: flex; justify-content: space-around;">
+<<<<<<< HEAD
     <img src="./gifs/bottle.gif" alt="Bottle" width="32%">
     <img src="./gifs/can.gif" alt="Can" width="32%">
     <img src="./gifs/empty-trash.gif" alt="Empty-trash" width="32%">
+=======
+    <img src="./gifs/grasp-bottle.gif" alt="GraspBottle" width="32%">
+    <img src="./gifs/can-to-trash.gif" alt="CanToTrash" width="29.3%">
+    <img src="./gifs/walk.gif" alt="Walk" width="32%">
+>>>>>>> ce78bf6 (changing gifs)
   </div>
 </div>
 
