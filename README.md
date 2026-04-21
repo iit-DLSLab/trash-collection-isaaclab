@@ -4,7 +4,7 @@
   <img src="https://img.shields.io/badge/Mujoco%20-v3.7.0-blue" alt="Mujoco v3.7.0" style="margin-bottom: 1px;">
   <div style="display: flex; justify-content: space-around;">
     <img src="./gifs/grasp-bottle.gif" alt="GraspBottle" width="32%">
-    <img src="./gifs/can-to-trash.gif" alt="CanToTrash" width="29.3%">
+    <img src="./gifs/can-to-trash.gif" alt="CanToTrash" width="32%">
     <img src="./gifs/walk.gif" alt="Walk" width="32%">
   </div>
 </div>
