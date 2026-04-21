@@ -3,7 +3,7 @@
   <img src="https://img.shields.io/badge/Mujoco%20-v3.7.0-blue" alt="Mujoco v3.7.0" style="margin-bottom: 1px;">
   <div style="display: flex; justify-content: space-around;">
     <img src="./gifs/bottle.gif" alt="Bottle" width="32%">
-    <img src="./gifs/can.gif" alt="Can" width="29.3%">
+    <img src="./gifs/can.gif" alt="Can" width="32%">
     <img src="./gifs/empty-trash.gif" alt="Empty-trash" width="32%">
   </div>
 </div>
